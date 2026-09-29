@@ -16,10 +16,18 @@ VTK/NumPy stack. On macOS:
 In Slicer, add `~/code/interdeca/slicer/InterDeCANext` under **Settings → Modules →
 Additional module paths**, then restart. Select **Shape Analysis → InterDeCA Next**.
 If analysis dependencies are missing, the module still displays Package Management.
-Its status checks flag missing or incompatible package versions. Install actions
-pin installed NumPy, SciPy, VTK, and Pillow versions, install
-missing analysis packages with Slicer's Python, and request a restart. A dependency
-conflict is reported rather than silently replacing the host's binary libraries.
+Its status checks distinguish required packages from optional UMAP support.
+**Check & Install Missing Packages** installs the required analysis packages.
+**Install All Recommended Packages** installs required packages first, then tries
+UMAP separately; an optional dependency failure cannot prevent core installation.
+Install actions use Slicer's Python, pin installed NumPy, SciPy, VTK, and Pillow,
+and request a restart. The installer uses binary wheels and displays pip's output;
+it does not attempt local compiler/LLVM builds or replace pinned host libraries.
+
+On the tested Intel Python runtime bundled with this macOS Slicer installation,
+NumPy is 2.4.6, while available Intel macOS Numba wheels require older NumPy.
+Consequently optional UMAP cannot currently be installed through this panel.
+ATLAS, selection, color processing, PCA, and ICA remain usable without UMAP.
 Blender is discovered through the configured path, `BLENDER_EXECUTABLE`, PATH,
 or conventional application locations. Install Blender separately if absent.
 
@@ -114,12 +122,16 @@ Focused checks completed on macOS with Slicer 5.12.4 (Python 3.12.10):
   normals and geometry when the source has a parent scene transform.
 - Loaded the dependency-management UI in the unchanged host with the core's
   computational dependencies absent.
+- Exercised the actual installer in Slicer: required dependencies installed,
+  output streamed through PythonQt, completion released controls and temporary
+  files, and an optional UMAP dependency conflict left core packages usable.
+  NumPy, SciPy, VTK, and Pillow versions remained unchanged.
 
 These are small-fixture smoke checks, not exhaustive numerical comparisons.
-The optional UMAP fit/inverse and the package install action were not exercised
-against the user's persistent Slicer environment. Missing numerical dependencies
-for smoke checks were isolated in a temporary directory; bundled libraries were
-not replaced. The CMake extension build still requires a Slicer SDK, which is not
+The optional UMAP fit/inverse remains unverified. Initial numerical smoke checks
+used temporary dependency installations; the installer check subsequently added
+the required packages to Slicer's own environment without replacing its bundled
+libraries. The CMake extension build still requires a Slicer SDK, which is not
 available in this installation.
 
 Exhaustive numerical parity, large datasets, cross-platform Slicer/Blender support,
