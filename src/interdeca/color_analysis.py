@@ -10,8 +10,10 @@ from sklearn.cluster import AgglomerativeClustering, KMeans
 from interdeca.io import TextureIO
 from interdeca.models import (
     AnalysisGeometry,
+    Arrays,
     BakedTexture,
     ColorMoments,
+    FaceColors,
     FloatArray,
     NormalizationStats,
     ProcessedColors,
@@ -22,6 +24,29 @@ from interdeca.models import (
 
 class ColorAnalysis:
     """Stateless operations on shared atlas samples and their texture colors."""
+
+    @staticmethod
+    def expand_face_colors(
+        analysis: AnalysisGeometry, rgb: FloatArray, valid: np.ndarray | None = None
+    ) -> FaceColors:
+        """Propagate sampled colors to the surface regions they represent."""
+        values = Arrays.matrix(rgb, 3, "sample RGB")
+        if len(values) != len(analysis.sample_faces) or np.any(
+            (values < 0) | (values > 1)
+        ):
+            raise ValueError("Colors must be bounded RGB in analysis sample order.")
+        coverage = (
+            np.ones(len(values), dtype=bool)
+            if valid is None
+            else np.asarray(valid, dtype=bool)
+        )
+        if coverage.shape != (len(values),):
+            raise ValueError("Coverage must have one value per sample.")
+        # Ownership preserves the geometry used by represented-area weighting.
+        return FaceColors(
+            Arrays.frozen(values[analysis.nearest_samples]),
+            Arrays.frozen(coverage[analysis.nearest_samples], bool),
+        )
 
     @staticmethod
     def sample_specimen_colors(

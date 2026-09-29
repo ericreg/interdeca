@@ -13,7 +13,11 @@ from pathlib import Path
 
 import numpy as np
 
-from interdeca._blender_protocol import BlenderBakeRequest, BlenderUVRequest
+from interdeca._blender_protocol import (
+    BlenderBakeRequest,
+    BlenderCleanupRequest,
+    BlenderUVRequest,
+)
 from interdeca.io import Files, TextureIO
 from interdeca.models import (
     AtlasModel,
@@ -23,7 +27,12 @@ from interdeca.models import (
     ResampledSpecimen,
     Specimen,
 )
-from interdeca.serde import BlenderBakeRequestData, BlenderUVRequestData, MeshData
+from interdeca.serde import (
+    BlenderBakeRequestData,
+    BlenderCleanupRequestData,
+    BlenderUVRequestData,
+    MeshData,
+)
 
 
 class BlenderError(RuntimeError):
@@ -32,6 +41,38 @@ class BlenderError(RuntimeError):
 
 class Blender:
     """Namespace for operations requiring an external Blender installation."""
+
+    @staticmethod
+    def clean_atlas(
+        atlas: AtlasModel,
+        installation: BlenderInstallation,
+        *,
+        merge_distance: float = 0.0001,
+        timeout: float = 600,
+        threads: int = 1,
+    ) -> AtlasModel:
+        """Establish cleaned atlas topology before UV mapping and final resampling.
+
+        Landmarks are independent anatomical coordinates, so merging vertices does
+        not move them. Zero disables cleanup and preserves the input exactly.
+        """
+        if not np.isfinite(merge_distance) or merge_distance < 0:
+            raise ValueError("merge_distance must be finite and nonnegative.")
+        if merge_distance == 0:
+            return atlas
+        # Private files isolate this topology-changing step from every existing atlas.
+        with tempfile.TemporaryDirectory(prefix="interdeca-clean-") as directory:
+            root = Path(directory)
+            Blender._save_mesh(atlas.mesh, root / "input.npz")
+            config = BlenderCleanupRequest(
+                str(root / "input.npz"), str(root / "output.npz"), merge_distance
+            )
+            Blender._run(installation, root, config, timeout=timeout, threads=threads)
+            with np.load(config.output, allow_pickle=False) as archive:
+                mesh = MeshData(
+                    vertices=archive["vertices"], faces=archive["faces"], uv=None
+                ).to_internal()
+        return AtlasModel(mesh, atlas.landmarks)
 
     @staticmethod
     def check_available(
@@ -124,7 +165,8 @@ class Blender:
         """Create a shared Smart UV map while preserving all vertices and faces.
 
         The input is already a valid triangular mesh. This operation performs no
-        merging, remeshing, or decimation: those would destroy correspondence.
+        merging, remeshing, or decimation: those can invalidate established correspondence.
+        Run clean_atlas first when a new common topology is being constructed.
         Angle limits are public degrees and converted to Blender's radians in
         the worker. The returned atlas owns its new per-corner UV array.
         """
@@ -288,7 +330,7 @@ class Blender:
     def _run(
         installation: BlenderInstallation,
         root: Path,
-        config: BlenderUVRequest | BlenderBakeRequest,
+        config: BlenderUVRequest | BlenderBakeRequest | BlenderCleanupRequest,
         *,
         timeout: float,
         threads: int,
@@ -308,11 +350,12 @@ class Blender:
         config_path = root / "config.json"
         # Validate and serialize with the shared schema so the separate Blender
         # interpreter receives only fields understood by this worker version.
-        data = (
-            BlenderUVRequestData.from_internal(config)
-            if isinstance(config, BlenderUVRequest)
-            else BlenderBakeRequestData.from_internal(config)
-        )
+        schemas = {
+            BlenderUVRequest: BlenderUVRequestData,
+            BlenderBakeRequest: BlenderBakeRequestData,
+            BlenderCleanupRequest: BlenderCleanupRequestData,
+        }
+        data = schemas[type(config)].from_internal(config)
         config_path.write_text(data.model_dump_json(), encoding="utf-8")
         worker = Path(__file__).with_name("_blender_worker.py")
         environment = os.environ.copy()

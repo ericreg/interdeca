@@ -3,14 +3,15 @@
 An independent Python package for landmark-guided surface correspondence,
 Blender texture transfer, color analysis, and population models.
 
-This is the first implementation of the new core. It does not import the old
-`3d_color_package` repository, Slicer, Qt, or any application scene. Execution
-managers, task scheduling, Slicer adapters, and tests are intentionally deferred.
-The implementation has not yet undergone numerical parity or integration testing.
+The numerical core and shared MVC controller do not import Slicer, Qt, or the old
+`3d_color_package` repository. A serial task executor and a separate
+**InterDeCANext** Slicer presentation package provide the active ATLAS, Mesh
+Selection, and MultiRecolor workflows. See [Slicer setup and parity](docs/slicer.md).
+An automated test suite and exhaustive numerical parity testing remain deferred.
 
 ## Installation
 
-The existing uv scaffold uses Python 3.13 or newer.
+The package supports Python 3.12 or newer, including the installed Slicer 3.12 runtime.
 
 ```sh
 cd ~/code/interdeca
@@ -33,11 +34,11 @@ immediately; it does not create a scheduled task.
 | Module | Namespace | Operations |
 | --- | --- | --- |
 | `dataset.py` | `Dataset` | `inspect_specimen`, `validate_specimens` |
-| `blender.py` | `Blender` | `check_available`, `prepare_atlas_uv`, `bake_specimen_texture` |
+| `blender.py` | `Blender` | `check_available`, `clean_atlas`, `prepare_atlas_uv`, `bake_specimen_texture` |
 | `atlas.py` | `Atlas` | `compute_reference`, `prepare_contribution`, `assemble_mean`, `align_specimen` |
-| `geometry.py` | `Geometry` | `prepare_analysis`, `resample_specimen` |
-| `color_analysis.py` | `ColorAnalysis` | `sample_specimen_colors`, `compute_normalization_stats`, `process_specimen_colors`, `average_textures` |
-| `population.py` | `Population` | `align_clusters`, `assemble_features`, `fit_model` |
+| `geometry.py` | `Geometry` | `prepare_analysis`, `resample_specimen`, `select_region`, `extract_region` |
+| `color_analysis.py` | `ColorAnalysis` | `sample_specimen_colors`, `compute_normalization_stats`, `process_specimen_colors`, `average_textures`, `expand_face_colors` |
+| `population.py` | `Population` | `align_clusters`, `assemble_features`, `fit_model`, `reconstruct_features` |
 
 `models.py` defines internal `typing.NamedTuple` inputs/results. `serde.py`
 defines Pydantic boundary models. `io.py` provides `MeshIO`, `LandmarkIO`, and
@@ -76,8 +77,8 @@ paths, or fitted estimators. No operation knows about a UI or task graph.
   are not edited. Callers must also treat input files and fitted third-party
   estimators as read-only during concurrent work.
 - **Files:** output paths are explicit. Existing outputs raise `FileExistsError`
-  unless replacement is requested. A future manager must allocate distinct
-  paths to concurrent tasks. Temporary Blender files are private per call.
+  unless replacement is requested. Atlas workflows allocate a distinct run
+  directory; temporary Blender files are private per call.
 
 Mesh input supports triangular OBJ and triangulated PLY, STL, and VTP. OBJ
 polygons must be triangulated before loading; OBJ materials are not read.
@@ -160,6 +161,8 @@ blender = Blender.check_available()
 reference = Atlas.compute_reference(specimens)
 contributions = [Atlas.prepare_contribution(item, reference) for item in specimens]
 atlas = Atlas.assemble_mean(contributions)
+# Clean before creating final UVs and resampling; choose distance in model units.
+atlas = Blender.clean_atlas(atlas, blender, merge_distance=0.0001)
 atlas = Blender.prepare_atlas_uv(atlas, blender)
 MeshIO.write_obj(atlas.mesh, output / "atlas.obj")
 LandmarkIO.write_json(atlas.landmarks, output / "atlas.mrk.json")
@@ -251,19 +254,39 @@ intersection for every specimen. Model rank and convergence are checked.
 These choices are documented intentionally: the new package is not claimed to
 produce bit-for-bit output matching the legacy Slicer implementation.
 
-## Later execution managers
+## MVC and task execution
 
-The results establish boundaries for future `list[list[Task]]` workflows:
-inspection → reference → contributions → mean atlas → UV/alignment → resampling
+`workflows.py` constructs `list[list[Task]]` workflows:
+inspection → reference → contributions → mean atlas → cleanup → UV/alignment → resampling
 and analysis preparation → baking → sampling/statistics → specimen processing
 → cluster matching/features → modeling. A supplied atlas can bypass construction.
 
-Managers will own concurrency, cancellation, resource budgets, persistence,
-progress, and Slicer integration. Independent calls here do not share a scene,
-global random generator, output directory, or mutable computation cache. Blender
-thread counts are explicit so a manager can avoid oversubscribing CPUs when
-running several bakes. No managers or task classes are included at this stage.
+`execution.py` defines `Task`, `ResultRef`, `Pipeline`, `ExecutionManager`, and
+`EventDispatcher`. Result references must point to earlier stages. Submission
+copies input arrays and freezes the stages. Registered operations receive named
+input records; task definitions contain no executable callbacks or scene objects.
 
-Testing is deferred as requested. Numerical correctness, legacy comparisons,
-Blender versions, large datasets, and future Slicer integration need their own
-validation work before this core is relied on for analysis.
+`SerialExecutionManager` runs complete pipelines FIFO on one worker thread.
+`ApplicationController` depends only on the execution protocol, not the concrete
+class. The host supplies an asynchronous dispatcher to deliver notifications on
+the application thread. The Slicer composition root wires these components;
+other UIs can supply their own view and dispatcher implementations.
+`application_models.py` holds immutable session inputs, selections, results, and
+run state. User requests are validated by `AtlasRequest`, `ColorRequest`, and
+`ModelRequest` in `serde.py` before conversion to those internal records.
+
+Cancellation prevents subsequent tasks from starting. An active operation finishes
+before the run becomes cancelled. Failures stop that pipeline and retain completed
+task results on the controller; another queued run can still execute. Shutdown is
+nonblocking and detaches callbacks. Progress counts stages and tasks, not elapsed time. No
+pause/resume, persistent execution queue, or forced thread termination is provided.
+
+Each session accepts one analysis at a time. Input revisions invalidate dependent
+results; display changes do not. Morphospace requests keep only the latest pending
+coordinates. Fitted estimators remain live, read-only session objects and are not
+made restorable by the JSON snapshot format.
+
+The automated suite remains deferred as requested. Focused core, Blender, and
+Slicer smoke checks are recorded in [the parity checklist](docs/slicer.md).
+Exhaustive numerical comparisons, broader Blender versions, and large datasets
+still need separate validation.

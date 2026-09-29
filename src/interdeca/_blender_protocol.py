@@ -10,6 +10,16 @@ from pathlib import Path
 from typing import Literal, NamedTuple
 
 
+class BlenderCleanupRequest(NamedTuple):
+    """A topology-changing step allowed only before final correspondence."""
+
+    mesh: str
+    output: str
+    merge_distance: float
+    operation: Literal["clean"] = "clean"
+    schema_version: Literal[1] = 1
+
+
 class BlenderUVRequest(NamedTuple):
     """Paths and options for one atlas UV operation."""
 
@@ -46,7 +56,9 @@ class BlenderProtocol:
     """Decode the host-validated transport without importing host dependencies."""
 
     @staticmethod
-    def read_request(path: Path) -> BlenderUVRequest | BlenderBakeRequest:
+    def read_request(
+        path: Path,
+    ) -> BlenderUVRequest | BlenderBakeRequest | BlenderCleanupRequest:
         """Convert a private JSON request immediately into its typed record.
 
         The JSON object exists only at this transport boundary. No worker
@@ -61,6 +73,8 @@ class BlenderProtocol:
         # Convert immediately to a named record so computation cannot depend on
         # arbitrary dictionary keys or silently ignore unexpected request fields.
         operation = payload.get("operation")
+        if operation == "clean":
+            return BlenderCleanupRequest(**payload)
         if operation == "uv":
             return BlenderUVRequest(**payload)
         if operation == "bake":

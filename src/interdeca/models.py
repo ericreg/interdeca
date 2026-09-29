@@ -126,6 +126,68 @@ class Mesh(NamedTuple):
         return digest.hexdigest()
 
 
+class RegionSelection(NamedTuple):
+    """A selection in canonical mesh indexing; independent of display scalars."""
+
+    topology_key: str
+    vertices: IntArray
+    faces: IntArray
+
+    def validated(self) -> Self:
+        """Require distinct nonnegative indices; mesh bounds are checked on application."""
+        vertices = Arrays.frozen(self.vertices, np.int64)
+        faces = Arrays.frozen(self.faces, np.int64)
+        for indices in (vertices, faces):
+            if (
+                indices.ndim != 1
+                or not len(indices)
+                or np.any(indices < 0)
+                or len(np.unique(indices)) != len(indices)
+            ):
+                raise ValueError(
+                    "Selection indices must be nonempty, unique, nonnegative vectors."
+                )
+        return RegionSelection(self.topology_key, vertices, faces)
+
+
+class ExtractedRegion(NamedTuple):
+    """Submesh and source indices needed to copy external scene attributes."""
+
+    mesh: Mesh
+    original_vertices: IntArray
+    original_faces: IntArray
+
+    def validated(self) -> Self:
+        """Every new element must map to one original element."""
+        selection = RegionSelection(
+            self.mesh.topology_key, self.original_vertices, self.original_faces
+        ).validated()
+        if len(selection.vertices) != len(self.mesh.vertices) or len(
+            selection.faces
+        ) != len(self.mesh.faces):
+            raise ValueError(
+                "Extraction maps must match the new vertex and face counts."
+            )
+        return ExtractedRegion(self.mesh, selection.vertices, selection.faces)
+
+
+class FaceColors(NamedTuple):
+    """Display RGB with explicit coverage so missing values never masquerade as black."""
+
+    rgb: FloatArray
+    valid: BoolArray
+
+    def validated(self) -> Self:
+        """Keep bounded display values and their coverage mask in the same face order."""
+        rgb = Arrays.matrix(self.rgb, 3, "rgb")
+        valid = Arrays.frozen(self.valid, bool)
+        if np.any((rgb < 0) | (rgb > 1)) or valid.shape != (len(rgb),):
+            raise ValueError(
+                "Face colors need bounded RGB and one coverage value per face."
+            )
+        return FaceColors(rgb, valid)
+
+
 class Landmarks(NamedTuple):
     """Ordered, uniquely named homologous positions in RAS coordinates."""
 

@@ -8,13 +8,45 @@ import math
 import sys
 from pathlib import Path
 
+import bmesh
 import bpy
 import numpy as np
-from _blender_protocol import BlenderBakeRequest, BlenderProtocol, BlenderUVRequest
+from _blender_protocol import (
+    BlenderBakeRequest,
+    BlenderCleanupRequest,
+    BlenderProtocol,
+    BlenderUVRequest,
+)
 
 
 class BlenderWorker:
     """Operations that must run inside Blender's own process and scene."""
+
+    @staticmethod
+    def clean(config: BlenderCleanupRequest) -> None:
+        """Merge vertices once, before a new common topology is established."""
+        obj = BlenderWorker.load_mesh(config.mesh, "atlas")
+        mesh = bmesh.new()
+        try:
+            # Merging can create polygons or loose vertices; publish triangles only.
+            mesh.from_mesh(obj.data)
+            bmesh.ops.remove_doubles(
+                mesh, verts=list(mesh.verts), dist=config.merge_distance
+            )
+            bmesh.ops.triangulate(mesh, faces=list(mesh.faces))
+            loose = [vertex for vertex in mesh.verts if not vertex.link_faces]
+            bmesh.ops.delete(mesh, geom=loose, context="VERTS")
+            mesh.to_mesh(obj.data)
+        finally:
+            mesh.free()
+        vertices = np.asarray(
+            [tuple(vertex.co) for vertex in obj.data.vertices], dtype=np.float64
+        )
+        faces = np.asarray(
+            [tuple(face.vertices) for face in obj.data.polygons], dtype=np.int64
+        )
+        # Old UVs no longer identify the new corners and must be regenerated.
+        np.savez(config.output, vertices=vertices, faces=faces)
 
     @staticmethod
     def load_mesh(path: str, name: str) -> bpy.types.Object:
@@ -161,12 +193,14 @@ class BlenderWorker:
         bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete(use_global=False)
         # Dispatch on the typed record so each operation receives only its own options.
-        if isinstance(config, BlenderUVRequest):
+        if isinstance(config, BlenderCleanupRequest):
+            BlenderWorker.clean(config)
+        elif isinstance(config, BlenderUVRequest):
             BlenderWorker.prepare_uv(config)
         elif isinstance(config, BlenderBakeRequest):
             BlenderWorker.bake(config)
         else:
-            raise ValueError(f"Unknown operation: {config.operation}")
+            raise TypeError(f"Unknown operation: {config.operation}")
 
 
 if __name__ == "__main__":

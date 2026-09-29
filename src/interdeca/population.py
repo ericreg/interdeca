@@ -14,6 +14,7 @@ from sklearn.exceptions import ConvergenceWarning
 from interdeca.color_analysis import ColorAnalysis
 from interdeca.models import (
     AnalysisGeometry,
+    Arrays,
     ClusterAlignment,
     PopulationFeatures,
     PopulationModel,
@@ -32,6 +33,38 @@ except ModuleNotFoundError as error:
 
 class Population:
     """Namespace for operations that need multiple specimens at once."""
+
+    @staticmethod
+    def reconstruct_features(
+        model: PopulationModel, coordinates: np.ndarray
+    ) -> PopulationFeatures:
+        """Invert component coordinates and undo training-time standardization.
+
+        UMAP's inverse is approximate. Cluster areas cannot identify spatial
+        colors, so this operation requires explicitly named per-face Lab features.
+        """
+        if not all(name.startswith("face_") for name in model.feature_names):
+            raise ValueError(
+                "Morphospace requires spatial color features, not cluster areas."
+            )
+        inverse = getattr(model.estimator, "inverse_transform", None)
+        if not callable(inverse):
+            # The model type is valid, but its fitted algorithm lacks this capability.
+            raise ValueError(  # noqa: TRY004
+                f"{model.method} does not provide an inverse transform."
+            )
+        values = np.asarray(coordinates, dtype=float)
+        if values.ndim == 1:
+            values = values[None, :]
+        values = Arrays.matrix(values, model.scores.shape[1], "coordinates")
+        # The estimator operates in standardized feature units, not original Lab.
+        reconstructed = inverse(values) * model.scale + model.center
+        return PopulationFeatures(
+            tuple(f"reconstruction_{i}" for i in range(len(values))),
+            reconstructed,
+            model.feature_names,
+            "colors",
+        ).validated()
 
     @staticmethod
     def align_clusters(

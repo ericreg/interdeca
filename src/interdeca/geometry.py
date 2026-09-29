@@ -6,16 +6,20 @@ import numpy as np
 from scipy.interpolate import RBFInterpolator
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, dijkstra
+from scipy.spatial import Delaunay, cKDTree
 from vtkmodules.vtkCommonCore import reference
 from vtkmodules.vtkCommonDataModel import vtkStaticCellLocator
 
 from interdeca.io import MeshIO
 from interdeca.models import (
     AnalysisGeometry,
+    Arrays,
     AtlasModel,
+    ExtractedRegion,
     FloatArray,
     Landmarks,
     Mesh,
+    RegionSelection,
     ResampledSpecimen,
     SpatialTransform,
     Specimen,
@@ -26,8 +30,112 @@ class Geometry:
     """Stateless geometry operations on NumPy-backed surfaces and landmarks."""
 
     @staticmethod
+    def select_region(
+        mesh: Mesh,
+        curve_points: FloatArray,
+        *,
+        same_side_only: bool = True,
+        vertex_colors: FloatArray | None = None,
+        previous: RegionSelection | None = None,
+    ) -> RegionSelection:
+        """Select the buffered projected convex envelope used by the legacy UI.
+
+        This is a planar convex-envelope selection, not a geodesic curve cut.
+        The shortest bounding-box axis supplies the legacy side heuristic.
+        Colors are explicit measurements, never selection display masks.
+        """
+        points = Arrays.matrix(curve_points, 3, "curve_points")
+        if len(points) < 3 or np.linalg.matrix_rank(points - points.mean(axis=0)) < 2:
+            raise ValueError(
+                "Selection needs at least three noncollinear curve points."
+            )
+        # Principal axes provide a two-dimensional plane for the boundary.
+        center = points.mean(axis=0)
+        _, _, basis = np.linalg.svd(points - center, full_matrices=False)
+        boundary = (points - center) @ basis[:2].T
+        projected = (mesh.vertices - center) @ basis[:2].T
+        hull = Delaunay(boundary)
+        inside = hull.find_simplex(projected) >= 0
+        # Preserve the 5% buffer without allocating a vertices-by-edges array.
+        margin = np.ptp(boundary, axis=0).max() * 0.05
+        for first, second in hull.convex_hull:
+            start, end = boundary[first], boundary[second]
+            segment = end - start
+            denominator = float(segment @ segment)
+            if denominator == 0:
+                continue
+            position = np.clip(((projected - start) @ segment) / denominator, 0, 1)
+            distance = np.linalg.norm(
+                projected - start - position[:, None] * segment, axis=1
+            )
+            inside |= distance <= margin
+        if same_side_only:
+            # A narrow axis usually separates the two sides of shell-like specimens.
+            low, high = mesh.vertices.min(axis=0), mesh.vertices.max(axis=0)
+            axis = int(np.argmin(high - low))
+            midline = (low[axis] + high[axis]) / 2
+            positive = np.count_nonzero(points[:, axis] >= midline) * 2 >= len(points)
+            sign = 1 if positive else -1
+            inside &= (mesh.vertices[:, axis] - midline) * sign >= -(
+                high[axis] - low[axis]
+            ) * 0.05
+        if vertex_colors is not None:
+            colors = Arrays.matrix(vertex_colors, 3, "vertex_colors")
+            if len(colors) != len(mesh.vertices):
+                raise ValueError("Vertex colors must use canonical mesh indexing.")
+            # Refine only the boundary so interior color differences remain selected.
+            nearest = cKDTree(mesh.vertices).query(points)[1]
+            reference = colors[nearest]
+            difference = np.abs(colors - reference.mean(axis=0)) / (
+                reference.std(axis=0) + 1e-6
+            )
+            similar = 1 / (1 + difference.mean(axis=1)) >= 0.7
+            mixed = mesh.faces[
+                np.any(inside[mesh.faces], axis=1) & ~np.all(inside[mesh.faces], axis=1)
+            ]
+            boundary_ids = np.unique(mixed)
+            inside[boundary_ids] &= similar[boundary_ids]
+        if previous is not None:
+            if previous.topology_key != mesh.topology_key:
+                raise ValueError("The previous selection belongs to a different mesh.")
+            inside[previous.vertices] = True
+        # Retain complete faces, matching the extraction contract.
+        vertices = np.flatnonzero(inside)
+        faces = np.flatnonzero(np.all(inside[mesh.faces], axis=1))
+        if not len(faces):
+            raise ValueError(
+                "The curve selected no complete faces; enlarge or reposition it."
+            )
+        return RegionSelection(
+            mesh.topology_key,
+            Arrays.frozen(vertices, np.int64),
+            Arrays.frozen(faces, np.int64),
+        )
+
+    @staticmethod
+    def extract_region(mesh: Mesh, selection: RegionSelection) -> ExtractedRegion:
+        """Extract complete triangles and retain source attribute mappings."""
+        if mesh.topology_key != selection.topology_key:
+            raise ValueError("Selection no longer matches mesh topology or UVs.")
+        faces = np.asarray(selection.faces, dtype=np.int64)
+        if not len(faces) or faces.min() < 0 or faces.max() >= len(mesh.faces):
+            raise ValueError("Selection needs valid source faces.")
+        # Compact indices while preserving original order and per-corner UV seams.
+        vertices = np.unique(mesh.faces[faces])
+        lookup = np.full(len(mesh.vertices), -1, dtype=np.int64)
+        lookup[vertices] = np.arange(len(vertices))
+        result = Mesh(
+            mesh.vertices[vertices],
+            lookup[mesh.faces[faces]],
+            None if mesh.uv is None else mesh.uv[faces],
+        ).validated()
+        return ExtractedRegion(
+            result, Arrays.frozen(vertices, np.int64), Arrays.frozen(faces, np.int64)
+        )
+
+    @staticmethod
     def prepare_analysis(
-        atlas: AtlasModel, *, sample_count: int | None = None
+        atlas: AtlasModel | Mesh, *, sample_count: int | None = None
     ) -> AnalysisGeometry:
         """Compute atlas face areas, adjacency, and a common face sampling scheme.
 
@@ -42,7 +150,7 @@ class Geometry:
         """
         # Every specimen will sample this same image tile, so missing or tiled
         # atlas UVs would make later color comparisons ambiguous.
-        mesh = atlas.mesh
+        mesh = atlas if isinstance(atlas, Mesh) else atlas.mesh
         if mesh.uv is None or np.any((mesh.uv < 0) | (mesh.uv > 1)):
             raise ValueError(
                 "Analysis requires atlas UVs within one [0, 1] texture tile."

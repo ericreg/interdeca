@@ -25,7 +25,12 @@ from pydantic import (
     model_validator,
 )
 
-from interdeca._blender_protocol import BlenderBakeRequest, BlenderUVRequest
+from interdeca._blender_protocol import (
+    BlenderBakeRequest,
+    BlenderCleanupRequest,
+    BlenderUVRequest,
+)
+from interdeca.application_models import AtlasOptions, ColorOptions, ModelOptions
 from interdeca.models import (
     AlignmentResult,
     AnalysisGeometry,
@@ -36,6 +41,8 @@ from interdeca.models import (
     BlenderInstallation,
     ClusterAlignment,
     ColorMoments,
+    ExtractedRegion,
+    FaceColors,
     Landmarks,
     Mesh,
     NormalizationStats,
@@ -43,6 +50,7 @@ from interdeca.models import (
     PopulationModel,
     PopulationModelSnapshot,
     ProcessedColors,
+    RegionSelection,
     ResampledSpecimen,
     SampledColors,
     SpatialTransform,
@@ -196,6 +204,61 @@ class CoreData(BoundaryData, Generic[Record]):
         return self._internal
 
 
+class AtlasRequest(CoreData[AtlasOptions]):
+    """Validate paths and settings before allocating an output run."""
+
+    record_type = AtlasOptions
+    models: Path
+    landmarks: Path
+    output: Path
+    textures: Path | None = None
+    atlas_model: Path | None = None
+    atlas_landmarks: Path | None = None
+    blender: str | None = None
+    merge_distance: float = Field(default=0.0001, ge=0, allow_inf_nan=False)
+    uv_angle: float = Field(default=66, gt=0, le=89, allow_inf_nan=False)
+    island_margin: float = Field(default=0.002, ge=0, lt=1, allow_inf_nan=False)
+    bake_size: int = Field(default=2048, ge=128, le=8192)
+    extrusion: float = Field(default=0.001, ge=0, allow_inf_nan=False)
+    bake_margin: int = Field(default=2, ge=0, le=64)
+
+    @model_validator(mode="after")
+    def paired_override(self) -> Self:
+        """Require anatomical landmarks whenever an atlas override is supplied."""
+        # A mesh alone cannot define anatomical correspondence for an override.
+        if (self.atlas_model is None) != (self.atlas_landmarks is None):
+            raise ValueError("An atlas override requires both model and landmarks.")
+        return self
+
+
+class ColorRequest(CoreData[ColorOptions]):
+    """Validate numerical options at the UI boundary."""
+
+    record_type = ColorOptions
+    directory: Path
+    clustering: bool = True
+    normalize: bool = False
+    initial_clusters: int = Field(default=24, ge=2, le=64)
+    clusters: int = Field(default=8, ge=2, le=64)
+    sample_count: int | None = Field(default=10000, ge=1)
+    neighbor_average: bool = False
+
+    @model_validator(mode="after")
+    def consistent_clusters(self) -> Self:
+        """Reject a consolidation request that increases the cluster count."""
+        if self.clusters > self.initial_clusters:
+            raise ValueError("Consolidated clusters cannot exceed initial clusters.")
+        return self
+
+
+class ModelRequest(CoreData[ModelOptions]):
+    """Only recognized estimators and positive component counts cross the boundary."""
+
+    record_type = ModelOptions
+    method: Literal["pca", "ica", "umap"] = "pca"
+    components: int = Field(default=2, ge=1, le=20)
+
+
 class MeshData(CoreData[Mesh]):
     """Serializable triangular mesh including optional per-corner UVs."""
 
@@ -205,6 +268,32 @@ class MeshData(CoreData[Mesh]):
     vertices: FloatBuffer
     faces: IntBuffer
     uv: FloatBuffer | None = None
+
+
+class RegionSelectionData(CoreData[RegionSelection]):
+    """Named-field serialization for canonical selection identities."""
+
+    record_type = RegionSelection
+    topology_key: NonemptyString
+    vertices: IntBuffer
+    faces: IntBuffer
+
+
+class ExtractedRegionData(CoreData[ExtractedRegion]):
+    """Carry the source-index maps alongside a standalone extracted mesh."""
+
+    record_type = ExtractedRegion
+    mesh: MeshData
+    original_vertices: IntBuffer
+    original_faces: IntBuffer
+
+
+class FaceColorsData(CoreData[FaceColors]):
+    """Serialize display colors without confusing missing coverage with black."""
+
+    record_type = FaceColors
+    rgb: FloatBuffer
+    valid: BoolBuffer
 
 
 class LandmarksData(CoreData[Landmarks]):
@@ -462,6 +551,17 @@ class PopulationModelData(CoreData[PopulationModelSnapshot]):
         # Read only the declared snapshot fields, leaving estimator state outside
         # the JSON artifact rather than implying it can be restored from these values.
         return cls.model_validate(model, from_attributes=True)
+
+
+class BlenderCleanupRequestData(CoreData[BlenderCleanupRequest]):
+    """Validate cleanup distances before the external process can modify topology."""
+
+    record_type = BlenderCleanupRequest
+    mesh: NonemptyString
+    output: NonemptyString
+    merge_distance: NonnegativeFloat
+    operation: Literal["clean"] = "clean"
+    schema_version: Literal[1] = 1
 
 
 class BlenderUVRequestData(CoreData[BlenderUVRequest]):

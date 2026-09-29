@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.16.3...3.19.7 FATAL_ERROR)
+project(InterDeCANext)
+
+# Slicer installs its own Python runtime; the uv environment is not a binary dependency.
+find_package(Slicer REQUIRED)
+include(${Slicer_USE_FILE})
+set(EXTENSION_HOMEPAGE "https://github.com/ericreg")
+set(EXTENSION_CATEGORY "Shape Analysis")
+set(EXTENSION_CONTRIBUTORS "InterDeCA")
+set(EXTENSION_DESCRIPTION "Atlas correspondence and population color analysis with independent core tasks.")
+set(EXTENSION_ICONURL "")
+set(EXTENSION_SCREENSHOTURLS "")
+set(EXTENSION_DEPENDS "NA")
+add_subdirectory(slicer/InterDeCANext)
+include(${Slicer_EXTENSION_GENERATE_CONFIG})
+include(${Slicer_EXTENSION_CPACK})
