@@ -4,6 +4,10 @@ The new module has its own name and can coexist with the original InterDeCA.
 All implementation is in this repository; the original repository is reference
 material and is not imported or modified.
 
+The [Click CLI](cli.md) exposes the same application workflows directly from the
+uv environment for testing. It shares the application session, controller, and
+pipelines used by the Slicer worker.
+
 For a dataset walkthrough, follow the [small clams manual-testing tutorial](tutorials/small_clams.md).
 
 ## Development setup
@@ -13,8 +17,6 @@ Create the computational environment outside Slicer:
 ```sh
 cd ~/code/interdeca
 uv sync
-# Optional UMAP, installed only in the worker environment:
-uv sync --extra umap
 ```
 
 Install only the independent client package into Slicer. On macOS:
@@ -38,9 +40,9 @@ override it. The panel starts a configured worker automatically and also provide
 Start/Stop controls. **Install Client Transport** installs only `websockets` and
 requires a Slicer restart.
 
-The worker reports its estimator capabilities. UMAP appears only when it imports
-successfully in that environment; its dependency constraints no longer involve
-Slicer's binary stack. Startup errors show the retained diagnostic directory,
+The worker reports PCA, ICA, and UMAP as its estimator capabilities. UMAP is
+installed by default in the worker environment; its dependency constraints do not
+involve Slicer's binary stack. Startup errors show the retained diagnostic directory,
 including subprocess stdout/stderr even when the WebSocket never connects.
 Blender remains separately installed and is discovered through the configured
 path, `BLENDER_EXECUTABLE`, PATH, or conventional application locations.
@@ -64,7 +66,7 @@ its dependencies. A CMake extension build still requires a Slicer SDK.
 | Mesh Selection | Closed curve placement, Escape, one-side filtering, accumulation, clear, selection counts, and export to a new model node |
 | MultiRecolor Step 1 | Clustering or sampling-only processing, normalization, cluster consolidation, all-face/subsampling and neighbor averaging |
 | MultiRecolor Step 2 | Raw texture, sampled colors, or shared cluster palette; existing analysis is reused |
-| MultiRecolor Step 3 | PCA/ICA/optional UMAP, component count, specimen plot, and axis changes without refitting |
+| MultiRecolor Step 3 | PCA/ICA/UMAP, component count, specimen plot, and axis changes without refitting |
 | MultiRecolor Step 4 | Starting specimen, coordinate sliders, moving plot point, and reconstructed surface colors |
 | Worker configuration, paths, progress and errors | Independent Python executable, startup diagnostics, worker capabilities, shared structured task progress/log panel, cancellation for all workflows |
 

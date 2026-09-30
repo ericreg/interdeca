@@ -1,7 +1,10 @@
 # Local application protocol, version 1
 
-The worker owns `ApplicationController`, `ApplicationState`, pipeline construction,
-and `SerialExecutionManager`. Slicer owns widgets, MRML access, world-coordinate
+The shared `ApplicationSession` in `application.py` owns `ApplicationController`,
+`ApplicationState`, pipeline construction, and `SerialExecutionManager`. Slicer
+uses this session through the WebSocket worker; the [Click CLI](cli.md) hosts the
+same session in process, passing validated command envelopes through a local queue.
+Slicer owns widgets, MRML access, world-coordinate
 scene snapshots, result rendering, and the worker process lifetime. A standalone
 Qt host can use `ApplicationClient` from `interdeca_client.client`
 with its own asynchronous UI dispatcher and view. The client package imports
@@ -25,10 +28,11 @@ Browser Origins and additional clients are rejected. Proxy routing and WebSocket
 compression are disabled. Messages are JSON text, with a 1 MiB message limit.
 The implementation uses the [websockets 15 threading API](https://websockets.readthedocs.io/en/15.0/reference/sync/client.html).
 
-The worker reports `capabilities`, including available estimator names, the reason
-UMAP could not import if applicable, and the local diagnostic log path. The host
-waits for this message before enabling analysis. Optional UMAP is imported only
-inside the worker, so its binary dependencies do not affect Slicer.
+The worker reports `capabilities`, including PCA, ICA, UMAP, and the local
+diagnostic log path. The host waits for this message before enabling analysis.
+UMAP is a required core dependency imported only in the computational environment,
+so its binary dependencies do not affect Slicer. A missing or broken core dependency
+is a startup failure captured by the launcher.
 
 There is one session and one connection per client. Disconnect closes the session;
 there is no reconnect/replay or persisted estimator restoration in version 1.
@@ -142,8 +146,10 @@ slider interpolation, fitted estimators, and analytical features remain in the
 worker. Control snapshots contain IDs and counts, so they never reuse a
 consumed artifact reference.
 
-Closing the session removes both artifact directories. Diagnostic `worker.log`,
-`stdout.log`, and `stderr.log` are retained in the session directory for inspection.
+The Slicer client removes both artifact directories when closing the session.
+The CLI retains output files as saved presentation results for testing, while
+removing its temporary inputs. Diagnostic `worker.log` is retained for both hosts;
+the socket launcher also retains subprocess `stdout.log` and `stderr.log`.
 A host crash may leave its temporary directory for manual deletion. Persistent
 atlas outputs and texture paths are outside the exchange directories and are
 never removed by this cleanup.

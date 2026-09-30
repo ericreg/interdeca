@@ -94,7 +94,7 @@ class SlicerApplication:
             self.log.appendPlainText(message)
             self._last_message = message
 
-    def capabilities_changed(self, methods, umap_error):
+    def capabilities_changed(self, methods):
         """Offer only estimators available in the independent worker environment."""
         self.colors.method.blockSignals(True)
         selected = self.colors.method.currentText.lower()
@@ -103,8 +103,6 @@ class SlicerApplication:
         if selected in methods:
             self.colors.method.setCurrentIndex(methods.index(selected))
         self.colors.method.blockSignals(False)
-        if umap_error:
-            self.receive_log("INFO", "Optional UMAP unavailable: " + umap_error)
 
     def receive_log(self, severity, message):
         """Display diagnostics separately from structured progress counters."""

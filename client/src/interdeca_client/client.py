@@ -261,7 +261,7 @@ class ApplicationClient:
             if kind == "capabilities":
                 self.connected = True
                 self.methods = tuple(message["methods"])
-                self.view.capabilities_changed(self.methods, message["umap_error"])
+                self.view.capabilities_changed(self.methods)
                 self.view.receive_log(
                     "INFO", f"Worker diagnostics: {message['log_path']}"
                 )

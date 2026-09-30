@@ -10,6 +10,7 @@ from scipy.spatial.distance import cdist
 from skimage.color import lab2rgb
 from sklearn.decomposition import PCA, FastICA
 from sklearn.exceptions import ConvergenceWarning
+from umap import UMAP
 
 from interdeca.color_analysis import ColorAnalysis
 from interdeca.models import (
@@ -20,15 +21,6 @@ from interdeca.models import (
     PopulationModel,
     ProcessedColors,
 )
-
-# Keep PCA and ICA available without installing the optional UMAP dependency.
-try:
-    from umap import UMAP
-except ModuleNotFoundError as error:
-    # Only absence of the optional package is optional; broken dependencies must surface.
-    if error.name != "umap":
-        raise
-    UMAP = None
 
 
 class Population:
@@ -269,14 +261,14 @@ class Population:
         n_neighbors: int | None = None,
         min_dist: float = 0.1,
     ) -> PopulationModel:
-        """Fit PCA, FastICA, or optional UMAP to a specimen-by-feature matrix.
+        """Fit PCA, FastICA, or UMAP to a specimen-by-feature matrix.
 
         Standardization, when requested, is fitted across specimens per feature.
         Its parameters are returned for consistent later transforms. PCA and ICA
         component counts cannot exceed the centered matrix's numerical rank;
         this also prevents undefined whitening and meaningless zero-variance axes.
 
-        UMAP requires the 'umap' package extra and at least four specimens. Its
+        UMAP is installed with the core and requires at least four specimens. Its
         random initialization avoids spectral initialization failures in small
         populations. A fixed seed and one UMAP worker favor reproducibility.
         """
@@ -330,10 +322,6 @@ class Population:
         else:
             # Validate neighborhood choices against the actual population size;
             # UMAP cannot find more distinct neighbors than available specimens.
-            if UMAP is None:
-                raise ImportError(
-                    "UMAP support is optional. Install it with: uv sync --extra umap"
-                )
             if count < 4:
                 raise ValueError(
                     "UMAP requires at least four specimens in this core API."

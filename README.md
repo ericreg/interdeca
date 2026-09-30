@@ -8,7 +8,9 @@ The numerical core does not import Slicer, Qt, or the old
 state, pipelines, and serial executor. A small WebSocket client and the
 **InterDeCANext** Slicer presentation package provide the active ATLAS, Mesh
 Selection, and MultiRecolor workflows. See [Slicer setup and parity](docs/slicer.md).
-An automated test suite and exhaustive numerical parity testing remain deferred.
+A Click CLI runs the same application session directly in the uv environment.
+See [CLI usage and Slicer parity](docs/cli.md). An automated test suite and
+exhaustive numerical parity testing remain deferred.
 
 To try the workflows manually, use the [small clams tutorial](docs/tutorials/small_clams.md).
 
@@ -21,15 +23,19 @@ its bundled numerical libraries only for scene snapshots and display.
 ```sh
 cd ~/code/interdeca
 uv sync
-# Optional, only when fitting UMAP models:
-uv sync --extra umap
 ```
+
+UMAP is a required core dependency; no extra installation flag is needed.
+Slicer still installs only the independent client, keeping UMAP and its numerical
+dependencies in the external worker environment.
 
 Blender is an external application, not a Python dependency. The worker targets
 Blender 3.6 and newer; supported-version integration testing remains to be done.
 Pass its executable to `Blender.check_available()`, set `BLENDER_EXECUTABLE`, or
-let discovery search PATH and conventional installation locations. There is no
-CLI entry point or automatic dependency installation inside core operations.
+let discovery search PATH and conventional installation locations. Core operations
+do not install dependencies automatically.
+The `interdeca` CLI and `interdeca-worker` host entry points are separate from
+those stateless numerical operations.
 
 ## Operations
 
@@ -251,7 +257,7 @@ matching to an explicit reference specimen. The common palette averages aligned
 centroids equally across specimens. Texture image averaging uses linear-light
 RGB; display conversions of normalized Lab may clip out-of-gamut colors.
 
-Population models support PCA, FastICA, and optional UMAP. Feature
+Population models support PCA, FastICA, and UMAP, all installed by `uv sync`. Feature
 standardization is explicit and its fitted parameters are returned. Missing
 samples raise by default; `missing="drop"` explicitly uses the same valid sample
 intersection for every specimen. Model rank and convergence are checked.
@@ -275,9 +281,11 @@ executor no longer allocates an implicit identifier.
 
 `SerialExecutionManager` runs complete pipelines FIFO on one worker thread.
 `ApplicationController` depends only on the execution protocol, not the concrete
-class. The worker supplies an asynchronous dispatcher to deliver notifications on
-its application thread. It constructs both components and retains the fitted
-estimators. Slicer and future standalone hosts send user actions through the
+class. `ApplicationSession` in `application.py` supplies an asynchronous dispatcher to
+deliver notifications on its application thread. It constructs both components
+and retains the fitted estimators. The WebSocket worker and in-process Click CLI
+both host this same session; `worker.py` contains only the socket host and launch
+entry point. Slicer and future standalone hosts send user actions through the
 independent `interdeca_client` package and receive presentation updates on their
 UI threads. See the [version 1 application protocol](docs/application-protocol.md)
 for JSON schemas, request/run identity, capabilities, and numerical file ownership.

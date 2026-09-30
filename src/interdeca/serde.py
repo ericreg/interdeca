@@ -927,5 +927,12 @@ class LogEvent(EventIdentity):
 class CapabilitiesEvent(EventIdentity):
     type: Literal["capabilities"] = "capabilities"
     methods: tuple[str, ...]
-    umap_error: str = ""
     log_path: str
+
+
+class RawTexturePresentation(BoundaryData):
+    """CLI equivalent of applying an existing image to a mesh in the Slicer view."""
+
+    type: Literal["raw_texture"] = "raw_texture"
+    mesh: MeshArtifacts
+    texture: Path

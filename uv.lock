@@ -18,6 +18,15 @@ wheels = [
 ]
 
 [[package]]
+name = "click"
+version = "8.5.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c7/0e/7fa0ef50764b67090eca4114772a2abf8b6148198475e54c660b97caeee6/click-8.5.0.tar.gz", hash = "sha256:ba0d2089de75ea0310e2dde03160e6ca10009947fb95a182f9b54021bb272e34", size = 382235, upload-time = "2026-08-26T13:33:14.56Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/58/50/6c0d534c5f134586a8e1ba4e330569e32f057e33372ae556463212fb4cd3/click-8.5.0-py3-none-any.whl", hash = "sha256:255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360", size = 125251, upload-time = "2026-08-26T13:33:12.928Z" },
+]
+
+[[package]]
 name = "cloudpickle"
 version = "3.1.2"
 source = { registry = "https://pypi.org/simple" }
@@ -199,6 +208,7 @@ name = "interdeca"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "click" },
     { name = "interdeca-client" },
     { name = "numpy" },
     { name = "pillow" },
@@ -206,17 +216,14 @@ dependencies = [
     { name = "scikit-image" },
     { name = "scikit-learn" },
     { name = "scipy" },
+    { name = "umap-learn" },
     { name = "vtk" },
     { name = "websockets" },
 ]
 
-[package.optional-dependencies]
-umap = [
-    { name = "umap-learn" },
-]
-
 [package.metadata]
 requires-dist = [
+    { name = "click", specifier = ">=8.2,<9" },
     { name = "interdeca-client", editable = "client" },
     { name = "numpy", specifier = ">=2.2,<3" },
     { name = "pillow", specifier = ">=11,<13" },
@@ -224,11 +231,10 @@ requires-dist = [
     { name = "scikit-image", specifier = ">=0.25,<1" },
     { name = "scikit-learn", specifier = ">=1.6,<2" },
     { name = "scipy", specifier = ">=1.15,<2" },
-    { name = "umap-learn", marker = "extra == 'umap'", specifier = ">=0.5.7,<0.6" },
+    { name = "umap-learn", specifier = ">=0.5.7,<0.6" },
     { name = "vtk", specifier = ">=9.4,<10" },
     { name = "websockets", specifier = ">=15,<16" },
 ]
-provides-extras = ["umap"]
 
 [[package]]
 name = "interdeca-client"

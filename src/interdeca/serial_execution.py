@@ -78,6 +78,11 @@ class SerialExecutionManager:
                 cancellation.set()
             self._queue.put(None)
 
+    def join(self, timeout: float | None = None) -> bool:
+        """Wait for cancelled work to finish after close, outside any UI thread."""
+        self._worker.join(timeout)
+        return not self._worker.is_alive()
+
     def _emit(self, submission: _Submission, event: ExecutionEvent) -> None:
         # Recheck at delivery time because the user may close the view after posting.
         def deliver() -> None:

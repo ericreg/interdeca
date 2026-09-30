@@ -8,6 +8,7 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "click>=8.2,<9",
     "interdeca-client==0.1.0",
     "websockets>=15,<16",
     "numpy>=2.2,<3",
@@ -16,11 +17,9 @@ dependencies = [
     "scipy>=1.15,<2",
     "scikit-image>=0.25,<1",
     "scikit-learn>=1.6,<2",
+    "umap-learn>=0.5.7,<0.6",
     "vtk>=9.4,<10",
 ]
-
-[project.optional-dependencies]
-umap = ["umap-learn>=0.5.7,<0.6"]
 
 [build-system]
 requires = ["uv_build>=0.12.13,<0.13.0"]
@@ -33,4 +32,5 @@ members = ["client"]
 interdeca-client = { workspace = true }
 
 [project.scripts]
+interdeca = "interdeca.cli:main"
 interdeca-worker = "interdeca.worker:main"
