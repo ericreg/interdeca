@@ -5,11 +5,10 @@ from typing import NamedTuple
 
 import numpy as np
 import vtk
+from interdeca_client.records import FaceColors, Mesh
 from vtk.util.numpy_support import numpy_to_vtk, numpy_to_vtkIdTypeArray, vtk_to_numpy
 
 import slicer
-from interdeca.models import FaceColors, Mesh
-from interdeca.serde import MeshData
 
 
 class SceneMesh(NamedTuple):
@@ -106,10 +105,14 @@ class SceneBridge:
             vertices = np.asarray(
                 [transform.TransformPoint(point) for point in vertices]
             )
-        mesh = MeshData(vertices=vertices, faces=faces, uv=uv).to_internal()
-        signature = sha256(
-            mesh.vertices.tobytes() + mesh.topology_key.encode()
-        ).hexdigest()
+        # Snapshots preserve source order; full numerical validation belongs to the worker.
+        mesh = Mesh(vertices, faces, uv)
+        digest = sha256(mesh.vertices.astype("<f8", copy=False).tobytes())
+        digest.update(mesh.faces.astype("<i8", copy=False).tobytes())
+        digest.update(
+            b"no-uv" if mesh.uv is None else mesh.uv.astype("<f8", copy=False).tobytes()
+        )
+        signature = digest.hexdigest()
         return SceneMesh(mesh, node.GetID(), point_ids, signature)
 
     @staticmethod

@@ -8,38 +8,51 @@ For a dataset walkthrough, follow the [small clams manual-testing tutorial](tuto
 
 ## Development setup
 
-Use Slicer's Python to install the editable core without replacing its bundled
-VTK/NumPy stack. On macOS:
+Create the computational environment outside Slicer:
 
 ```sh
-/Applications/Slicer.app/Contents/bin/PythonSlicer -m pip install --no-deps -e ~/code/interdeca
+cd ~/code/interdeca
+uv sync
+# Optional UMAP, installed only in the worker environment:
+uv sync --extra umap
 ```
 
-In Slicer, add `~/code/interdeca/slicer/InterDeCANext` under **Settings → Modules →
-Additional module paths**, then restart. Select **Shape Analysis → InterDeCA Next**.
-If analysis dependencies are missing, the module still displays Package Management.
-Its status checks distinguish required packages from optional UMAP support.
-**Check & Install Missing Packages** installs the required analysis packages.
-**Install All Recommended Packages** installs required packages first, then tries
-UMAP separately; an optional dependency failure cannot prevent core installation.
-Install actions use Slicer's Python, pin installed NumPy, SciPy, VTK, and Pillow,
-and request a restart. The installer uses binary wheels and displays pip's output;
-it does not attempt local compiler/LLVM builds or replace pinned host libraries.
+Install only the independent client package into Slicer. On macOS:
 
-On the tested Intel Python runtime bundled with this macOS Slicer installation,
-NumPy is 2.4.6, while available Intel macOS Numba wheels require older NumPy.
-Consequently optional UMAP cannot currently be installed through this panel.
-ATLAS, selection, color processing, PCA, and ICA remain usable without UMAP.
-Blender is discovered through the configured path, `BLENDER_EXECUTABLE`, PATH,
-or conventional application locations. Install Blender separately if absent.
+```sh
+/Applications/Slicer.app/Contents/bin/PythonSlicer -m pip install -e ~/code/interdeca/client
+```
 
-Do not add the uv virtual environment's `site-packages` to Slicer's Python path:
-its Python version, architecture, and compiled libraries can differ. The uv
-environment remains useful for independent core development.
+The `interdeca-client` distribution depends only on NumPy and `websockets`.
+It neither installs nor imports `interdeca`, Pydantic, SciPy, scikit-learn, or UMAP. It uses
+Slicer's existing NumPy/VTK for scene snapshots and rendering. An installed CMake
+extension includes only the client and Slicer packages, so its users need only the
+transport installation in Slicer and an independently installed worker environment.
+
+Add `~/code/interdeca/slicer/InterDeCANext` under **Settings → Modules → Additional
+module paths**, then restart. Select **Shape Analysis → InterDeCA Next**. The
+**Application Worker** panel selects the external Python executable, normally
+`~/code/interdeca/.venv/bin/python` (Windows: `.venv/Scripts/python.exe`). A source
+checkout supplies this default; `INTERDECA_WORKER_PYTHON` or the saved setting can
+override it. The panel starts a configured worker automatically and also provides
+Start/Stop controls. **Install Client Transport** installs only `websockets` and
+requires a Slicer restart.
+
+The worker reports its estimator capabilities. UMAP appears only when it imports
+successfully in that environment; its dependency constraints no longer involve
+Slicer's binary stack. Startup errors show the retained diagnostic directory,
+including subprocess stdout/stderr even when the WebSocket never connects.
+Blender remains separately installed and is discovered through the configured
+path, `BLENDER_EXECUTABLE`, PATH, or conventional application locations.
+
+Do not add the worker environment's `site-packages` to Slicer's Python path.
+Communication uses one local WebSocket, versioned JSON, and managed numerical
+files. See the [application protocol](application-protocol.md) for schemas,
+ownership, revisions, and cancellation behavior.
 
 The root CMake project supports extension packaging with a Slicer development
-build. It installs the small module entry point and both supporting packages as
-ordinary Python files. It does not bundle dependencies or concatenate sources.
+build. It packages ordinary Python client/UI files, without computational code or
+its dependencies. A CMake extension build still requires a Slicer SDK.
 
 ## Workflow parity
 
@@ -53,7 +66,7 @@ ordinary Python files. It does not bundle dependencies or concatenate sources.
 | MultiRecolor Step 2 | Raw texture, sampled colors, or shared cluster palette; existing analysis is reused |
 | MultiRecolor Step 3 | PCA/ICA/optional UMAP, component count, specimen plot, and axis changes without refitting |
 | MultiRecolor Step 4 | Starting specimen, coordinate sliders, moving plot point, and reconstructed surface colors |
-| Package management, paths, progress and errors | Separate settings namespace, dependency bootstrap, shared task progress/log panel, cancellation for all workflows |
+| Worker configuration, paths, progress and errors | Independent Python executable, startup diagnostics, worker capabilities, shared structured task progress/log panel, cancellation for all workflows |
 
 Disabled Visualize Results features and disconnected DeCAL/subsetting/painting
 handlers are not implemented. Styling is compact rather than pixel-identical.
@@ -84,57 +97,32 @@ The shared progress panel replaces repeated per-step progress widgets.
 - Clustering with subsampling disabled uses cluster-area features; sampling-only
   processing uses spatial colors at every chosen face. Cluster-area features
   cannot reconstruct spatial colors and disable morphospace.
-- Morphospace inverts the fitted transform and reverses feature standardization.
+- Slicer sends the starting specimen and normalized slider positions. The worker
+  owns fitted coordinate ranges, interpolation, and pending reconstruction requests.
+  Morphospace inverts the fitted transform and reverses feature standardization.
   PCA/ICA use their fitted inverse; UMAP's inverse is approximate and may fail.
   Unavailable inverses are disabled. Only display colors are clipped to RGB gamut.
 - Sliders are debounced for 120 ms; only the newest pending reconstruction runs.
-  The Slicer dispatcher briefly yields Python's GIL during active work, following
-  Slicer's bundled SimpleFilters approach; this prevents PythonQt's event loop
-  from starving a Python worker between native calls.
-  Cancellation waits for an active native/Blender operation to finish. A cancelled
-  or failed run may leave completed output artifacts, which are not deleted.
+  The worker receives cancellation during computation and applies it between
+  operations. Stop Worker ends its session and discards its fitted estimators.
+  Cancelled or failed runs may leave completed persistent output artifacts.
+- Mesh order and per-corner UVs cross the process boundary in `.npy` files.
+  Presentation results include request/run identities and input revisions;
+  obsolete results are discarded before updating the scene.
 
 ## Verification and deferred work
 
-The implementation phase uses focused smoke checks rather than a new automated
-test suite. The review checklist is: Python 3.12 imports; serial ordering and
-barriers; cancellation and failure isolation; Blender cleanup/UV/bake; scene and
-UV round trips; selection/export; both processing modes; population plots;
-morphospace; source invalidation; and teardown with queued callbacks.
-
-Focused checks completed on macOS with Slicer 5.12.4 (Python 3.12.10):
-
-- Built the uv wheel and source distribution; parsed every module with Python
-  3.12 grammar and checked imports and critical lint rules.
-- Ran synthetic four-specimen pipelines through selection/extraction, both color
-  processing modes, PCA, display expansion, inverse reconstruction, and the full
-  atlas pipeline with real Blender cleanup, UV generation, four bakes, and averaging.
-- Confirmed actual vertex merging preserves landmark coordinates, and region/worker
-  boundary objects round-trip through Pydantic serialization.
-- Exercised FIFO order, stage-reference validation, failure isolation, and
-  cancellation between tasks with a controlled active operation. Delayed completion
-  events were rejected after cancellation, input invalidation, and view teardown.
-- Verified ICA inverse reconstruction reverses fitted standardization, and
-  cluster-area features reject spatial reconstruction.
-- Loaded the distinct Slicer module alongside the legacy module; exercised atlas
-  generation and override/no-texture paths, selector handoff, scene/UV round trips,
-  population plotting, axis changes, raw/processed display, morphospace, selection,
-  export, clearing, and clean teardown while the UI event timer continued running.
-- Verified export retains per-corner seam attributes and UVs, including transformed
-  normals and geometry when the source has a parent scene transform.
-- Loaded the dependency-management UI in the unchanged host with the core's
-  computational dependencies absent.
-- Exercised the actual installer in Slicer: required dependencies installed,
-  output streamed through PythonQt, completion released controls and temporary
-  files, and an optional UMAP dependency conflict left core packages usable.
-  NumPy, SciPy, VTK, and Pillow versions remained unchanged.
-
-These are small-fixture smoke checks, not exhaustive numerical comparisons.
-The optional UMAP fit/inverse remains unverified. Initial numerical smoke checks
-used temporary dependency installations; the installer check subsequently added
-the required packages to Slicer's own environment without replacing its bundled
-libraries. The CMake extension build still requires a Slicer SDK, which is not
-available in this installation.
+The automated suite remains deferred. For the worker boundary, focused temporary
+smoke runs exercised the actual client and separately launched worker through
+color sampling, PCA, axis changes, specimen display, coalesced reconstruction,
+selection/export, invalidation, file cleanup, and shutdown. Export preserved face
+order and per-corner UVs. Client imports did not load the computational package.
+Malformed command correlation, stale dataset/model IDs, restart, and captured
+startup failures were also checked. A controlled active operation confirmed that
+cancellation was acknowledged before the operation finished, followed by a
+correlated cancelled event without a result. Unauthenticated connections were
+rejected. Syntax/import checks and independent client/worker wheel builds passed. The revised live Slicer UI, UMAP, and full atlas/Blender workflow still need
+an integration pass with this process boundary.
 
 Exhaustive numerical parity, large datasets, cross-platform Slicer/Blender support,
 extension-SDK builds, persistent project restoration, and a standalone Qt view

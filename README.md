@@ -3,8 +3,9 @@
 An independent Python package for landmark-guided surface correspondence,
 Blender texture transfer, color analysis, and population models.
 
-The numerical core and shared MVC controller do not import Slicer, Qt, or the old
-`3d_color_package` repository. A serial task executor and a separate
+The numerical core does not import Slicer, Qt, or the old
+`3d_color_package` repository. A separate application worker owns the MVC controller,
+state, pipelines, and serial executor. A small WebSocket client and the
 **InterDeCANext** Slicer presentation package provide the active ATLAS, Mesh
 Selection, and MultiRecolor workflows. See [Slicer setup and parity](docs/slicer.md).
 An automated test suite and exhaustive numerical parity testing remain deferred.
@@ -13,7 +14,9 @@ To try the workflows manually, use the [small clams tutorial](docs/tutorials/sma
 
 ## Installation
 
-The package supports Python 3.12 or newer, including the installed Slicer 3.12 runtime.
+The worker and core support Python 3.12 or newer in their own environment.
+Slicer installs the separate `interdeca-client` package from `client/` and uses
+its bundled numerical libraries only for scene snapshots and display.
 
 ```sh
 cd ~/code/interdeca
@@ -267,12 +270,17 @@ and analysis preparation → baking → sampling/statistics → specimen process
 `EventDispatcher`. Result references must point to earlier stages. Submission
 copies input arrays and freezes the stages. Registered operations receive named
 input records; task definitions contain no executable callbacks or scene objects.
+Every submission requires the run ID reserved by the application worker; the
+executor no longer allocates an implicit identifier.
 
 `SerialExecutionManager` runs complete pipelines FIFO on one worker thread.
 `ApplicationController` depends only on the execution protocol, not the concrete
-class. The host supplies an asynchronous dispatcher to deliver notifications on
-the application thread. The Slicer composition root wires these components;
-other UIs can supply their own view and dispatcher implementations.
+class. The worker supplies an asynchronous dispatcher to deliver notifications on
+its application thread. It constructs both components and retains the fitted
+estimators. Slicer and future standalone hosts send user actions through the
+independent `interdeca_client` package and receive presentation updates on their
+UI threads. See the [version 1 application protocol](docs/application-protocol.md)
+for JSON schemas, request/run identity, capabilities, and numerical file ownership.
 `application_models.py` holds immutable session inputs, selections, results, and
 run state. User requests are validated by `AtlasRequest`, `ColorRequest`, and
 `ModelRequest` in `serde.py` before conversion to those internal records.
@@ -280,12 +288,15 @@ run state. User requests are validated by `AtlasRequest`, `ColorRequest`, and
 Cancellation prevents subsequent tasks from starting. An active operation finishes
 before the run becomes cancelled. Failures stop that pipeline and retain completed
 task results on the controller; another queued run can still execute. Shutdown is
-nonblocking and detaches callbacks. Progress counts stages and tasks, not elapsed time. No
-pause/resume, persistent execution queue, or forced thread termination is provided.
+nonblocking and detaches callbacks. Stopping the worker ends the separate process;
+ordinary cancellation remains cooperative. Progress counts stages and tasks, not
+elapsed time. No pause/resume or persistent execution queue is provided.
 
 Each session accepts one analysis at a time. Input revisions invalidate dependent
 results; display changes do not. Morphospace requests keep only the latest pending
-coordinates. Fitted estimators remain live, read-only session objects and are not
+request. The worker also owns slider ranges and conversion to fitted coordinates;
+Slicer only sends the selected specimen and slider fractions. Fitted estimators
+remain live, read-only session objects and are not
 made restorable by the JSON snapshot format.
 
 The automated suite remains deferred as requested. Focused core, Blender, and

@@ -11,7 +11,7 @@ install(DIRECTORY interdeca_slicer
   COMPONENT Runtime
   FILES_MATCHING PATTERN "*.py"
   PATTERN "__pycache__" EXCLUDE)
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/interdeca
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/client/src/interdeca_client
   DESTINATION ${Slicer_INSTALL_QTSCRIPTEDMODULES_LIB_DIR}
   COMPONENT Runtime
   FILES_MATCHING PATTERN "*.py"
@@ -19,4 +19,4 @@ install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/interdeca
 
 # The build tree is also loadable before packaging, using the same package structure.
 file(COPY interdeca_slicer DESTINATION ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR})
-file(COPY ${PROJECT_SOURCE_DIR}/src/interdeca DESTINATION ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR})
+file(COPY ${PROJECT_SOURCE_DIR}/client/src/interdeca_client DESTINATION ${CMAKE_BINARY_DIR}/${Slicer_QTSCRIPTEDMODULES_LIB_DIR})

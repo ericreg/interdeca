@@ -4,13 +4,12 @@ from pathlib import Path
 
 import qt
 
-from interdeca.serde import ColorRequest, ModelRequest
 from interdeca_slicer.scene import SceneBridge
 from interdeca_slicer.widgets import Widgets
 
 
 class ColorTab:
-    """Keep legacy workflow order while delegating computation to the controller."""
+    """Collect user actions and render worker-provided population controls."""
 
     def __init__(self, app):
         self.app = app
@@ -73,9 +72,6 @@ class ColorTab:
         )
         self.morph_hint.wordWrap = True
         fourth.addRow(self.morph_hint)
-        self._base = None
-        self._ranges = None
-        self._population = None
         # Debouncing prevents a slider drag from building a queue of obsolete computations.
         self._timer = qt.QTimer()
         self._timer.setSingleShot(True)
@@ -92,7 +88,7 @@ class ColorTab:
         self.model.connect("currentNodeChanged(vtkMRMLNode*)", self.model_changed)
         self.directory.connect("currentPathChanged(QString)", self.directory_changed)
         self.texture.connect(
-            "currentIndexChanged(int)", lambda *_: app.render(app.controller.state)
+            "currentIndexChanged(int)", lambda *_: app.render(app.client.state)
         )
         for check in (
             self.clustering,
@@ -152,24 +148,23 @@ class ColorTab:
             return
         if self.clusters.value > self.initial.value:
             self.clusters.setValue(self.initial.value)
-        self._base = None
         self._timer.stop()
-        self.app.controller.invalidate("colors")
+        self.app.client.invalidate("colors")
 
     def fit_settings_changed(self, *args):
         """Invalidate only the population fit when estimator settings change."""
         if self.app._presenting:
             return
-        self._base = None
         self._timer.stop()
-        self.app.controller.invalidate("population")
+        self.app.client.invalidate("population")
 
     def process_colors(self):
         """Submit validated processing settings with a canonical mesh snapshot."""
         snapshot = SceneBridge.snapshot(self.model.currentNode())
         self.app.remember_source(snapshot)
-        request = ColorRequest(
-            directory=Path(self.directory.currentPath),
+        self.app.client.process_colors(
+            snapshot.mesh,
+            directory=str(self.directory.currentPath),
             clustering=bool(self.clustering.checked),
             normalize=bool(self.normalize.checked),
             initial_clusters=int(self.initial.value),
@@ -177,7 +172,6 @@ class ColorTab:
             sample_count=None if self.all_faces.checked else int(self.samples.value),
             neighbor_average=bool(self.neighbors.checked),
         )
-        self.app.controller.process_colors(snapshot.mesh, request)
 
     def show_texture(self):
         """Display an existing raw texture or request stored processed colors."""
@@ -189,118 +183,97 @@ class ColorTab:
             SceneBridge.focus(self.model.currentNode())
         else:
             self.app.remember_source(SceneBridge.snapshot(self.model.currentNode()))
-            self.app.controller.show_specimen(path.stem)
+            self.app.client.show_specimen(path.stem)
 
     def fit(self):
         """Fit the chosen estimator to the current processed population."""
         self.app.remember_source(SceneBridge.snapshot(self.model.currentNode()))
-        self.app.controller.fit_population(
-            ModelRequest(
-                method=self.method.currentText.lower(),
-                components=int(self.components.value),
-            )
+        self.app.client.fit_population(
+            method=self.method.currentText.lower(),
+            components=int(self.components.value),
         )
 
     def population_ready(self, result):
         """Populate component and specimen selectors from the completed model."""
-        self._population = result
-        self._base = None
         # Block signals while changing both axes so no temporary invalid pair is plotted.
         for combo in (self.x_axis, self.y_axis, self.start):
             combo.blockSignals(True)
             combo.clear()
         prefix = (
             "PC"
-            if result.model.method == "pca"
+            if result.method == "pca"
             else "IC"
-            if result.model.method == "ica"
+            if result.method == "ica"
             else "Component"
         )
-        labels = [f"{prefix}{i + 1}" for i in range(result.model.scores.shape[1])]
+        labels = [f"{prefix}{i + 1}" for i in range(result.components)]
         self.x_axis.addItems(labels)
         self.y_axis.addItems(labels)
         self.y_axis.setCurrentIndex(min(1, len(labels) - 1))
-        self.start.addItems(list(result.model.specimen_ids))
+        self.start.addItems(list(result.specimen_ids))
         for combo in (self.x_axis, self.y_axis, self.start):
             combo.blockSignals(False)
 
     def axes_changed(self, *args):
         """Redraw the existing scores when the selected plot columns change."""
-        state = self.app.controller.state
+        state = self.app.client.state
         if (
             state.population is None
             or min(self.x_axis.currentIndex, self.y_axis.currentIndex) < 0
         ):
             return
-        self.app.guard(
-            self.app.controller.set_axes,
-            self.x_axis.currentIndex,
-            self.y_axis.currentIndex,
-        )
-        if self._base is not None:
+        if state.morph_active:
             self.app.guard(self.begin_morph)
+        else:
+            self.app.guard(
+                self.app.client.set_axes,
+                self.x_axis.currentIndex,
+                self.y_axis.currentIndex,
+            )
 
     def start_changed(self, *args):
         """Move the morphospace starting point to the selected specimen."""
-        if self._base is not None and self.start.currentIndex >= 0:
+        if self.app.client.state.morph_active and self.start.currentIndex >= 0:
             self.app.guard(self.begin_morph)
 
     def begin_morph(self):
-        """Initialize coordinate ranges while preserving unselected model components."""
-        result = self.app.controller.state.population
-        if result is None or self.start.currentIndex < 0:
+        """Ask the worker to initialize morphospace from the selected specimen."""
+        if self.app.client.state.population is None or self.start.currentIndex < 0:
             return
-        if result.features.representation != "colors":
-            raise ValueError(
-                "Morphospace needs spatial color features; enable subsampling or use unclustered colors."
-            )
-        self._base = result.model.scores[self.start.currentIndex].copy()
-        axes = (self.x_axis.currentIndex, self.y_axis.currentIndex)
-        # Individual texture preview may have switched to 3D-only; restore the plot.
-        self.app.controller.set_axes(*axes)
-        self._ranges = tuple(
-            (
-                float(result.model.scores[:, axis].min()),
-                float(result.model.scores[:, axis].max()),
-            )
-            for axis in axes
-        )
-        for slider, axis, bounds in zip((self.x, self.y), axes, self._ranges):
-            low, high = bounds
-            slider.blockSignals(True)
-            slider.setValue(
-                round((self._base[axis] - low) / (high - low) * 1000)
-                if high > low
-                else 500
-            )
-            slider.blockSignals(False)
-        self.app.render(self.app.controller.state)
-        self.explore()
+        self._timer.stop()
+        self.app.remember_source(SceneBridge.snapshot(self.model.currentNode()))
+        self.app.client.set_axes(self.x_axis.currentIndex, self.y_axis.currentIndex)
+        self.app.client.reconstruct(self.start.currentText, None)
 
     def slider_changed(self, *args):
-        """Coalesce rapid slider edits before requesting a reconstruction."""
-        if self._base is not None:
+        """Debounce widget edits; the worker resolves coordinates and coalesces execution."""
+        if self.app.client.state.morph_active:
             self._timer.start()
 
     def explore(self):
-        """Translate slider positions into model coordinates and submit the newest request."""
-        if self._base is None or self.app.controller.state.population is None:
+        """Send normalized widget positions without interpreting population scores."""
+        if not self.app.client.state.morph_active:
             return
-        coordinates = self._base.copy()
-        axes = (self.x_axis.currentIndex, self.y_axis.currentIndex)
-        for slider, axis, bounds in zip((self.x, self.y), axes, self._ranges):
-            coordinates[axis] = bounds[0] + slider.value / 1000 * (
-                bounds[1] - bounds[0]
-            )
-        self.x_label.text = f"X: {coordinates[axes[0]]:.3f}"
-        self.y_label.text = f"Y: {coordinates[axes[1]]:.3f}"
         self.app.remember_source(SceneBridge.snapshot(self.model.currentNode()))
-        self.app.plot.point(coordinates[axes[0]], coordinates[axes[1]])
-        self.app.controller.explore(coordinates)
+        self.app.client.reconstruct(
+            self.start.currentText, (self.x.value / 1000, self.y.value / 1000)
+        )
+
+    def morph_controls(self, controls):
+        """Apply worker-provided positions and labels without submitting another action."""
+        for slider, position in zip((self.x, self.y), controls.positions):
+            slider.blockSignals(True)
+            slider.setValue(round(position * 1000))
+            slider.blockSignals(False)
+        self.x_label.text = f"X: {controls.coordinates[0]:.3f}"
+        self.y_label.text = f"Y: {controls.coordinates[1]:.3f}"
+        self.app.plot.point(*controls.coordinates)
 
     def render(self, state):
         """Enable supported actions while protecting inputs used by active tasks."""
-        busy = state.run_id is not None
+        busy = self.app.client.busy
+        if not state.morph_active:
+            self._timer.stop()
         for widget in self.inputs:
             widget.enabled = not busy
         clustering = bool(self.clustering.checked)
@@ -323,24 +296,18 @@ class ColorTab:
         self.x_axis.enabled = self.y_axis.enabled = (
             state.population is not None and not busy
         )
-        capable = (
-            state.population is not None
-            and state.population.features.representation == "colors"
-            and callable(
-                getattr(state.population.model.estimator, "inverse_transform", None)
-            )
-        )
+        capable = state.population is not None and state.population.can_reconstruct
         self.start.enabled = self.visualize.enabled = capable and (
             not busy or state.action == "morphospace"
         )
         self.x.enabled = self.y.enabled = (
             capable
-            and self._base is not None
+            and self.app.client.state.morph_active
             and (not busy or state.action == "morphospace")
         )
         self.morph_hint.text = (
             "UMAP reconstruction is approximate."
-            if capable and state.population.model.method == "umap"
+            if capable and state.population.method == "umap"
             else "Explore spatial color variation."
             if capable
             else "Morphospace requires a fitted model with spatial color features and an inverse transform."

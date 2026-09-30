@@ -1,4 +1,4 @@
-"""MVC controller shared by Slicer and future standalone presentation hosts."""
+"""Worker-owned MVC controller, independent of the host presentation toolkit."""
 
 from typing import Any, NamedTuple, Protocol
 
@@ -7,6 +7,8 @@ import numpy as np
 from interdeca.application_models import (
     ApplicationInputs,
     ApplicationState,
+    MorphControls,
+    MorphState,
     PlotData,
 )
 from interdeca.execution import ExecutionEvent, ExecutionManager, Pipeline
@@ -39,8 +41,6 @@ class ApplicationController:
         self.state = ApplicationState()
         self.completed_tasks: tuple[CompletedTask, ...] = ()
         self._closed = False
-        self._pending_morph: np.ndarray | None = None
-        self._morph_generation = 0
         self._axes = (0, 1)
 
     def _render(self) -> None:
@@ -52,17 +52,19 @@ class ApplicationController:
         action: str,
         pipeline: Pipeline,
         inputs: ApplicationInputs | None = None,
+        *,
+        run_id: str,
     ) -> None:
         """Submit a snapshot and associate every notification with its input revision."""
         if self._closed:
             raise RuntimeError("The application session is closed.")
         if self.state.run_id is not None:
             raise RuntimeError("An operation is already running.")
-        revision, morph_generation = self.state.revision, self._morph_generation
+        revision = self.state.revision
         self.completed_tasks = ()
         # The dispatcher contract guarantees notification delivery after submit returns.
         run_id = self._manager.submit(
-            pipeline, lambda event: self._on_event(event, revision, morph_generation)
+            pipeline, lambda event: self._on_event(event, revision), run_id=run_id
         )
         self.state = self.state._replace(
             run_id=run_id,
@@ -77,16 +79,17 @@ class ApplicationController:
         )
         self._render()
 
-    def run_atlas(self, request: AtlasRequest) -> None:
+    def run_atlas(self, request: AtlasRequest, *, run_id: str) -> None:
         """Validate a request and submit the atlas workflow."""
         options = request.to_internal()
         self.start(
             "atlas",
             Workflows.atlas(options),
             self.state.inputs._replace(atlas=options),
+            run_id=run_id,
         )
 
-    def process_colors(self, mesh: Mesh, request: ColorRequest) -> None:
+    def process_colors(self, mesh: Mesh, request: ColorRequest, *, run_id: str) -> None:
         """Process a snapshot of the selected mesh and its texture population."""
         # Store immutable input records alongside results so another view can restore a session.
         mesh, options = mesh.validated(), request.to_internal()
@@ -94,9 +97,10 @@ class ApplicationController:
             "colors",
             Workflows.colors(mesh, options),
             self.state.inputs._replace(color_mesh=mesh, colors=options),
+            run_id=run_id,
         )
 
-    def fit_population(self, request: ModelRequest) -> None:
+    def fit_population(self, request: ModelRequest, *, run_id: str) -> None:
         """Fit the requested model using completed color results."""
         if self.state.colors is None:
             raise ValueError("Run color processing first.")
@@ -105,14 +109,17 @@ class ApplicationController:
             "population",
             Workflows.population(self.state.colors, options),
             self.state.inputs._replace(population=options),
+            run_id=run_id,
         )
 
-    def show_specimen(self, specimen_id: str) -> None:
+    def show_specimen(self, specimen_id: str, *, run_id: str) -> None:
         """Reuse processed samples to prepare one specimen for display."""
         if self.state.colors is None:
             raise ValueError("Run color processing first.")
         self.start(
-            "display", Workflows.single("display", self.state.colors, specimen_id)
+            "display",
+            Workflows.single("display", self.state.colors, specimen_id),
+            run_id=run_id,
         )
 
     def select_region(
@@ -121,6 +128,8 @@ class ApplicationController:
         points: np.ndarray,
         same_side_only: bool,
         vertex_colors: np.ndarray | None = None,
+        *,
+        run_id: str,
     ) -> None:
         """Select a region from plain curve coordinates and canonical mesh data."""
         mesh, points = mesh.validated(), Arrays.frozen(points)
@@ -139,13 +148,18 @@ class ApplicationController:
                 curve_points=points,
                 same_side_only=same_side_only,
             ),
+            run_id=run_id,
         )
 
-    def export_region(self, mesh: Mesh) -> None:
+    def export_region(self, mesh: Mesh, *, run_id: str) -> None:
         """Extract the accumulated selection without reading scene objects."""
         if self.state.selection is None:
             raise ValueError("Apply a region selection first.")
-        self.start("export", Workflows.single("extract", mesh, self.state.selection))
+        self.start(
+            "export",
+            Workflows.single("extract", mesh, self.state.selection),
+            run_id=run_id,
+        )
 
     def clear_selection(self) -> None:
         """Clear numerical selection state and restore the normal mesh display."""
@@ -154,14 +168,12 @@ class ApplicationController:
 
     def invalidate(self, scope: str = "colors") -> None:
         """Invalidate dependents after data edits, while display changes stay local."""
-        self._pending_morph = None
-        self._morph_generation += 1
         self.cancel()
         changes = {"revision": self.state.revision + 1}
         if scope in ("colors", "mesh", "all"):
-            changes.update(colors=None, population=None)
+            changes.update(colors=None, population=None, morph=None)
         if scope in ("population", "all"):
-            changes.update(population=None)
+            changes.update(population=None, morph=None)
         if scope in ("selection", "mesh", "all"):
             changes.update(selection=None)
         if scope == "all":
@@ -172,7 +184,6 @@ class ApplicationController:
 
     def cancel(self) -> None:
         """Request cancellation without waiting for the active operation."""
-        self._pending_morph = None
         if self.state.run_id is not None:
             self._manager.cancel(self.state.run_id)
             self.state = self.state._replace(
@@ -200,39 +211,62 @@ class ApplicationController:
             ),
         )
 
-    def explore(self, coordinates: np.ndarray) -> None:
-        """Keep only the newest slider request while a reconstruction is running."""
-        if self.state.population is None or self.state.colors is None:
+    def reconstruct(
+        self, specimen_id: str, positions: tuple[float, float] | None, *, run_id: str
+    ) -> None:
+        """Map slider fractions into fitted coordinates entirely inside the worker.
+
+        For an axis with fitted bounds [low, high], position t represents
+        low + t * (high - low). Other components keep the selected specimen's
+        scores. A constant axis uses its single value and centers its slider.
+        """
+        population = self.state.population
+        if population is None or self.state.colors is None:
             raise ValueError("Fit a population model first.")
-        self._morph_generation += 1
-        if self.state.run_id is not None:
-            if self.state.action != "morphospace":
-                raise RuntimeError("Wait for the current analysis to finish.")
-            self._pending_morph = np.asarray(coordinates, dtype=float).copy()
-            self._manager.cancel(self.state.run_id)
-            return
+        if population.features.representation != "colors" or not callable(
+            getattr(population.model.estimator, "inverse_transform", None)
+        ):
+            raise ValueError("This population model cannot reconstruct spatial colors.")
+        scores = population.model.scores
+        try:
+            index = population.model.specimen_ids.index(specimen_id)
+        except ValueError:
+            raise ValueError(
+                "The starting specimen is not in this population."
+            ) from None
+        # Only the two visible axes move; the complete base vector stays worker-owned.
+        coordinates = scores[index].copy()
+        bounds = tuple(
+            (float(scores[:, axis].min()), float(scores[:, axis].max()))
+            for axis in self._axes
+        )
+        if positions is not None:
+            for axis, position, (low, high) in zip(self._axes, positions, bounds):
+                coordinates[axis] = low + position * (high - low)
+        controls = MorphControls(
+            tuple(
+                float((coordinates[axis] - low) / (high - low)) if high > low else 0.5
+                for axis, (low, high) in zip(self._axes, bounds)
+            ),
+            tuple(float(coordinates[axis]) for axis in self._axes),
+        )
         self.start(
             "morphospace",
-            Workflows.single(
-                "reconstruct", self.state.population, self.state.colors, coordinates
-            ),
+            Workflows.single("reconstruct", population, self.state.colors, coordinates),
+            run_id=run_id,
         )
+        self.state = self.state._replace(
+            morph=MorphState(specimen_id, Arrays.frozen(coordinates))
+        )
+        self._view.present("morph_controls", controls)
+        self._render()
 
-    def _on_event(
-        self, event: ExecutionEvent, revision: int, morph_generation: int
-    ) -> None:
+    def _on_event(self, event: ExecutionEvent, revision: int) -> None:
         if self._closed or event.run_id != self.state.run_id:
             return
         # A completed event may already be queued when Cancel is clicked. The UI's
         # cancellation decision still prevents that delayed result from being applied.
-        stale = (
-            self.state.status == "cancelling"
-            or revision != self.state.revision
-            or (
-                self.state.action == "morphospace"
-                and morph_generation != self._morph_generation
-            )
-        )
+        stale = self.state.status == "cancelling" or revision != self.state.revision
         terminal = event.kind in ("completed", "failed", "cancelled")
         if event.kind == "task_completed":
             self.completed_tasks += (CompletedTask(event.task_id, event.result),)
@@ -268,12 +302,18 @@ class ApplicationController:
             # Only successful complete workflows replace the last useful session result.
             if action == "atlas":
                 self.state = self.state._replace(
-                    atlas=result, colors=None, population=None, selection=None
+                    atlas=result,
+                    colors=None,
+                    population=None,
+                    selection=None,
+                    morph=None,
                 )
             elif action == "colors":
-                self.state = self.state._replace(colors=result, population=None)
+                self.state = self.state._replace(
+                    colors=result, population=None, morph=None
+                )
             elif action == "population":
-                self.state = self.state._replace(population=result)
+                self.state = self.state._replace(population=result, morph=None)
             elif action == "selection":
                 self.state = self.state._replace(selection=result)
             self._view.present(action, result)
@@ -285,13 +325,8 @@ class ApplicationController:
                 event.failure.traceback,
             )
         self._render()
-        # A newer request replaces the obsolete display result without restarting fitting.
-        pending, self._pending_morph = self._pending_morph, None
-        if pending is not None and self.state.population is not None:
-            self.explore(pending)
 
     def close(self) -> None:
         """Detach the view before asking the execution implementation to shut down."""
         self._closed = True
-        self._pending_morph = None
         self._manager.close()

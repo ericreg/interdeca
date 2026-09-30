@@ -1,15 +1,14 @@
-"""ATLAS form mirroring the supported controls in the legacy Slicer module."""
+"""ATLAS widgets that send user inputs through the application client."""
 
 from pathlib import Path
 
 import qt
 
-from interdeca.serde import AtlasRequest
 from interdeca_slicer.widgets import Widgets
 
 
 class AtlasTab:
-    """Collect validated requests; the controller constructs and executes pipelines."""
+    """Collect form values; the worker validates requests and constructs pipelines."""
 
     def __init__(self, app):
         self.app = app
@@ -80,7 +79,7 @@ class AtlasTab:
         """Persist input paths and invalidate results derived from older settings."""
         for key, widget in zip(self.settings_keys, self.paths):
             self.app.settings.setValue("atlas/" + key, widget.currentPath)
-        self.app.controller.invalidate("all")
+        self.app.client.invalidate("all")
         valid = all(
             widget.currentPath and Path(widget.currentPath).is_dir()
             for widget in (self.models, self.landmarks)
@@ -92,15 +91,15 @@ class AtlasTab:
         )
 
     def execute(self):
-        """Validate form values and hand an atlas request to the shared controller."""
+        """Send atlas form values to the worker through the application client."""
         # Convert empty optional paths to None rather than the current directory.
         optional = lambda widget: (
-            Path(widget.currentPath) if widget.currentPath else None
+            str(widget.currentPath) if widget.currentPath else None
         )
-        request = AtlasRequest(
-            models=Path(self.models.currentPath),
-            landmarks=Path(self.landmarks.currentPath),
-            output=Path(self.output.currentPath),
+        self.app.client.run_atlas(
+            models=str(self.models.currentPath),
+            landmarks=str(self.landmarks.currentPath),
+            output=str(self.output.currentPath),
             textures=optional(self.textures),
             atlas_model=optional(self.atlas_model),
             atlas_landmarks=optional(self.atlas_landmarks),
@@ -112,7 +111,6 @@ class AtlasTab:
             extrusion=float(self.extrusion.value),
             bake_margin=int(self.bake_margin.value),
         )
-        self.app.controller.run_atlas(request)
 
     def render(self, busy):
         """Lock pipeline inputs during execution and enable Run only with required paths."""

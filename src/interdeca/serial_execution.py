@@ -5,7 +5,6 @@ from queue import Queue
 from threading import Event, Lock, Thread
 from traceback import format_exc
 from typing import NamedTuple
-from uuid import uuid4
 
 from interdeca.execution import (
     EventDispatcher,
@@ -45,13 +44,18 @@ class SerialExecutionManager:
         self._worker = Thread(target=self._work, name="interdeca-serial", daemon=True)
         self._worker.start()
 
-    def submit(self, pipeline: Pipeline, observer: Observer) -> RunId:
-        """Snapshot and validate inputs before accepting a run."""
+    def submit(self, pipeline: Pipeline, observer: Observer, *, run_id: RunId) -> RunId:
+        """Submit inputs using the run ID already allocated by the application worker."""
         frozen = TaskValues.snapshot(pipeline, self._operations)
         with self._lock:
             if self._closed:
                 raise RuntimeError("Execution manager is closed.")
-            run_id = uuid4().hex
+            if not run_id:
+                raise ValueError(
+                    "The application worker must allocate a run identifier."
+                )
+            if run_id in self._pending:
+                raise ValueError("A run identifier is already active.")
             cancellation = Event()
             self._pending[run_id] = cancellation
             self._queue.put(_Submission(run_id, frozen, observer, cancellation))

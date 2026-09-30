@@ -8,6 +8,8 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "interdeca-client==0.1.0",
+    "websockets>=15,<16",
     "numpy>=2.2,<3",
     "pillow>=11,<13",
     "pydantic>=2.11,<3",
@@ -23,3 +25,12 @@ umap = ["umap-learn>=0.5.7,<0.6"]
 [build-system]
 requires = ["uv_build>=0.12.13,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv.workspace]
+members = ["client"]
+
+[tool.uv.sources]
+interdeca-client = { workspace = true }
+
+[project.scripts]
+interdeca-worker = "interdeca.worker:main"

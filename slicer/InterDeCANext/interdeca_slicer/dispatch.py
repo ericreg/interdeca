@@ -15,7 +15,6 @@ class SlicerDispatcher:
     def __init__(self):
         self._callbacks = Queue()
         self._closed = False
-        self._active = False
         self._timer = qt.QTimer()
         self._timer.setInterval(25)
         self._timer.connect("timeout()", self._deliver)
@@ -26,15 +25,10 @@ class SlicerDispatcher:
         if not self._closed:
             self._callbacks.put(callback)
 
-    def set_active(self, active):
-        """Yield Python execution while a session has work, as Slicer's SimpleFilters does."""
-        self._active = active
-
     def _deliver(self):
-        # PythonQt can hold the GIL while waiting in its C++ event loop. A short,
-        # bounded yield lets the Python worker reacquire it after native/I/O calls.
-        if self._active and not self._closed:
-            sleep(0.005)
+        # PythonQt may hold the GIL in its C++ event loop. Briefly yield so the
+        # transport thread can read sockets; numerical execution is in another process.
+        sleep(0.001)
         # Bound each batch so a long event backlog cannot monopolize the event loop.
         for _ in range(100):
             try:

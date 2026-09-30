@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16.3...3.19.7 FATAL_ERROR)
 project(InterDeCANext)
 
-# Slicer installs its own Python runtime; the uv environment is not a binary dependency.
+# Slicer hosts only the client; analysis uses a separately installed Python environment.
 find_package(Slicer REQUIRED)
 include(${Slicer_USE_FILE})
 set(EXTENSION_HOMEPAGE "https://github.com/ericreg")

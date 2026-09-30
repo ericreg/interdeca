@@ -7,6 +7,7 @@ buffers before a record reaches an algorithm. Pydantic stays out of the
 geometry/color computation code and out of Blender's Python installation.
 """
 
+import json
 from pathlib import Path
 from typing import Annotated, ClassVar, Generic, Literal, Self, TypeVar
 
@@ -653,3 +654,278 @@ class LandmarkRowData(BoundaryData):
     x: FiniteFloat
     y: FiniteFloat
     z: FiniteFloat
+
+
+# Application messages contain explicit operations and artifact metadata. They
+# never serialize tasks, Python class names, or fitted estimator instances.
+class ArrayArtifact(BoundaryData):
+    """One completed numerical .npy file relative to the private session root."""
+
+    path: Annotated[
+        str, StringConstraints(pattern=r"^(inputs|outputs)/[a-f0-9]{32}\.npy$")
+    ]
+    dtype: NonemptyString
+    shape: tuple[Annotated[StrictInt, Field(ge=0)], ...] = Field(max_length=4)
+
+
+class MeshArtifacts(BoundaryData):
+    """Ordered geometry and per-corner UV buffers; decoding never reindexes them."""
+
+    vertices: ArrayArtifact
+    faces: ArrayArtifact
+    uv: ArrayArtifact | None = None
+
+
+class EmptyPayload(BoundaryData):
+    """An action with no additional inputs."""
+
+
+class ColorsPayload(BoundaryData):
+    mesh: MeshArtifacts
+    options: ColorRequest
+
+
+class FitPayload(BoundaryData):
+    dataset_id: NonemptyString
+    options: ModelRequest
+
+
+class DisplayPayload(BoundaryData):
+    dataset_id: NonemptyString
+    specimen_id: NonemptyString
+
+
+class SelectPayload(BoundaryData):
+    mesh: MeshArtifacts
+    points: ArrayArtifact
+    same_side_only: bool = True
+    vertex_colors: ArrayArtifact | None = None
+
+
+class ExportPayload(BoundaryData):
+    mesh: MeshArtifacts
+
+
+class InvalidatePayload(BoundaryData):
+    scope: Literal["colors", "population", "selection", "mesh", "curve", "all"]
+
+
+class AxesPayload(BoundaryData):
+    model_id: NonemptyString
+    x_axis: Annotated[StrictInt, Field(ge=0)]
+    y_axis: Annotated[StrictInt, Field(ge=0)]
+
+
+class ReconstructPayload(BoundaryData):
+    model_id: NonemptyString
+    specimen_id: NonemptyString
+    # None starts at the specimen; fractions move only the worker's selected axes.
+    positions: (
+        tuple[
+            Annotated[FiniteFloat, Field(ge=0, le=1)],
+            Annotated[FiniteFloat, Field(ge=0, le=1)],
+        ]
+        | None
+    )
+
+
+class CommandIdentityData(BoundaryData):
+    """Recover correlation fields even when the rest of a command is malformed."""
+
+    model_config = ConfigDict(extra="ignore")
+    request_id: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+    input_revision: Annotated[StrictInt, Field(ge=0)]
+
+
+class ApplicationCommand(BoundaryData):
+    """Versioned envelope; action selects a second, strict payload validation step."""
+
+    protocol_version: Literal[1]
+    type: Literal["command"]
+    request_id: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+    input_revision: Annotated[StrictInt, Field(ge=0)]
+    action: Literal[
+        "run_atlas",
+        "process_colors",
+        "fit_population",
+        "show_specimen",
+        "select_region",
+        "export_region",
+        "clear_selection",
+        "invalidate",
+        "set_axes",
+        "reconstruct",
+        "cancel",
+    ]
+    # A JSON lookup is appropriate here: its fixed-field schema depends on action.
+    payload: dict
+
+    def validated_payload(self) -> BoundaryData:
+        """Validate the operation's named fields without accepting arbitrary objects."""
+        schemas = {
+            "run_atlas": AtlasRequest,
+            "process_colors": ColorsPayload,
+            "fit_population": FitPayload,
+            "show_specimen": DisplayPayload,
+            "select_region": SelectPayload,
+            "export_region": ExportPayload,
+            "clear_selection": EmptyPayload,
+            "invalidate": InvalidatePayload,
+            "set_axes": AxesPayload,
+            "reconstruct": ReconstructPayload,
+            "cancel": EmptyPayload,
+        }
+        # JSON validation accepts path strings and JSON arrays under strict typing.
+        return schemas[self.action].model_validate_json(json.dumps(self.payload))
+
+
+class ControlStateData(BoundaryData):
+    """Small control snapshot; numerical session data remains in the worker."""
+
+    revision: int
+    run_id: str | None
+    action: str
+    status: str
+    completed: int
+    total: int
+    stage: int
+    stages: int
+    message: str
+    dataset_id: str | None
+    model_id: str | None
+    selection_vertices: int = 0
+    selection_faces: int = 0
+    morph_active: bool
+
+
+class MeshPresentation(BoundaryData):
+    mesh: MeshArtifacts
+    directory: str
+    has_textures: bool
+    average: str | None
+
+
+class ColorsPresentation(BoundaryData):
+    dataset_id: str
+
+
+class PopulationPresentationData(BoundaryData):
+    model_id: str
+    method: Literal["pca", "ica", "umap"]
+    specimen_ids: tuple[str, ...]
+    components: PositiveInteger
+    representation: Literal["colors", "cluster_areas"]
+    can_reconstruct: bool
+
+
+class PlotPresentation(BoundaryData):
+    specimen_ids: tuple[str, ...]
+    scores: ArrayArtifact
+    method: str
+    x_axis: int
+    y_axis: int
+
+
+class MorphControlsData(BoundaryData):
+    """Ready-to-display slider fractions and plot coordinates computed by the worker."""
+
+    positions: tuple[FiniteFloat, FiniteFloat]
+    coordinates: tuple[FiniteFloat, FiniteFloat]
+
+
+class FaceColorsPresentation(BoundaryData):
+    rgb: ArrayArtifact
+    valid: ArrayArtifact
+
+
+class SelectionPresentation(BoundaryData):
+    vertices: ArrayArtifact
+    faces: ArrayArtifact
+
+
+class ExportPresentation(BoundaryData):
+    mesh: MeshArtifacts
+    original_vertices: ArrayArtifact
+    original_faces: ArrayArtifact
+
+
+class EventIdentity(BoundaryData):
+    """Every run event retains its originating request and input revision."""
+
+    protocol_version: Literal[1] = 1
+    request_id: str | None = None
+    run_id: str | None = None
+    input_revision: int = 0
+
+
+class AcceptedEvent(EventIdentity):
+    type: Literal["accepted"] = "accepted"
+    action: str
+
+
+class ProgressEvent(EventIdentity):
+    type: Literal["progress"] = "progress"
+    operation: str
+    completed: int
+    total: int
+    stage: int
+    stages: int
+
+
+class StateEvent(EventIdentity):
+    type: Literal["presentation"] = "presentation"
+    action: Literal["state"] = "state"
+    payload: ControlStateData
+
+
+class ResultEvent(EventIdentity):
+    type: Literal["result"] = "result"
+    action: Literal[
+        "atlas",
+        "colors",
+        "population",
+        "plot",
+        "display",
+        "morphospace",
+        "morph_controls",
+        "selection",
+        "export",
+        "clear_selection",
+    ]
+    payload: (
+        MeshPresentation
+        | ColorsPresentation
+        | PopulationPresentationData
+        | PlotPresentation
+        | FaceColorsPresentation
+        | MorphControlsData
+        | SelectionPresentation
+        | ExportPresentation
+        | EmptyPayload
+    )
+
+
+class TerminalEvent(EventIdentity):
+    type: Literal["completed", "failed", "cancelled"]
+    message: str = ""
+    details: str = ""
+
+
+class LogEntryData(EventIdentity):
+    """Structured diagnostics are independent of task progress."""
+
+    severity: str
+    message: str
+
+
+class LogEvent(EventIdentity):
+    type: Literal["log"] = "log"
+    entries: tuple[LogEntryData, ...]
+    dropped: int = 0
+
+
+class CapabilitiesEvent(EventIdentity):
+    type: Literal["capabilities"] = "capabilities"
+    methods: tuple[str, ...]
+    umap_error: str = ""
+    log_path: str
