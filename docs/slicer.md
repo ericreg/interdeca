@@ -114,7 +114,10 @@ The shared progress panel replaces repeated per-step progress widgets.
 
 ## Verification and deferred work
 
-The automated suite remains deferred. For the worker boundary, focused temporary
+The [small-clams pytest](../tests/end_to_end/README.md) launches this module in a
+separate Slicer process and compares its full workflow and MRML outputs against
+the CLI. Run it with `uv run pytest tests/end_to_end/test_small_clams.py -v -s`;
+it is not registered in CMake. For the worker boundary, earlier focused temporary
 smoke runs exercised the actual client and separately launched worker through
 color sampling, PCA, axis changes, specimen display, coalesced reconstruction,
 selection/export, invalidation, file cleanup, and shutdown. Export preserved face
@@ -123,8 +126,9 @@ Malformed command correlation, stale dataset/model IDs, restart, and captured
 startup failures were also checked. A controlled active operation confirmed that
 cancellation was acknowledged before the operation finished, followed by a
 correlated cancelled event without a result. Unauthenticated connections were
-rejected. Syntax/import checks and independent client/worker wheel builds passed. The revised live Slicer UI, UMAP, and full atlas/Blender workflow still need
-an integration pass with this process boundary.
+rejected. Syntax/import checks and independent client/worker wheel builds passed.
+The end-to-end test now provides a repeatable check of the Slicer UI and full
+atlas/Blender workflow; consult its README for prerequisites and current limitations.
 
 Exhaustive numerical parity, large datasets, cross-platform Slicer/Blender support,
 extension-SDK builds, persistent project restoration, and a standalone Qt view

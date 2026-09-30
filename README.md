@@ -9,8 +9,8 @@ state, pipelines, and serial executor. A small WebSocket client and the
 **InterDeCANext** Slicer presentation package provide the active ATLAS, Mesh
 Selection, and MultiRecolor workflows. See [Slicer setup and parity](docs/slicer.md).
 A Click CLI runs the same application session directly in the uv environment.
-See [CLI usage and Slicer parity](docs/cli.md). An automated test suite and
-exhaustive numerical parity testing remain deferred.
+See [CLI usage and Slicer parity](docs/cli.md). A [pytest end-to-end check](tests/end_to_end/README.md)
+compares independent Slicer and CLI runs of the small clams dataset.
 
 To try the workflows manually, use the [small clams tutorial](docs/tutorials/small_clams.md).
 
@@ -224,7 +224,13 @@ specimen closest to the resulting landmark mean. Scaling is off by default.
 Contributions use spline-guided nearest-surface projection, then the atlas is an
 equal-weight coordinate-wise mean of corresponding vertices and landmarks.
 Projection distances are returned as diagnostics; resampling can reject a
-caller-defined maximum distance. Invalid or collapsed triangles raise errors.
+caller-defined maximum distance. Native surfaces and analysis atlases reject
+collapsed triangles. A nearest-point projection can map distinct atlas vertices
+onto the same specimen point or edge, so resampled correspondence meshes retain
+those collapsed faces without removing or reordering indices or UVs. They use
+`CorrespondenceMeshData` at boundaries; `MeshIO.read(..., allow_degenerate=True)`
+explicitly reads such exported meshes. They are used for averaging and baking,
+not as source surfaces for barycentric queries or analysis area weights.
 
 The spline uses the 3-D radial basis `r` plus an affine term. In SciPy this is
 `RBFInterpolator(kernel="linear", degree=1)` (the kernel's minus sign is absorbed
@@ -307,7 +313,9 @@ Slicer only sends the selected specimen and slider fractions. Fitted estimators
 remain live, read-only session objects and are not
 made restorable by the JSON snapshot format.
 
-The automated suite remains deferred as requested. Focused core, Blender, and
-Slicer smoke checks are recorded in [the parity checklist](docs/slicer.md).
+The [small-clams pytest](tests/end_to_end/README.md) runs the CLI and Slicer as
+separate applications and compares numerical outputs and MRML presentation data.
+Earlier core, Blender, and Slicer smoke checks are recorded in
+[the parity checklist](docs/slicer.md).
 Exhaustive numerical comparisons, broader Blender versions, and large datasets
 still need separate validation.

@@ -26,6 +26,7 @@ from interdeca.models import (
     TexturePixels,
 )
 from interdeca.serde import (
+    CorrespondenceMeshData,
     LandmarkRowData,
     LandmarksData,
     MarkupControlPointData,
@@ -61,23 +62,31 @@ class MeshIO:
     """Read triangular surfaces and preserve separate geometry/UV indexing."""
 
     @staticmethod
-    def read(path: Path | str, *, coordinate_system: CoordinateSystem = "RAS") -> Mesh:
+    def read(
+        path: Path | str,
+        *,
+        coordinate_system: CoordinateSystem = "RAS",
+        allow_degenerate: bool = False,
+    ) -> Mesh:
         """Load triangular OBJ, or triangulate PLY/STL/VTP using VTK.
 
         OBJ must already be triangulated; silently fan-triangulating a concave
         polygon would change its surface. Materials are not imported: supply a
         single texture explicitly to Dataset.inspect_specimen. UV seams in OBJ
         remain per-corner values instead of becoming duplicate mesh vertices.
+        Set allow_degenerate only when reading projected correspondence outputs;
+        they may retain collapsed triangles to preserve shared atlas indexing.
         """
         # Establish a real input path and an explicit axis convention before
         # interpreting coordinates that later alignment will treat as comparable.
         source = Path(path).expanduser().resolve(strict=True)
         if coordinate_system not in ("RAS", "LPS"):
             raise ValueError("coordinate_system must be RAS or LPS.")
+        schema = CorrespondenceMeshData if allow_degenerate else MeshData
         # OBJ needs separate vertex and UV indexing to preserve seams; use the
         # format-specific VTK readers for the other supported surface formats.
         if source.suffix.lower() == ".obj":
-            mesh = MeshIO._read_obj(source)
+            mesh = MeshIO._read_obj(source, schema)
         else:
             readers = {
                 ".ply": vtkPLYReader,
@@ -109,16 +118,16 @@ class MeshIO:
             # the same texture representation once it enters the core.
             tcoords = polydata.GetPointData().GetTCoords()
             uv = None if tcoords is None else vtk_to_numpy(tcoords)[faces, :2]
-            mesh = MeshData(vertices=vertices, faces=faces, uv=uv).to_internal()
+            mesh = schema(vertices=vertices, faces=faces, uv=uv).to_internal()
         if coordinate_system == "LPS":
             # Flipping both x and y has positive determinant and preserves winding.
-            mesh = MeshData(
+            mesh = schema(
                 vertices=mesh.vertices * [-1, -1, 1], faces=mesh.faces, uv=mesh.uv
             ).to_internal()
         return mesh
 
     @staticmethod
-    def _read_obj(path: Path) -> Mesh:
+    def _read_obj(path: Path, schema: type[MeshData] = MeshData) -> Mesh:
         """Parse vertex and UV indices independently, including negative indices."""
         # Keep geometry and texture indices separate because one geometric
         # vertex may have a different texture coordinate on each side of a seam.
@@ -180,7 +189,7 @@ class MeshIO:
             )
         # Structural parsing alone cannot detect invalid geometry; apply the
         # boundary model's numerical checks before exposing the mesh to callers.
-        return MeshData(
+        return schema(
             vertices=np.asarray(vertices),
             faces=np.asarray(faces, dtype=np.int64),
             uv=np.asarray(face_uv) if face_uv else None,
@@ -198,15 +207,24 @@ class MeshIO:
         return resolved
 
     @staticmethod
-    def write_obj(mesh: Mesh, path: Path | str, *, overwrite: bool = False) -> Path:
+    def write_obj(
+        mesh: Mesh,
+        path: Path | str,
+        *,
+        overwrite: bool = False,
+        allow_degenerate: bool = False,
+    ) -> Path:
         """Save RAS geometry and corner UVs without changing vertex/face order.
 
         One vt record per face corner is intentional: a geometric vertex can
         belong to several UV islands. This file contains no material library.
+        allow_degenerate preserves collapsed triangles in correspondence outputs;
+        ordinary surface exports keep strict geometric validation.
         """
         # Check the complete record before encoding so an invalid internal mesh
         # cannot become an apparently valid artifact for another process.
-        mesh = MeshData.from_internal(mesh).to_internal()
+        schema = CorrespondenceMeshData if allow_degenerate else MeshData
+        mesh = schema.from_internal(mesh).to_internal()
         stream = io.StringIO()
         stream.write(
             "# InterDeCA; RAS coordinates; triangle and vertex order preserved\n"

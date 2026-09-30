@@ -25,7 +25,7 @@ from interdeca.dataset import Dataset
 from interdeca.execution import Pipeline, ResultRef, Task
 from interdeca.geometry import Geometry
 from interdeca.io import LandmarkIO, MeshIO, TextureIO
-from interdeca.models import AtlasModel, BakedTexture, Mesh
+from interdeca.models import AtlasModel, BakedTexture, Mesh, ResampledSpecimen, Specimen
 from interdeca.population import Population
 
 
@@ -118,9 +118,17 @@ class Operations:
         return atlas
 
     @staticmethod
-    def save_specimen(specimen: Any, directory: Path) -> Any:
+    def save_specimen(
+        specimen: Specimen | ResampledSpecimen, directory: Path
+    ) -> Specimen | ResampledSpecimen:
         """Publish aligned or resampled geometry and retain its numerical result."""
-        MeshIO.write_obj(specimen.mesh, directory / f"{specimen.specimen_id}.obj")
+        # Only projected outputs may retain collapsed faces; aligned native
+        # specimens still need valid source triangles for surface queries.
+        MeshIO.write_obj(
+            specimen.mesh,
+            directory / f"{specimen.specimen_id}.obj",
+            allow_degenerate=isinstance(specimen, ResampledSpecimen),
+        )
         LandmarkIO.write_json(
             specimen.landmarks, directory / f"{specimen.specimen_id}.mrk.json"
         )

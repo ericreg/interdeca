@@ -269,6 +269,25 @@ class MeshData(CoreData[Mesh]):
     vertices: FloatBuffer
     faces: IntBuffer
     uv: FloatBuffer | None = None
+    allow_degenerate: ClassVar[bool] = False
+
+    @model_validator(mode="after")
+    def validate_record(self) -> Self:
+        """Keep validation policy a schema choice, never an untrusted wire field."""
+        self._internal = Mesh(self.vertices, self.faces, self.uv).validated(
+            allow_degenerate=self.allow_degenerate
+        )
+        return self
+
+
+class CorrespondenceMeshData(MeshData):
+    """Projected mesh retaining collapsed faces and every original index and UV.
+
+    Only resampled outputs use this schema. Native inputs and shared analysis
+    geometry continue to use MeshData, which rejects degenerate triangles.
+    """
+
+    allow_degenerate: ClassVar[bool] = True
 
 
 class RegionSelectionData(CoreData[RegionSelection]):
@@ -388,7 +407,7 @@ class ResampledSpecimenData(CoreData[ResampledSpecimen]):
     # away the evidence needed to assess correspondence before baking.
     record_type = ResampledSpecimen
     specimen_id: NonemptyString
-    mesh: MeshData
+    mesh: CorrespondenceMeshData
     landmarks: LandmarksData
     projection_distances: FloatBuffer
 

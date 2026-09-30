@@ -79,8 +79,15 @@ class Mesh(NamedTuple):
     faces: IntArray
     uv: FloatArray | None = None
 
-    def validated(self) -> Self:
-        """Reject invalid connectivity and geometrically degenerate triangles."""
+    def validated(self, *, allow_degenerate: bool = False) -> Self:
+        """Validate indexing and UVs; require positive-area triangles by default.
+
+        Nearest-surface correspondence can project distinct vertices onto the
+        same point or edge. Such a result may retain collapsed faces for atlas
+        averaging and texture transfer, using allow_degenerate=True. Removing
+        those faces would destroy correspondence. Native surfaces and analysis
+        atlases still use the strict default before area or barycentric work.
+        """
         # Check connectivity before indexing vertices so bad face references
         # produce a clear validation error rather than an unrelated NumPy failure.
         vertices = Arrays.matrix(self.vertices, 3, "vertices")
@@ -89,19 +96,26 @@ class Mesh(NamedTuple):
             raise ValueError("faces must have shape (M, 3), with M > 0.")
         if faces.min() < 0 or faces.max() >= len(vertices):
             raise ValueError("A face references a nonexistent vertex.")
-        # Degenerate triangles cannot support stable area or barycentric
-        # calculations, even when their vertex indices are otherwise valid.
-        triangles = vertices[faces]
-        edges = triangles[:, 1:] - triangles[:, :1]
-        areas_twice = np.linalg.norm(np.cross(edges[:, 0], edges[:, 1]), axis=1)
-        # A relative threshold behaves consistently under changes of length unit.
-        edge_products = np.linalg.norm(edges[:, 0], axis=1) * np.linalg.norm(
-            edges[:, 1], axis=1
-        )
-        if np.any(areas_twice <= np.finfo(float).eps * 32 * edge_products):
-            raise ValueError(
-                "Mesh contains zero-area or numerically degenerate triangles."
+        # Projection can collapse positions, but it must never collapse index identities.
+        if np.any(
+            (faces[:, 0] == faces[:, 1])
+            | (faces[:, 1] == faces[:, 2])
+            | (faces[:, 2] == faces[:, 0])
+        ):
+            raise ValueError("A face must reference three distinct vertex indices.")
+        if not allow_degenerate:
+            # Area and barycentric calculations need nondegenerate input triangles.
+            # A relative threshold is unchanged when length units change.
+            triangles = vertices[faces]
+            edges = triangles[:, 1:] - triangles[:, :1]
+            areas_twice = np.linalg.norm(np.cross(edges[:, 0], edges[:, 1]), axis=1)
+            edge_products = np.linalg.norm(edges[:, 0], axis=1) * np.linalg.norm(
+                edges[:, 1], axis=1
             )
+            if np.any(areas_twice <= np.finfo(float).eps * 32 * edge_products):
+                raise ValueError(
+                    "Mesh contains zero-area or numerically degenerate triangles."
+                )
         # A UV value belongs to each face corner, which allows seams without
         # duplicating geometric vertices and changing correspondence.
         uv = None if self.uv is None else Arrays.frozen(self.uv)

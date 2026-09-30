@@ -31,6 +31,15 @@ members = ["client"]
 [tool.uv.sources]
 interdeca-client = { workspace = true }
 
+[dependency-groups]
+dev = [
+    "pytest>=9,<10",
+]
+
 [project.scripts]
 interdeca = "interdeca.cli:main"
 interdeca-worker = "interdeca.worker:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["end_to_end: launches Slicer, the uv worker, and Blender"]

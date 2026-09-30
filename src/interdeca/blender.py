@@ -31,6 +31,7 @@ from interdeca.serde import (
     BlenderBakeRequestData,
     BlenderCleanupRequestData,
     BlenderUVRequestData,
+    CorrespondenceMeshData,
     MeshData,
 )
 
@@ -284,7 +285,9 @@ class Blender:
         with tempfile.TemporaryDirectory(prefix="interdeca-bake-") as directory:
             root = Path(directory)
             Blender._save_mesh(specimen.mesh, root / "source.npz")
-            Blender._save_mesh(target.mesh, root / "target.npz")
+            # Projected targets can contain collapsed faces; retaining their UV
+            # corners preserves correspondence without altering the native source.
+            Blender._save_mesh(target.mesh, root / "target.npz", allow_degenerate=True)
             config = BlenderBakeRequest(
                 source=str(root / "source.npz"),
                 target=str(root / "target.npz"),
@@ -316,11 +319,12 @@ class Blender:
         )
 
     @staticmethod
-    def _save_mesh(mesh: Mesh, path: Path) -> None:
+    def _save_mesh(mesh: Mesh, path: Path, *, allow_degenerate: bool = False) -> None:
         """Pass plain numeric arrays to Blender without Python object pickling."""
         # Validate before crossing processes, and omit absent UVs entirely so the
         # archive contains only numeric arrays rather than a pickled None object.
-        mesh = MeshData.from_internal(mesh).to_internal()
+        schema = CorrespondenceMeshData if allow_degenerate else MeshData
+        mesh = schema.from_internal(mesh).to_internal()
         if mesh.uv is None:
             np.savez(path, vertices=mesh.vertices, faces=mesh.faces)
         else:

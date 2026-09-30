@@ -148,9 +148,12 @@ class Geometry:
         Farthest-point selection runs one graph shortest-path search per chosen
         face. It favors clarity and reproducibility over maximum speed.
         """
+        mesh = atlas if isinstance(atlas, Mesh) else atlas.mesh
+        # Correspondence outputs may retain collapsed faces, but the common
+        # analysis atlas must supply stable, positive surface-area weights.
+        mesh = mesh.validated()
         # Every specimen will sample this same image tile, so missing or tiled
         # atlas UVs would make later color comparisons ambiguous.
-        mesh = atlas if isinstance(atlas, Mesh) else atlas.mesh
         if mesh.uv is None or np.any((mesh.uv < 0) | (mesh.uv > 1)):
             raise ValueError(
                 "Analysis requires atlas UVs within one [0, 1] texture tile."
@@ -265,8 +268,11 @@ class Geometry:
         are applied to the *original* specimen triangle, giving a point exactly
         on its piecewise-linear surface without an approximate inverse warp.
 
-        The output retains atlas faces and UVs. Landmarks retain the specimen's
-        aligned positions. At least four noncoplanar landmarks are required.
+        The output retains atlas faces and UVs, including faces collapsed by
+        the many-to-one closest-point projection. They remain indexed for atlas
+        averaging and baking, not for area or barycentric calculations.
+        Landmarks retain the specimen's aligned positions. At least four
+        noncoplanar landmarks are required.
         Distances and the optional rejection threshold use the common warped
         coordinate system, in the caller's length units.
         """
@@ -373,7 +379,9 @@ class Geometry:
         vertices = np.einsum("ni,nij->nj", weights, native_triangles)
         # Retain atlas indexing and UVs so all baked textures describe the same
         # face locations, even though specimen vertex positions differ.
-        mesh = Mesh(vertices, atlas.mesh.faces, atlas.mesh.uv).validated()
+        mesh = Mesh(vertices, atlas.mesh.faces, atlas.mesh.uv).validated(
+            allow_degenerate=True
+        )
         return ResampledSpecimen(
             specimen.specimen_id, mesh, subject_landmarks, projection_distances
         ).validated()

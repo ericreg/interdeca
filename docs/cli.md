@@ -158,6 +158,12 @@ status; complete diagnostics are retained in `worker.log` and `events.jsonl`.
 
 ## Outputs and testing
 
+Run `uv run pytest tests/end_to_end/test_small_clams.py -v -s` to compare a fresh
+CLI run against the actual Slicer module using the small clams dataset. See the
+[end-to-end test guide](../tests/end_to_end/README.md) for applications, data,
+comparison tolerances, and retained diagnostics. These tests use pytest directly,
+without Slicer/CMake test registration.
+
 ```text
 session-directory/
   events.jsonl                # typed application events, including failures and logs
