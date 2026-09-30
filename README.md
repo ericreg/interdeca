@@ -9,6 +9,8 @@ The numerical core and shared MVC controller do not import Slicer, Qt, or the ol
 Selection, and MultiRecolor workflows. See [Slicer setup and parity](docs/slicer.md).
 An automated test suite and exhaustive numerical parity testing remain deferred.
 
+To try the workflows manually, use the [small clams tutorial](docs/tutorials/small_clams.md).
+
 ## Installation
 
 The package supports Python 3.12 or newer, including the installed Slicer 3.12 runtime.

@@ -4,6 +4,8 @@ The new module has its own name and can coexist with the original InterDeCA.
 All implementation is in this repository; the original repository is reference
 material and is not imported or modified.
 
+For a dataset walkthrough, follow the [small clams manual-testing tutorial](tutorials/small_clams.md).
+
 ## Development setup
 
 Use Slicer's Python to install the editable core without replacing its bundled

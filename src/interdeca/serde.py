@@ -606,7 +606,9 @@ class MarkupControlPointData(BoundaryData):
     # Accept unrelated Slicer display metadata while preserving its external field
     # names, but require a defined position before a landmark can enter alignment.
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
-    id: str = ""
+    # Existing Markups exports use both numeric and textual IDs. Anatomical
+    # correspondence uses labels, so preserve either ID form without coercing it.
+    id: str | StrictInt = ""
     label: NonemptyString
     position: tuple[FiniteFloat, FiniteFloat, FiniteFloat]
     position_status: Literal["defined"] = Field(
