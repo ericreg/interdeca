@@ -2,8 +2,9 @@
 
 The original InterDeCA Atlas remains a separate comparison backend. This module
 does not substitute its algorithms when MorphoWeave fails. TPS, upstream mean
-construction, float32 outputs, and upstream scale conventions are intentional
-properties of this first integration and must be assessed against that baseline.
+construction and float32 outputs remain upstream properties. The application
+restores representative input scale after mean construction, without changing
+the upstream calculation or the original comparison backend.
 """
 
 import logging
@@ -20,7 +21,15 @@ from vtkmodules.vtkCommonDataModel import vtkMultiBlockDataSet, vtkPolyData
 from interdeca._morphoweave_host import Host, load_atlas_builder
 from interdeca.dataset import Dataset
 from interdeca.io import LandmarkIO, MeshIO
-from interdeca.models import AtlasModel, Landmarks, ResampledSpecimen, Specimen
+from interdeca.models import (
+    AtlasModel,
+    AtlasScaleConversion,
+    AtlasScaleResult,
+    Landmarks,
+    Mesh,
+    ResampledSpecimen,
+    Specimen,
+)
 from interdeca.serde import CorrespondenceMeshData, ResampledSpecimenData
 
 logger = logging.getLogger(__name__)
@@ -98,7 +107,8 @@ class MorphoWeave:
         normalize_scale controls upstream runAlign. Upstream reference/mean GPA
         independently uses similarity alignment even when this setting is false.
         Exact duplicate vertices are cleaned before establishing atlas topology;
-        later Blender cleanup and UV generation remain shared by both backends.
+        the returned atlas still uses upstream scale. The application calls
+        restore_input_scale before Blender cleanup and UV generation.
         """
         specimens = Dataset.validate_specimens(specimens)
         for specimen in specimens:
@@ -118,6 +128,62 @@ class MorphoWeave:
             # is legal here because no atlas UVs or population index contract exists yet.
             surface = context.logic.cleanPolyData(model.GetPolyData(), normals=False)
             return AtlasModel(host.mesh(surface), landmarks.landmarks)
+
+    @staticmethod
+    def restore_input_scale(
+        atlas: AtlasModel, specimens: Sequence[Specimen]
+    ) -> AtlasScaleResult:
+        """Scale an upstream atlas to the arithmetic mean input centroid size.
+
+        Each specimen contributes sqrt(sum(||landmark - centroid||**2)) with
+        equal weight. All inputs must use the same length units and landmark
+        labels. The mesh and landmarks undergo one uniform transform about the
+        atlas landmark centroid, preserving pose, faces, UVs, and mean shape.
+
+        Measure the actual upstream size instead of assuming it is exactly one.
+        This changes only the atlas coordinate scale; individual specimen size
+        normalization remains a separate alignment choice. Call this before
+        distance-based cleanup, and never on a supplied atlas override.
+        """
+        specimens = Dataset.validate_specimens(specimens)
+        landmarks = atlas.landmarks.validated()
+        center = landmarks.points.mean(axis=0)
+        source_size = float(np.linalg.norm(landmarks.points - center))
+        # Average sizes of original configurations, not coordinates or squared
+        # sizes: translations and the alignment mode must not change this target.
+        sizes = []
+        for specimen in specimens:
+            points = specimen.landmarks.reordered(landmarks.labels).points
+            sizes.append(float(np.linalg.norm(points - points.mean(axis=0))))
+        target_size = float(np.mean(sizes))
+        if (
+            not np.isfinite([source_size, target_size]).all()
+            or min(source_size, target_size) <= 0
+        ):
+            raise ValueError(
+                "Atlas scale conversion requires finite positive centroid sizes."
+            )
+        factor = target_size / source_size
+        if not np.isfinite(factor) or factor <= 0:
+            raise ValueError(
+                "Atlas scale conversion requires a finite positive factor."
+            )
+        # Apply the identical map to the surface and anatomical anchors. New
+        # records leave the normalized atlas and the input specimens untouched.
+        scaled = AtlasModel(
+            Mesh(
+                center + factor * (atlas.mesh.vertices - center),
+                atlas.mesh.faces,
+                atlas.mesh.uv,
+            ).validated(),
+            Landmarks(
+                center + factor * (landmarks.points - center), landmarks.labels
+            ).validated(),
+        )
+        conversion = AtlasScaleConversion(
+            source_size, target_size, factor, tuple(float(value) for value in center)
+        )
+        return AtlasScaleResult(scaled, conversion)
 
     @staticmethod
     def align_specimens(

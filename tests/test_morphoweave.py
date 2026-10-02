@@ -8,10 +8,12 @@ import pytest
 
 from interdeca import _morphoweave_host, morphoweave
 from interdeca._morphoweave_host import Host, load_atlas_builder
+from interdeca.application_models import AtlasOptions
 from interdeca.atlas import Atlas
-from interdeca.models import AtlasModel, Landmarks, Mesh, Specimen
+from interdeca.models import AtlasModel, AtlasScaleConversion, Landmarks, Mesh, Specimen
 from interdeca.morphoweave import MorphoWeave
-from interdeca.serde import AtlasRequest
+from interdeca.serde import AtlasRequest, AtlasRunData, AtlasScaleConversionData
+from interdeca.workflows import Operations
 
 
 @pytest.fixture
@@ -66,7 +68,11 @@ def test_high_level_workflow_runs_without_slicer_and_preserves_source_uvs(
     monkeypatch.setattr(Atlas, "compute_reference", forbidden)
     monkeypatch.setattr(Atlas, "align_specimen", forbidden)
     originals = tuple(item.mesh.vertices.copy() for item in specimens)
-    atlas = MorphoWeave.build_atlas(specimens)
+    normalized = MorphoWeave.build_atlas(specimens)
+    scaled = MorphoWeave.restore_input_scale(normalized, specimens)
+    atlas = scaled.atlas
+    assert scaled.conversion.source_centroid_size == pytest.approx(1)
+    assert scaled.conversion.target_centroid_size == pytest.approx(np.sqrt(10.5))
     aligned = MorphoWeave.align_specimens(specimens, atlas)
     assert calls == ["_generateAtlas", "runAlign", "runMean", "runAlign"]
     assert atlas.landmarks.labels == specimens[0].landmarks.labels
@@ -196,3 +202,128 @@ def test_duplicate_warp_positions_are_rejected_before_vtk(specimens):
     source = first._replace(landmarks=landmarks)
     with pytest.raises(ValueError, match="distinct positions"):
         MorphoWeave.resample_specimen(source, AtlasModel(first.mesh, landmarks))
+
+
+def test_atlas_scale_restoration_preserves_pose_shape_and_correspondence(specimens):
+    """Unequal, translated specimens distinguish arithmetic mean size from RMS size."""
+    first = specimens[0]
+    offset = np.array([12.0, -3.0, 8.0])
+    large = Specimen(
+        "Large",
+        first.mesh._replace(vertices=3 * first.mesh.vertices + offset),
+        first.landmarks._replace(points=3 * first.landmarks.points + offset),
+    ).validated()
+    atlas = AtlasModel(
+        first.mesh._replace(vertices=0.5 * first.mesh.vertices + offset).validated(),
+        first.landmarks._replace(
+            points=0.5 * first.landmarks.points + offset
+        ).validated(),
+    )
+    original_vertices = atlas.mesh.vertices.copy()
+    original_landmarks = atlas.landmarks.points.copy()
+    result = MorphoWeave.restore_input_scale(atlas, (first, large))
+    center = original_landmarks.mean(axis=0)
+    assert result.conversion.source_centroid_size == pytest.approx(0.5 * np.sqrt(10.5))
+    assert result.conversion.target_centroid_size == pytest.approx(2 * np.sqrt(10.5))
+    assert result.conversion.factor == pytest.approx(4)
+    np.testing.assert_allclose(result.conversion.center, center)
+    np.testing.assert_allclose(result.atlas.landmarks.points.mean(axis=0), center)
+    np.testing.assert_allclose(
+        result.atlas.mesh.vertices, center + 4 * (original_vertices - center)
+    )
+    np.testing.assert_allclose(
+        result.atlas.landmarks.points, center + 4 * (original_landmarks - center)
+    )
+    np.testing.assert_array_equal(result.atlas.mesh.faces, atlas.mesh.faces)
+    np.testing.assert_array_equal(result.atlas.mesh.uv, atlas.mesh.uv)
+    assert result.atlas.landmarks.labels == atlas.landmarks.labels
+    np.testing.assert_array_equal(atlas.mesh.vertices, original_vertices)
+    np.testing.assert_array_equal(atlas.landmarks.points, original_landmarks)
+    # The target is based on the input population, so applying the conversion a
+    # second time has unit factor rather than scaling the atlas a second time.
+    repeated = MorphoWeave.restore_input_scale(result.atlas, (first, large))
+    assert repeated.conversion.factor == pytest.approx(1)
+    np.testing.assert_allclose(repeated.atlas.mesh.vertices, result.atlas.mesh.vertices)
+
+
+@pytest.mark.parametrize("normalize_scale", [False, True])
+def test_restored_atlas_size_is_independent_of_specimen_alignment_mode(
+    specimens, normalize_scale
+):
+    first = specimens[0]
+    large = Specimen(
+        "Large",
+        first.mesh._replace(vertices=3 * first.mesh.vertices),
+        first.landmarks._replace(points=3 * first.landmarks.points),
+    ).validated()
+    population = (first, large)
+    raw = MorphoWeave.build_atlas(population, normalize_scale=normalize_scale)
+    restored = MorphoWeave.restore_input_scale(raw, population)
+    points = restored.atlas.landmarks.points
+    assert np.linalg.norm(points - points.mean(axis=0)) == pytest.approx(
+        2 * np.sqrt(10.5)
+    )
+    aligned = MorphoWeave.align_specimens(
+        population, restored.atlas, normalize_scale=normalize_scale
+    )
+    # Identical tetrahedron shapes have exact expected sizes: a rigid fit keeps
+    # the 1:3 ratio; a similarity fit takes both to the representative 2x size.
+    expected = (2, 2) if normalize_scale else (1, 3)
+    for result, multiplier in zip(aligned, expected, strict=True):
+        vertices = result.mesh.vertices
+        size = np.linalg.norm(vertices - vertices.mean(axis=0))
+        assert size == pytest.approx(multiplier * np.sqrt(10.5), rel=1e-6)
+
+
+def test_zero_size_upstream_atlas_is_rejected(specimens):
+    first = specimens[0]
+    atlas = AtlasModel(first.mesh, first.landmarks._replace(points=np.zeros((4, 3))))
+    with pytest.raises(ValueError, match="positive centroid sizes"):
+        MorphoWeave.restore_input_scale(atlas, specimens)
+
+
+@pytest.mark.parametrize(
+    "backend,override",
+    [("native", False), ("morphoweave", True), ("morphoweave", False)],
+)
+def test_run_metadata_records_conversion_only_when_applied(
+    tmp_path, specimens, backend, override
+):
+    atlas = AtlasModel(specimens[0].mesh, specimens[0].landmarks)
+    options = AtlasOptions(
+        tmp_path,
+        tmp_path,
+        tmp_path,
+        backend=backend,
+        atlas_model=tmp_path / "provided.obj" if override else None,
+        atlas_landmarks=tmp_path / "provided.mrk.json" if override else None,
+    )
+    conversion = (
+        AtlasScaleConversion(1.0, 2.0, 2.0, (1.0, 2.0, 3.0))
+        if backend == "morphoweave" and not override
+        else None
+    )
+    Operations.atlas_result(atlas, tmp_path, (), None, options, conversion)
+    manifest = AtlasRunData.model_validate_json(
+        (tmp_path / "atlas_run.json").read_text()
+    )
+    assert manifest.schema_version == 2
+    if conversion is None:
+        assert manifest.atlas_scale_conversion is None
+    else:
+        assert manifest.atlas_scale_conversion.to_internal() == conversion
+        assert (
+            manifest.atlas_scale_conversion.method
+            == "mean_input_landmark_centroid_size"
+        )
+
+
+@pytest.mark.parametrize("factor", [0.0, -1.0, float("inf"), float("nan"), 3.0])
+def test_scale_metadata_rejects_invalid_or_inconsistent_factor(factor):
+    with pytest.raises(ValueError):
+        AtlasScaleConversionData(
+            source_centroid_size=1.0,
+            target_centroid_size=2.0,
+            factor=factor,
+            center=(0.0, 0.0, 0.0),
+        )

@@ -28,7 +28,7 @@ class AtlasTab:
             1 if app.settings.value("atlas/backend", "native") == "morphoweave" else 0
         )
         self.normalize_scale = Widgets.check(inputs, "Normalize specimen scale:", False)
-        self.normalize_scale.toolTip = "Allow scaling during alignment. MorphoWeave also normalizes its reference/mean GPA internally."
+        self.normalize_scale.toolTip = "Allow scaling during specimen alignment. Generated MorphoWeave atlases are restored to mean input size in either mode."
         override = Widgets.section(layout, "Atlas Override (Optional)", True)
         self.atlas_model = Widgets.path(override, "Atlas Model:", True)
         self.atlas_landmarks = Widgets.path(override, "Atlas Landmarks:", True)

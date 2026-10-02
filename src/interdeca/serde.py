@@ -38,6 +38,7 @@ from interdeca.models import (
     Arrays,
     AtlasModel,
     AtlasReference,
+    AtlasScaleConversion,
     BakedTexture,
     BlenderInstallation,
     ClusterAlignment,
@@ -234,15 +235,43 @@ class AtlasRequest(CoreData[AtlasOptions]):
         return self
 
 
+class AtlasScaleConversionData(CoreData[AtlasScaleConversion]):
+    """Validate the uniform transform restoring an atlas to representative input units."""
+
+    record_type = AtlasScaleConversion
+    method: Literal["mean_input_landmark_centroid_size"] = (
+        "mean_input_landmark_centroid_size"
+    )
+    source_centroid_size: FiniteFloat = Field(gt=0)
+    target_centroid_size: FiniteFloat = Field(gt=0)
+    factor: FiniteFloat = Field(gt=0)
+    center: tuple[FiniteFloat, FiniteFloat, FiniteFloat]
+
+    @model_validator(mode="after")
+    def consistent_factor(self) -> Self:
+        # A recorded scale must reconstruct the declared size change, rather than
+        # merely be a plausible positive number beside the geometry.
+        if not np.isclose(
+            self.factor,
+            self.target_centroid_size / self.source_centroid_size,
+            rtol=1e-12,
+            atol=0,
+        ):
+            raise ValueError("Scale factor must equal target/source centroid size.")
+        return self
+
+
 class AtlasRunData(BaseModel):
     """Record backend identity and numerical conventions beside published outputs."""
 
     model_config = ConfigDict(extra="forbid")
-    schema_version: Literal[1] = 1
+    schema_version: Literal[2] = 2
     options: AtlasRequest
     upstream_revision: str | None = None
     upstream_source_sha256: str | None = None
     reference_normalizes_scale: bool | None
+    # Null explicitly means no conversion: native construction or an atlas override.
+    atlas_scale_conversion: AtlasScaleConversionData | None
     correspondence_method: Literal[
         "barycentric_common_space", "morphoweave_tps_projection"
     ]

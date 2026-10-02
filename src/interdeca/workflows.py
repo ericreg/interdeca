@@ -26,10 +26,17 @@ from interdeca.dataset import Dataset
 from interdeca.execution import Pipeline, ResultRef, Task
 from interdeca.geometry import Geometry
 from interdeca.io import Files, LandmarkIO, MeshIO, TextureIO
-from interdeca.models import AtlasModel, BakedTexture, Mesh, ResampledSpecimen, Specimen
+from interdeca.models import (
+    AtlasModel,
+    AtlasScaleConversion,
+    BakedTexture,
+    Mesh,
+    ResampledSpecimen,
+    Specimen,
+)
 from interdeca.morphoweave import MorphoWeave
 from interdeca.population import Population
-from interdeca.serde import AtlasRequest, AtlasRunData
+from interdeca.serde import AtlasRequest, AtlasRunData, AtlasScaleConversionData
 
 
 class Option(NamedTuple):
@@ -78,6 +85,7 @@ class Operations:
             "contribute": Atlas.prepare_contribution,
             "mean": Atlas.assemble_mean,
             "morphoweave_mean": MorphoWeave.build_atlas,
+            "morphoweave_scale": MorphoWeave.restore_input_scale,
             "morphoweave_align": MorphoWeave.align_specimens,
             "morphoweave_resample": MorphoWeave.resample_specimen,
             "load_atlas": Operations.load_atlas,
@@ -155,6 +163,7 @@ class Operations:
         textures: tuple,
         average: Path | None,
         options: AtlasOptions,
+        scale_conversion: AtlasScaleConversion | None,
     ) -> AtlasResult:
         """Collect the declared outputs of a successful atlas workflow."""
         # Preserve backend identity and coordinate conventions for side-by-side
@@ -164,6 +173,11 @@ class Operations:
             options=AtlasRequest.from_internal(options),
             upstream_revision=REVISION if upstream else None,
             upstream_source_sha256=SOURCE_SHA256 if upstream else None,
+            atlas_scale_conversion=(
+                None
+                if scale_conversion is None
+                else AtlasScaleConversionData.from_internal(scale_conversion)
+            ),
             reference_normalizes_scale=(
                 None
                 if options.atlas_model is not None
@@ -390,12 +404,29 @@ class Workflows:
                     )
                 ]
             )
+        # Convert generated MorphoWeave means before any distance-based cleanup.
+        # Supplied atlases already define their coordinate convention and size.
+        atlas_source = ref("atlas")
+        scale_conversion = None
+        if options.backend == "morphoweave" and options.atlas_model is None:
+            stages.append(
+                [
+                    task(
+                        "scaled_atlas",
+                        "morphoweave_scale",
+                        atlas_source,
+                        ref("specimens"),
+                    )
+                ]
+            )
+            atlas_source = ref("scaled_atlas", ("atlas",))
+            scale_conversion = ref("scaled_atlas", ("conversion",))
         stages.append(
             [
                 task(
                     "clean",
                     "clean",
-                    ref("atlas"),
+                    atlas_source,
                     ref("blender"),
                     merge_distance=options.merge_distance,
                 )
@@ -526,6 +557,7 @@ class Workflows:
                     baked,
                     ref("average"),
                     options,
+                    scale_conversion,
                 )
             ]
         )

@@ -325,6 +325,27 @@ class AtlasModel(NamedTuple):
     landmarks: Landmarks
 
 
+class AtlasScaleConversion(NamedTuple):
+    """Uniform atlas scale change about a fixed landmark centroid.
+
+    Centroid size is sqrt(sum of squared landmark distances from their centroid).
+    A point p becomes center + factor * (p - center), with factor equal to the
+    target/source centroid-size ratio. Target size uses the input coordinate units.
+    """
+
+    source_centroid_size: float
+    target_centroid_size: float
+    factor: float
+    center: tuple[float, float, float]
+
+
+class AtlasScaleResult(NamedTuple):
+    """An atlas in representative input units and the conversion applied to it."""
+
+    atlas: AtlasModel
+    conversion: AtlasScaleConversion
+
+
 class AtlasReference(NamedTuple):
     """Generalized Procrustes result used to create independent contributions."""
 

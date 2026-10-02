@@ -74,14 +74,32 @@ remain shared. Existing-atlas overrides work with either correspondence backend.
 This is a comparison phase, not a declaration of numerical equivalence. The
 `--normalize-scale` flag controls specimen alignment (default: preserve scale).
 MorphoWeave's reference/mean Procrustes calls still normalize scale internally.
-It also uses nearest warped vertices for mean construction, float32 in several
-outputs, and atlas-to-specimen TPS followed by surface projection. Exact duplicate
+After mean construction, the application scales its mesh and landmarks together
+to the arithmetic mean **input landmark centroid size**, before Blender cleanup.
+Centroid size is the square root of the sum of squared landmark distances from
+their centroid; it is measured separately for each original specimen, giving each
+specimen equal weight. The conversion uses the actual upstream atlas centroid
+size, so it does not assume that floating-point normalization returns exactly one.
+It scales about the atlas landmark centroid, preserving its pose and mean shape.
+This restores representative input coordinate units in both alignment modes;
+individual specimen sizes remain preserved unless `--normalize-scale` is enabled.
+All inputs must already use common length units. Supplied atlas overrides retain
+their given scale. This conversion does not reproduce the original Atlas mean
+calculation or establish numerical equivalence between backends.
+
+MorphoWeave also uses nearest warped vertices for mean construction, float32 in
+several outputs, and atlas-to-specimen TPS followed by surface projection. Exact duplicate
 mean vertices are cleaned with its own VTK cleanup before establishing atlas
 topology. This first phase uses TPS only. Specimen IDs must be unique ignoring
 case because upstream pairs filenames that way; output IDs retain original case.
 
-Every completed run writes `atlas_run.json` with its options, backend identity,
-upstream revision/hash where applicable, and projection-distance convention.
+Every completed run writes `atlas_run.json` (schema version 2) with its options,
+backend identity, upstream revision/hash where applicable, and projection-distance
+convention. `atlas_scale_conversion` records the conversion method, source and
+target centroid sizes, factor, and fixed center. A point `p` is mapped to
+`center + factor * (p - center)`. The field is null for native atlas construction
+and supplied atlas overrides. The baseline commit `e12196a` records the earlier
+MorphoWeave behavior without this conversion, using metadata schema version 1.
 Native diagnostics measure displacement in common warped space; MorphoWeave
 diagnostics use aligned specimen space. They must not be compared as the same
 quantity. The pre-migration findings remain in [MATERIAL _DIFFERENCES.md](<MATERIAL _DIFFERENCES.md>).
@@ -107,7 +125,7 @@ immediately; it does not create a scheduled task.
 | `dataset.py` | `Dataset` | `inspect_specimen`, `validate_specimens` |
 | `blender.py` | `Blender` | `check_available`, `clean_atlas`, `prepare_atlas_uv`, `bake_specimen_texture` |
 | `atlas.py` | `Atlas` | `compute_reference`, `prepare_contribution`, `assemble_mean`, `align_specimen` |
-| `morphoweave.py` | `MorphoWeave` | `build_atlas`, `align_specimens`, `resample_specimen` |
+| `morphoweave.py` | `MorphoWeave` | `build_atlas`, `restore_input_scale`, `align_specimens`, `resample_specimen` |
 | `geometry.py` | `Geometry` | `prepare_analysis`, `resample_specimen`, `select_region`, `extract_region` |
 | `color_analysis.py` | `ColorAnalysis` | `sample_specimen_colors`, `compute_normalization_stats`, `process_specimen_colors`, `average_textures`, `expand_face_colors` |
 | `population.py` | `Population` | `align_clusters`, `assemble_features`, `fit_model`, `reconstruct_features` |

@@ -43,13 +43,23 @@ Missing applications, data, transport dependencies, crashes, timeouts, and missi
 outputs fail the test rather than produce a skip or a false success.
 This harness uses POSIX process groups for timeout cleanup; macOS is the initial
 validation platform. Linux needs a working graphical display, such as Xvfb.
-Both backend cases passed with Slicer 5.12.4 and Blender 5.2.1 on macOS:
+Before atlas scale restoration (commit `e12196a`), both backend cases passed with
+Slicer 5.12.4 and Blender 5.2.1 on macOS:
 approximately 2 minutes 51 seconds for native and 7 minutes 36 seconds for
 MorphoWeave. These external applications are not pinned by `uv.lock`; each run
 compares hosts using the same Blender installation. On this fixture, the final
 native atlas has 130,350 faces and the MorphoWeave atlas has 535,407 faces. This is
 a material difference between algorithms, not a host-parity failure or a measure
 of which atlas is scientifically preferable.
+
+Scale restoration was validated on 2026-10-02 with the same application versions;
+both backend cases passed again. The MorphoWeave atlas landmark centroid size is
+now `0.08808232667325555`, the arithmetic mean of the three original input sizes,
+using a recorded factor of `0.08808232667325555` from upstream size `1.0`.
+After the existing Blender cleanup, its atlas has 62,667 vertices and 127,021
+triangles. The native atlas still has 64,490 vertices and 130,350 triangles.
+These counts describe the effect of applying cleanup in representative input
+units; the test does not establish anatomical equivalence between backends.
 
 ## Workflow and assertions
 
@@ -71,6 +81,9 @@ completed presentations. The comparison checks:
   landmarks; exact face order and per-corner UVs; decoded texture pixels.
 - The `atlas_run.json` backend, algorithm settings, and upstream source revision,
   allowing each host its own destination directory and Blender discovery setting.
+- The version-2 atlas scale conversion: generated MorphoWeave atlas landmarks
+  have the arithmetic mean input centroid size, while aligned specimens retain
+  their individual sizes by default. Native runs record no conversion.
 - Specimen identities, PCA scores, swapped axes, reconstructed and displayed RGB,
   validity masks, morphospace positions, selection indices, and export source maps.
 - Actual MRML model snapshots, plot-table values, rendered cell RGB bytes,

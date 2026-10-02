@@ -166,14 +166,46 @@ def compare_atlases(left, right):
                 np.testing.assert_array_equal(first.faces, atlas.faces)
                 np.testing.assert_array_equal(first.uv, atlas.uv)
         elif relative == "atlas_run.json":
+            runs = tuple(
+                AtlasRunData.model_validate_json(path.read_text()) for path in (a, b)
+            )
+            for run, directory in zip(runs, (left, right), strict=True):
+                # Check the coordinate scale contract independently of host parity:
+                # two hosts could otherwise agree on the same accidental normalization.
+                input_sizes = []
+                for specimen in SPECIMENS:
+                    original = LandmarkIO.read(
+                        run.options.landmarks / f"{specimen}.mrk.json"
+                    ).points
+                    aligned = LandmarkIO.read(
+                        directory / "aligned" / f"{specimen}.mrk.json"
+                    ).points
+                    size = np.linalg.norm(original - original.mean(axis=0))
+                    input_sizes.append(size)
+                    np.testing.assert_allclose(
+                        np.linalg.norm(aligned - aligned.mean(axis=0)), size, rtol=1e-6
+                    )
+                conversion = run.atlas_scale_conversion
+                if run.options.backend == "morphoweave":
+                    assert conversion is not None
+                    points = LandmarkIO.read(directory / "atlas.mrk.json").points
+                    expected = np.mean(input_sizes)
+                    np.testing.assert_allclose(
+                        conversion.source_centroid_size, 1.0, rtol=1e-6
+                    )
+                    np.testing.assert_allclose(
+                        conversion.target_centroid_size, expected, rtol=1e-12
+                    )
+                    np.testing.assert_allclose(
+                        np.linalg.norm(points - points.mean(axis=0)),
+                        expected,
+                        rtol=1e-12,
+                    )
+                else:
+                    assert conversion is None
             # Scientific settings and the upstream revision must match independently
             # across both runs; destination paths and tool discovery belong to the host.
-            first, second = (
-                AtlasRunData.model_validate_json(path.read_text()).model_dump(
-                    mode="json"
-                )
-                for path in (a, b)
-            )
+            first, second = (run.model_dump(mode="json") for run in runs)
             first["options"].pop("output")
             second["options"].pop("output")
             # The CLI discovers the executable from the same environment where
