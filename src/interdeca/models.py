@@ -345,8 +345,10 @@ class AtlasReference(NamedTuple):
 class ResampledSpecimen(NamedTuple):
     """A specimen on atlas connectivity, retaining its anatomical shape.
 
-    Projection distances are measured in the common warped landmark space;
-    they diagnose correspondence quality, not the final surface error.
+    Projection distances describe the backend's query-to-surface displacement:
+    common warped space for native correspondence, aligned specimen space for
+    MorphoWeave. The run manifest records this convention. They are not the
+    final resampled vertex-to-native-surface error.
     """
 
     # Keep correspondence diagnostics with the resampled surface so quality can

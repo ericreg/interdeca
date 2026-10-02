@@ -22,6 +22,13 @@ class AtlasTab:
         self.validation = qt.QLabel("Select model, landmark, and output directories.")
         self.validation.wordWrap = True
         inputs.addRow(self.validation)
+        self.backend = Widgets.combo(inputs, "Atlas implementation:")
+        self.backend.addItems(["InterDeCA (original)", "MorphoWeave (comparison)"])
+        self.backend.setCurrentIndex(
+            1 if app.settings.value("atlas/backend", "native") == "morphoweave" else 0
+        )
+        self.normalize_scale = Widgets.check(inputs, "Normalize specimen scale:", False)
+        self.normalize_scale.toolTip = "Allow scaling during alignment. MorphoWeave also normalizes its reference/mean GPA internally."
         override = Widgets.section(layout, "Atlas Override (Optional)", True)
         self.atlas_model = Widgets.path(override, "Atlas Model:", True)
         self.atlas_landmarks = Widgets.path(override, "Atlas Landmarks:", True)
@@ -74,11 +81,16 @@ class AtlasTab:
                 else "valueChanged(double)"
             )
             spin.connect(signal, self.changed)
+        self.backend.connect("currentIndexChanged(int)", self.changed)
+        self.normalize_scale.connect("toggled(bool)", self.changed)
 
     def changed(self, *args):
         """Persist input paths and invalidate results derived from older settings."""
         for key, widget in zip(self.settings_keys, self.paths):
             self.app.settings.setValue("atlas/" + key, widget.currentPath)
+        self.app.settings.setValue(
+            "atlas/backend", ("native", "morphoweave")[int(self.backend.currentIndex)]
+        )
         self.app.client.invalidate("all")
         valid = all(
             widget.currentPath and Path(widget.currentPath).is_dir()
@@ -110,6 +122,8 @@ class AtlasTab:
             bake_size=int(self.size.value),
             extrusion=float(self.extrusion.value),
             bake_margin=int(self.bake_margin.value),
+            backend=("native", "morphoweave")[int(self.backend.currentIndex)],
+            normalize_scale=bool(self.normalize_scale.checked),
         )
 
     def render(self, busy):

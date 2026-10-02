@@ -7,6 +7,13 @@ uv sync
 uv run pytest tests/end_to_end/test_small_clams.py -v -s
 ```
 
+Initialize the pinned MorphoWeave source before syncing a fresh checkout:
+`git submodule update --init --recursive`. The test is parameterized over
+`native` and `morphoweave`. Each backend independently runs both hosts, retaining
+its own outputs for side-by-side inspection. To select only one backend, add
+`-k native` or `-k morphoweave`. These cases assert host parity within a backend;
+they do not assume the two atlas algorithms produce identical geometry or colors.
+
 Pytest is a development dependency installed by the default `uv sync`. This is
 an ordinary pytest integration test: it is not registered in Slicer or CMake.
 It launches the real Click entry point and a separate Slicer application, whose
@@ -36,9 +43,13 @@ Missing applications, data, transport dependencies, crashes, timeouts, and missi
 outputs fail the test rather than produce a skip or a false success.
 This harness uses POSIX process groups for timeout cleanup; macOS is the initial
 validation platform. Linux needs a working graphical display, such as Xvfb.
-The full raw-data comparison passed with Slicer 5.12.4 and Blender 5.2.1 on macOS
-in approximately 2 minutes 38 seconds. These external applications are not pinned
-by `uv.lock`; each run compares hosts using the same Blender installation.
+Both backend cases passed with Slicer 5.12.4 and Blender 5.2.1 on macOS:
+approximately 2 minutes 51 seconds for native and 7 minutes 36 seconds for
+MorphoWeave. These external applications are not pinned by `uv.lock`; each run
+compares hosts using the same Blender installation. On this fixture, the final
+native atlas has 130,350 faces and the MorphoWeave atlas has 535,407 faces. This is
+a material difference between algorithms, not a host-parity failure or a measure
+of which atlas is scientifically preferable.
 
 ## Workflow and assertions
 
@@ -58,6 +69,8 @@ completed presentations. The comparison checks:
 
 - The complete atlas output file set; aligned and resampled vertices and
   landmarks; exact face order and per-corner UVs; decoded texture pixels.
+- The `atlas_run.json` backend, algorithm settings, and upstream source revision,
+  allowing each host its own destination directory and Blender discovery setting.
 - Specimen identities, PCA scores, swapped axes, reconstructed and displayed RGB,
   validity masks, morphospace positions, selection indices, and export source maps.
 - Actual MRML model snapshots, plot-table values, rendered cell RGB bytes,
@@ -76,6 +89,9 @@ meshes. The regression checks retain and compare those faces with the dedicated
 output schema; native meshes and the shared analysis atlas remain strict.
 `uv run pytest tests/test_correspondence.py` separately checks the collapse case,
 serialization and Blender handoff, and rejection of invalid source geometry.
+`uv run pytest tests/test_morphoweave.py` checks the real upstream high-level
+calls, scale choice, UV retention, full-vertex projection, import isolation,
+coordinate errors, and rejection of changed/missing upstream code.
 
 ## Diagnostics
 

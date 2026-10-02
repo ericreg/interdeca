@@ -22,6 +22,7 @@ its bundled numerical libraries only for scene snapshots and display.
 
 ```sh
 cd ~/code/interdeca
+git submodule update --init --recursive
 uv sync
 ```
 
@@ -37,6 +38,65 @@ do not install dependencies automatically.
 The `interdeca` CLI and `interdeca-worker` host entry points are separate from
 those stateless numerical operations.
 
+## MorphoWeave comparison backend
+
+The original atlas implementation remains available and is the default. Select
+`atlas --backend morphoweave` in the CLI, or **MorphoWeave (comparison)** in the
+Slicer atlas form, to run the new backend through the same application core.
+Use separate output directories for side-by-side comparisons:
+
+```sh
+uv run interdeca atlas --backend native \
+  --models /path/to/ras/models --landmarks /path/to/landmarks \
+  --textures /path/to/textures --output /path/to/native-results
+uv run interdeca atlas --backend morphoweave \
+  --models /path/to/ras/models --landmarks /path/to/landmarks \
+  --textures /path/to/textures --output /path/to/morphoweave-results
+```
+
+MorphoWeave is an unmodified Git submodule at
+`src/interdeca/_vendor/morphoweave`, pinned to
+`6fd9e448fb3441b71f7fed2bec9434a9b2190d24`. The wheel and source distribution
+include its Atlas Builder and license notices. No Slicer, Qt, or CTK installation
+is required in the worker. A private module import context supplies the data
+handles, RAS OBJ/Markups I/O, logging, and inert display hooks needed by upstream
+`_generateAtlas`, `runMean`, and `runAlign`. It does not replace global Python
+modules or construct widgets. Unsupported host APIs and an unexpected upstream
+source hash fail explicitly; there is no fallback to the original backend.
+
+Both backends retain source triangle order and per-corner UVs during alignment.
+MorphoWeave's TPS projection is requested for **every** atlas vertex; the adapter
+attaches the shared atlas faces and UVs unchanged, including collapsed specimen
+faces. This differs from upstream's default 2,000-point landmark export.
+Blender cleanup, UV generation, baking, color analysis, PCA/UMAP, and presentation
+remain shared. Existing-atlas overrides work with either correspondence backend.
+
+This is a comparison phase, not a declaration of numerical equivalence. The
+`--normalize-scale` flag controls specimen alignment (default: preserve scale).
+MorphoWeave's reference/mean Procrustes calls still normalize scale internally.
+It also uses nearest warped vertices for mean construction, float32 in several
+outputs, and atlas-to-specimen TPS followed by surface projection. Exact duplicate
+mean vertices are cleaned with its own VTK cleanup before establishing atlas
+topology. This first phase uses TPS only. Specimen IDs must be unique ignoring
+case because upstream pairs filenames that way; output IDs retain original case.
+
+Every completed run writes `atlas_run.json` with its options, backend identity,
+upstream revision/hash where applicable, and projection-distance convention.
+Native diagnostics measure displacement in common warped space; MorphoWeave
+diagnostics use aligned specimen space. They must not be compared as the same
+quantity. The pre-migration findings remain in [MATERIAL _DIFFERENCES.md](<MATERIAL _DIFFERENCES.md>).
+
+The serial manager reports progress and accepts cancellation between backend
+operations. MorphoWeave's mean construction and high-level alignment are batch
+operations; cancellation waits for the active batch, and detailed messages are
+logs rather than parsed progress. Temporary staging files are removed on success
+or failure. No additional worker process is introduced.
+
+To upgrade the dependency, review the upstream API and numerical changes, update
+the submodule pin and `_morphoweave_host.py` revision/source hash together, and run
+the host-contract tests plus both small-clams e2e cases. Do not patch the submodule
+source or refresh expected scientific results without reviewing the differences.
+
 ## Operations
 
 Every operation below is a static method. Calling an operation does its work
@@ -47,6 +107,7 @@ immediately; it does not create a scheduled task.
 | `dataset.py` | `Dataset` | `inspect_specimen`, `validate_specimens` |
 | `blender.py` | `Blender` | `check_available`, `clean_atlas`, `prepare_atlas_uv`, `bake_specimen_texture` |
 | `atlas.py` | `Atlas` | `compute_reference`, `prepare_contribution`, `assemble_mean`, `align_specimen` |
+| `morphoweave.py` | `MorphoWeave` | `build_atlas`, `align_specimens`, `resample_specimen` |
 | `geometry.py` | `Geometry` | `prepare_analysis`, `resample_specimen`, `select_region`, `extract_region` |
 | `color_analysis.py` | `ColorAnalysis` | `sample_specimen_colors`, `compute_normalization_stats`, `process_specimen_colors`, `average_textures`, `expand_face_colors` |
 | `population.py` | `Population` | `align_clusters`, `assemble_features`, `fit_model`, `reconstruct_features` |

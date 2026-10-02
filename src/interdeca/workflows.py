@@ -10,6 +10,7 @@ from uuid import uuid4
 import numpy as np
 from skimage.color import lab2rgb
 
+from interdeca._morphoweave_host import REVISION, SOURCE_SHA256
 from interdeca.application_models import (
     AtlasOptions,
     AtlasResult,
@@ -24,9 +25,11 @@ from interdeca.color_analysis import ColorAnalysis
 from interdeca.dataset import Dataset
 from interdeca.execution import Pipeline, ResultRef, Task
 from interdeca.geometry import Geometry
-from interdeca.io import LandmarkIO, MeshIO, TextureIO
+from interdeca.io import Files, LandmarkIO, MeshIO, TextureIO
 from interdeca.models import AtlasModel, BakedTexture, Mesh, ResampledSpecimen, Specimen
+from interdeca.morphoweave import MorphoWeave
 from interdeca.population import Population
+from interdeca.serde import AtlasRequest, AtlasRunData
 
 
 class Option(NamedTuple):
@@ -74,6 +77,9 @@ class Operations:
             "reference": Atlas.compute_reference,
             "contribute": Atlas.prepare_contribution,
             "mean": Atlas.assemble_mean,
+            "morphoweave_mean": MorphoWeave.build_atlas,
+            "morphoweave_align": MorphoWeave.align_specimens,
+            "morphoweave_resample": MorphoWeave.resample_specimen,
             "load_atlas": Operations.load_atlas,
             "clean": Blender.clean_atlas,
             "uv": Blender.prepare_atlas_uv,
@@ -144,9 +150,36 @@ class Operations:
 
     @staticmethod
     def atlas_result(
-        atlas: AtlasModel, directory: Path, textures: tuple, average: Path | None
+        atlas: AtlasModel,
+        directory: Path,
+        textures: tuple,
+        average: Path | None,
+        options: AtlasOptions,
     ) -> AtlasResult:
         """Collect the declared outputs of a successful atlas workflow."""
+        # Preserve backend identity and coordinate conventions for side-by-side
+        # analysis; matching hosts alone does not establish numerical equivalence.
+        upstream = options.backend == "morphoweave"
+        manifest = AtlasRunData(
+            options=AtlasRequest.from_internal(options),
+            upstream_revision=REVISION if upstream else None,
+            upstream_source_sha256=SOURCE_SHA256 if upstream else None,
+            reference_normalizes_scale=(
+                None
+                if options.atlas_model is not None
+                else upstream or options.normalize_scale
+            ),
+            correspondence_method="morphoweave_tps_projection"
+            if upstream
+            else "barycentric_common_space",
+            projection_distance_space="aligned_specimen"
+            if upstream
+            else "common_warped",
+        )
+        Files.write(
+            directory / "atlas_run.json",
+            (manifest.model_dump_json(indent=2) + "\n").encode(),
+        )
         return AtlasResult(atlas, directory, textures, average)
 
     @staticmethod
@@ -315,8 +348,28 @@ class Workflows:
                     )
                 ]
             )
+        elif options.backend == "morphoweave":
+            stages.append(
+                [
+                    task(
+                        "atlas",
+                        "morphoweave_mean",
+                        ref("specimens"),
+                        normalize_scale=options.normalize_scale,
+                    )
+                ]
+            )
         else:
-            stages.append([task("reference", "reference", ref("specimens"))])
+            stages.append(
+                [
+                    task(
+                        "reference",
+                        "reference",
+                        ref("specimens"),
+                        allow_scaling=options.normalize_scale,
+                    )
+                ]
+            )
             stages.append(
                 [
                     task(
@@ -360,24 +413,46 @@ class Workflows:
                 )
             ]
         )
-        stages.append(
-            [task("saved_atlas", "save_atlas", ref("uv"), output)]
-            + [
-                task(
-                    f"align_{i}",
-                    "align",
-                    ref("specimens", (i,)),
-                    ref("uv", ("landmarks",)),
-                )
-                for i in range(len(manifest))
-            ]
-        )
+        # MorphoWeave's high-level runAlign owns the whole alignment batch. The
+        # native backend keeps its original per-specimen implementation intact.
+        if options.backend == "morphoweave":
+            stages.append(
+                [
+                    task(
+                        "morphoweave_aligned",
+                        "morphoweave_align",
+                        ref("specimens"),
+                        ref("uv"),
+                        normalize_scale=options.normalize_scale,
+                    )
+                ]
+            )
+            aligned = tuple(
+                ref("morphoweave_aligned", (i,)) for i in range(len(manifest))
+            )
+        else:
+            stages.append(
+                [
+                    task(
+                        f"align_{i}",
+                        "align",
+                        ref("specimens", (i,)),
+                        ref("uv", ("landmarks",)),
+                        allow_scaling=options.normalize_scale,
+                    )
+                    for i in range(len(manifest))
+                ]
+            )
+            aligned = tuple(
+                ref(f"align_{i}", ("specimen",)) for i in range(len(manifest))
+            )
+        stages.append([task("saved_atlas", "save_atlas", ref("uv"), output)])
         stages.append(
             [
                 task(
                     f"aligned_{i}",
                     "save_specimen",
-                    ref(f"align_{i}", ("specimen",)),
+                    aligned[i],
                     output / "aligned",
                 )
                 for i in range(len(manifest))
@@ -387,10 +462,16 @@ class Workflows:
             [
                 task(
                     f"resample_{i}",
-                    "resample",
+                    "morphoweave_resample"
+                    if options.backend == "morphoweave"
+                    else "resample",
                     ref(f"aligned_{i}"),
                     ref("uv"),
-                    mean_landmarks=ref("uv", ("landmarks",)),
+                    **(
+                        {}
+                        if options.backend == "morphoweave"
+                        else {"mean_landmarks": ref("uv", ("landmarks",))}
+                    ),
                 )
                 for i in range(len(manifest))
             ]
@@ -444,6 +525,7 @@ class Workflows:
                     output,
                     baked,
                     ref("average"),
+                    options,
                 )
             ]
         )

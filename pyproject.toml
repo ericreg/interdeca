@@ -25,6 +25,23 @@ dependencies = [
 requires = ["uv_build>=0.12.13,<0.13.0"]
 build-backend = "uv_build"
 
+[tool.uv.build-backend]
+# Ship the unmodified Atlas Builder and its notices in both wheels and sdists.
+# The remaining Slicer extension assets are available in the submodule checkout.
+source-exclude = [
+    "/src/interdeca/_vendor/morphoweave/.git",
+    "/src/interdeca/_vendor/morphoweave/.gitignore",
+    "/src/interdeca/_vendor/morphoweave/Docs",
+    "/src/interdeca/_vendor/morphoweave/ExtensionsIndex",
+    "/src/interdeca/_vendor/morphoweave/tutorial",
+    "/src/interdeca/_vendor/morphoweave/logo.png",
+    "/src/interdeca/_vendor/morphoweave/MorphoWeaveLandmarkTransfer",
+    "/src/interdeca/_vendor/morphoweave/MorphoWeaveModelLibrary",
+    "/src/interdeca/_vendor/morphoweave/MorphoWeaveSurfaceSegmentation",
+    "/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/Resources",
+    "/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/Testing",
+]
+
 [tool.uv.workspace]
 members = ["client"]
 

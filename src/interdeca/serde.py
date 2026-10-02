@@ -222,6 +222,8 @@ class AtlasRequest(CoreData[AtlasOptions]):
     bake_size: int = Field(default=2048, ge=128, le=8192)
     extrusion: float = Field(default=0.001, ge=0, allow_inf_nan=False)
     bake_margin: int = Field(default=2, ge=0, le=64)
+    backend: Literal["native", "morphoweave"] = "native"
+    normalize_scale: bool = False
 
     @model_validator(mode="after")
     def paired_override(self) -> Self:
@@ -230,6 +232,21 @@ class AtlasRequest(CoreData[AtlasOptions]):
         if (self.atlas_model is None) != (self.atlas_landmarks is None):
             raise ValueError("An atlas override requires both model and landmarks.")
         return self
+
+
+class AtlasRunData(BaseModel):
+    """Record backend identity and numerical conventions beside published outputs."""
+
+    model_config = ConfigDict(extra="forbid")
+    schema_version: Literal[1] = 1
+    options: AtlasRequest
+    upstream_revision: str | None = None
+    upstream_source_sha256: str | None = None
+    reference_normalizes_scale: bool | None
+    correspondence_method: Literal[
+        "barycentric_common_space", "morphoweave_tps_projection"
+    ]
+    projection_distance_space: Literal["common_warped", "aligned_specimen"]
 
 
 class ColorRequest(CoreData[ColorOptions]):

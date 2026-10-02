@@ -34,6 +34,8 @@ class AtlasOptions(NamedTuple):
     bake_size: int = 2048
     extrusion: float = 0.001
     bake_margin: int = 2
+    backend: Literal["native", "morphoweave"] = "native"
+    normalize_scale: bool = False
 
 
 class ColorOptions(NamedTuple):

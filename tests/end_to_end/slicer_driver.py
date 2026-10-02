@@ -152,6 +152,9 @@ class SlicerRun:
         ):
             control.setCurrentPath(str(value))
         app.atlas.size.setValue(512)
+        app.atlas.backend.setCurrentIndex(
+            1 if os.environ["INTERDECA_E2E_BACKEND"] == "morphoweave" else 0
+        )
         self.click(app.atlas.run, "atlas, alignment, correspondence, and baking")
 
         app.colors.sample_only.setChecked(True)

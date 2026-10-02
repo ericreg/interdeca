@@ -16,6 +16,7 @@ from PIL import Image
 from interdeca.blender import Blender
 from interdeca.io import LandmarkIO, MeshIO
 from interdeca.serde import (
+    AtlasRunData,
     ExportPresentation,
     FaceColorsPresentation,
     MeshPresentation,
@@ -130,8 +131,13 @@ def assert_mesh_equal(left, right, label):
 
 
 def compare_atlases(left, right):
-    """Check the complete published atlas contract, excluding only varying run directories."""
-    expected = {"atlas.obj", "atlas.mrk.json", "textures/average_texture.png"}
+    """Check the published atlas contract, allowing host-specific paths and discovery."""
+    expected = {
+        "atlas.obj",
+        "atlas.mrk.json",
+        "atlas_run.json",
+        "textures/average_texture.png",
+    }
     for specimen in SPECIMENS:
         expected.add(f"textures/{specimen}.png")
         for directory in ("aligned", "resampled"):
@@ -159,6 +165,22 @@ def compare_atlases(left, right):
             if relative.startswith("resampled/"):
                 np.testing.assert_array_equal(first.faces, atlas.faces)
                 np.testing.assert_array_equal(first.uv, atlas.uv)
+        elif relative == "atlas_run.json":
+            # Scientific settings and the upstream revision must match independently
+            # across both runs; destination paths and tool discovery belong to the host.
+            first, second = (
+                AtlasRunData.model_validate_json(path.read_text()).model_dump(
+                    mode="json"
+                )
+                for path in (a, b)
+            )
+            first["options"].pop("output")
+            second["options"].pop("output")
+            # The CLI discovers the executable from the same environment where
+            # the Slicer form supplies its explicit path; both were checked above.
+            first["options"].pop("blender")
+            second["options"].pop("blender")
+            assert first == second
         elif a.suffix == ".json":
             first, second = LandmarkIO.read(a), LandmarkIO.read(b)
             assert first.labels == second.labels
@@ -292,7 +314,8 @@ def compare_presentations(cli_root, slicer_root):
 
 
 @pytest.mark.end_to_end
-def test_small_clams_slicer_cli_parity(tmp_path):
+@pytest.mark.parametrize("backend", ["native", "morphoweave"])
+def test_small_clams_slicer_cli_parity(tmp_path, backend):
     """Build both atlases from raw clams and compare the same downstream user actions."""
     slicer = executable(
         "Slicer", "SLICER_EXECUTABLE", "/Applications/Slicer.app/Contents/MacOS/Slicer"
@@ -314,6 +337,8 @@ def test_small_clams_slicer_cli_parity(tmp_path):
             "--output",
             cli_root,
             "atlas",
+            "--backend",
+            backend,
             "--models",
             inputs / "models",
             "--landmarks",
@@ -373,6 +398,7 @@ def test_small_clams_slicer_cli_parity(tmp_path):
         INTERDECA_WORKER_PYTHON=sys.executable,
         INTERDECA_E2E_OUTPUT=str(slicer_root),
         INTERDECA_E2E_INPUTS=str(inputs),
+        INTERDECA_E2E_BACKEND=backend,
     )
     run_process(
         [

@@ -294,6 +294,19 @@ def capabilities(app):
 @click.option("--atlas-model", type=input_file)
 @click.option("--atlas-landmarks", type=input_file)
 @click.option(
+    "--backend",
+    type=click.Choice(["native", "morphoweave"]),
+    default="native",
+    show_default=True,
+    help="Atlas implementation; keep native for the original comparison baseline.",
+)
+@click.option(
+    "--normalize-scale/--preserve-scale",
+    default=False,
+    show_default=True,
+    help="Allow scale changes during specimen alignment. MorphoWeave mean GPA also normalizes scale internally.",
+)
+@click.option(
     "--blender", type=str, help="Blender executable; otherwise use normal discovery."
 )
 @click.option(
