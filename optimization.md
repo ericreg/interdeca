@@ -1,14 +1,14 @@
 # CPU and memory optimization plan
 
-Status: Phases 0–4b accepted; Phase 5 is an implementation checkpoint with
-validation incomplete. Each phase must pass its checks before becoming the
-baseline for the next phase.
+Status: Phases 0–5 accepted; Phase 6 is next. Each phase must pass its checks
+before becoming the baseline for the next phase.
 
 ## Acceptance history
 
-The last accepted **performance** baseline is **B4b** at
-`~/Library/Application Support/InterDeCA/optimization/B4b`. Phase 5 must compare
-against B4b and the preserved original B0 reference in the same parent directory.
+The last accepted **performance** baseline is **B5** at
+`~/Library/Application Support/InterDeCA/optimization/B5`. Phase 6 uses this final
+application baseline and the preserved original B0 reference in the same parent
+directory. Phase 5 was compared against its immediate predecessor B4b and B0.
 
 | Phase | Decision and evidence | Next comparison reference |
 | --- | --- | --- |
@@ -18,6 +18,7 @@ against B4b and the preserved original B0 reference in the same parent directory
 | 3 | Accepted: 141 focused tests, both real Slicer/CLI cases (599.60 s), and all 12 profiling captures pass. Outputs and metadata match B2 and B0 with no investigation alerts. MorphoWeave session wall/CPU time falls 6.91%/6.87%; peak heap is essentially unchanged. | B3 |
 | 4a | Accepted: 165 focused tests, nine budget trials, two allocation controls, both real Slicer/CLI cases (504.93 s), and all 12 profiling captures pass. Outputs and metadata match B3/B0. MorphoWeave wall/CPU time falls 10.18%/10.38%; the confirmed 91.7 MiB cache cost is an explicit tradeoff. | B4a |
 | 4b | Accepted: 182 focused tests, nine budget trials, both real Slicer/CLI cases (433.26 s), and all 12 profiling captures pass. Outputs and metadata match B4a/B0 with no investigation alerts. MorphoWeave wall/CPU time falls 21.39%/23.72%, application RSS falls 8.13%, and tracked heap falls 2.90%. | B4b |
+| 5 | Accepted: 212 focused tests, both real Slicer/CLI cases (548.00 s), and all 12 captures pass. Outputs and metadata match B4b/B0 with no investigation alerts. MorphoWeave application RSS falls 8.05% and tracked heap falls 2.20%; lifetime checks verify earlier release. Wall/CPU times remain within observed variation. | B5 |
 
 Phase 0 was committed as `31fb5d9`; Phase 1 was committed as `0cf6ece`. Its captures
 used the Phase 0 revision plus the source changes
@@ -309,12 +310,12 @@ files use independent filesystem clones, verified against B0. Final comparisons
 passed again after promotion from `B4b-candidate` to `B4b`. Phase 5 must use B4b
 as its immediate predecessor.
 
-Phase 4b was committed as `4ffb536`. Phase 5 now has a candidate that closes the
-MorphoWeave workspace after final alignment, before publication and texture
-baking. The workflow explicitly declares that resource boundary; ordinary managed
-resources retain their run-wide lifetime so indirect consumers of a resource or
-its files keep working. Final aligned meshes and landmarks own their arrays, and
-source texture paths refer to external inputs.
+Phase 4b was committed as `4ffb536`. Phase 5's implementation is checkpoint
+`eac68e0`. It closes the MorphoWeave workspace after final alignment, before
+publication and texture baking. The workflow explicitly declares that resource
+boundary; ordinary managed resources retain their run-wide lifetime so indirect
+consumers of a resource or its files keep working. Final aligned meshes and
+landmarks own their arrays, and source texture paths refer to external inputs.
 
 The manager counts every nested/repeated result reference and final output before
 dropping its own unused entries. Controllers retain partial results for failed,
@@ -324,22 +325,67 @@ queue items before blocking again, and queued execution callbacks retain their
 observer instead of the whole pipeline snapshot. Numerical host scopes clear VTK
 handles explicitly without closing a borrowed workspace cache.
 
-The candidate passes [212 focused tests](docs/profiling/optimization/phase5-focused.log), including weak-reference checks with no
-manual garbage collection, indirect resource forwarding, nested fan-out and final
-references, queued/active cancellation, early cleanup failures, host-node cleanup,
-and repeated four-specimen synthetic PCA/UMAP fitting and reconstruction. Manager
-retention counts alone do not prove total live-memory reduction because observers
-can hold the same arrays. At the user's request, this implementation and the plan
-are committed as a checkpoint. Full profiling against B4b/B0 and fresh real
-Slicer/CLI parity are still required before accepting this phase; B4b remains the
-last accepted baseline. No Phase 5 CPU or peak-memory improvement is claimed yet.
+The [212 focused tests](docs/profiling/optimization/phase5-focused.log) include
+weak-reference checks with no manual garbage collection, indirect resource
+forwarding, nested fan-out and final references, queued/active cancellation,
+early cleanup failures, host-node cleanup, and repeated four-specimen synthetic
+PCA/UMAP fitting and reconstruction. Both real Slicer/CLI cases passed in 548.00 s
+with Slicer 5.12.4 and Blender 5.2.1. Separate CPU attribution captures passed in
+234.4 s (native) and 370.0 s (MorphoWeave); these instrumented elapsed times are
+excluded from speed claims. Task traces retain the same order as B4b: 48 task
+executions for native and 44 for MorphoWeave across the complete application session.
 
-Partial pre-commit baseline captures are preserved outside Git in
-`~/Library/Application Support/InterDeCA/optimization/B5-candidate`. The validation
-runner was stopped after its active baseline batch completed. Continue validation
-in a fresh capture directory at the checkpoint revision: the profiler intentionally
-rejects resuming across repository HEAD changes. Preserve these partial captures
-as preliminary evidence, and complete the Phase 5 exit checks before Phase 6.
+Accepted Phase 5 measurements against the last accepted baseline, B4b:
+
+| Metric | Native B4b → B5 | MorphoWeave B4b → B5 |
+| --- | --- | --- |
+| Median session wall time | 48.088 → 48.136 s | 61.635 → 61.829 s |
+| Median application CPU | 40.892 → 40.911 s | 55.143 → 55.568 s |
+| Maximum baseline application RSS | 1.826 → 1.827 GiB | 2.177 → 2.002 GiB (8.05% lower) |
+| Tracked live heap at peak | 0.838 → 0.838 GiB | 0.888 → 0.869 GiB (2.20% lower) |
+| Maximum array bytes retained by manager | 346,832,400 → 203,263,872 | 280,193,064 → 222,580,032 |
+
+Wall/CPU differences are within the observed run-to-run variation; this phase
+does not establish a speedup. Native session ranges are 47.720–48.175 s in B4b
+and 47.887–48.375 s in B5; MorphoWeave ranges are 61.160–61.904 s and
+61.319–62.467 s. OBJ read/write counts, logical bytes, and numerical copy volume
+are unchanged. All six MorphoWeave captures close the cache after
+`morphoweave_aligned`, releasing 96,161,280 array bytes before baking, and end
+with no cache entries or arrays. The production 192 MiB cache budget and
+192,322,560-byte array high-water mark are unchanged.
+
+The global tracked peak falls less than that released cache because the peak
+moves earlier. B4b peaks during source TIFF validation, with two 256 MiB byte-image
+buffers plus live geometry. B5 peaks during OBJ serialization inside upstream
+alignment, before the resource release boundary. Its three largest serialization
+allocations total 367,045,670 bytes (about 350 MiB). Native's peak is essentially
+unchanged. Manager ownership reductions and successful-session cleanup are
+separately supported by lifetime tests; a smaller lookup alone does not prove
+that controllers or queued callbacks have released the same arrays. RSS includes
+allocator retention and is not a measurement of live array size.
+
+The [B4b comparison](docs/profiling/optimization/phase5-vs-B4b.json),
+[B0 comparison](docs/profiling/optimization/phase5-vs-B0.json),
+[ownership review](docs/profiling/optimization/phase5-ownership-review.json),
+[summary](docs/profiling/optimization/phase5-summary.json),
+[environment](docs/profiling/optimization/phase5-environment.json),
+[profiling log](docs/profiling/optimization/phase5-profile.log),
+[CPU log](docs/profiling/optimization/phase5-cpu.log), and
+[Slicer/CLI log](docs/profiling/optimization/phase5-e2e.log) preserve the evidence.
+All 33 output fingerprints per backend and all checked metadata match both
+references across all twelve captures. Both comparisons pass again at the final
+archive location, with no investigation alerts. All 44 recorded Python source
+hashes, including upstream files, and the lockfile match `eac68e0`.
+
+The full batch was captured in `B5-checkpoint-candidate` and promoted to `B5`;
+recorded paths are retained as provenance and the comparator resolves them
+locally. Complete outputs, CPU profiles, allocation stacks, and independently
+cloned large files remain outside Git at
+`~/Library/Application Support/InterDeCA/optimization/B5`. The earlier six
+pre-commit baseline captures remain separately in `B5-candidate`, with a record
+verifying their source hashes against the same checkpoint; they are not mixed
+into the accepted measurements. Phase 6 must use B5 as the final application
+baseline and consolidate its cumulative and per-phase comparisons.
 
 Phase 0 preserved 606 original input/output/profile/source files outside Git and
 pytest scratch storage, with an archive SHA-256 manifest. Its evidence is in
