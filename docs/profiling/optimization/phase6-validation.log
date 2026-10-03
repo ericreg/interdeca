@@ -1,0 +1,29 @@
+B0: 10 successful capture records; all recorded fingerprints match its backend B0; exactly three real specimen IDs.
+B1: 12 successful capture records; all recorded fingerprints match its backend B0; exactly three real specimen IDs.
+B2: 12 successful capture records; all recorded fingerprints match its backend B0; exactly three real specimen IDs.
+B3: 12 successful capture records; all recorded fingerprints match its backend B0; exactly three real specimen IDs.
+B4a: 12 successful capture records; all recorded fingerprints match its backend B0; exactly three real specimen IDs.
+B4b: 12 successful capture records; all recorded fingerprints match its backend B0; exactly three real specimen IDs.
+B5: 12 successful capture records; all recorded fingerprints match its backend B0; exactly three real specimen IDs.
+phase1-comparison.json correctness/environment passed; alerts: []
+phase2-vs-B1.json correctness/environment passed; alerts: []
+phase2-vs-B0.json correctness/environment passed; alerts: []
+phase3-vs-B2.json correctness/environment passed; alerts: []
+phase3-vs-B0.json correctness/environment passed; alerts: []
+phase4a-vs-B3.json correctness/environment passed; alerts: ['morphoweave/tracked_heap_peak_bytes: increased 10.85%']
+phase4a-vs-B0.json correctness/environment passed; alerts: []
+phase4b-vs-B4a.json correctness/environment passed; alerts: []
+phase4b-vs-B0.json correctness/environment passed; alerts: []
+phase5-vs-B4b.json correctness/environment passed; alerts: []
+phase5-vs-B0.json correctness/environment passed; alerts: []
+environment.json all 44 current Python source hashes and dependency lock match final B5 capture.
+environment-resume.json all 44 current Python source hashes and dependency lock match final B5 capture.
+B4a six cache captures match reported budget, high-water mark, and cleanup.
+B4b six cache captures match reported budget, high-water mark, and cleanup.
+B5 six cache captures match reported budget, high-water mark, and cleanup.
+Upstream tree clean at pinned revision; dependency lock/submodule specification unchanged; no CMake test changes.
+Final measured application and capture code unchanged since eac68e0; Phase 6 adds only tests and reporting.
+Inspected focused-test evidence for every phase and all fourteen historical real Slicer/CLI cases; 15 new scaling cases passed.
+All relative links in the plan, final report, audit, and generated tables resolve.
+All completion checks passed. Raw numerical files were independently checked by each accepted comparator, most recently both B5 comparisons after archive promotion.
+All checks passed!

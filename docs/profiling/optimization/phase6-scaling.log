@@ -1,0 +1,40 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.12, pytest-9.1.1, pluggy-1.6.0 -- /Users/eric/code/interdeca/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/eric/code/interdeca
+configfile: pyproject.toml
+plugins: platformdirs-4.12.2
+collecting ... collected 15 items
+
+tests/test_resource_scaling.py::test_population_arrays_grow_with_count_when_every_mesh_fits[1] SCALING population specimens=1 input_bytes=43800 cache_peak_bytes=43800
+PASSED
+tests/test_resource_scaling.py::test_population_arrays_grow_with_count_when_every_mesh_fits[4] SCALING population specimens=4 input_bytes=175200 cache_peak_bytes=175200
+PASSED
+tests/test_resource_scaling.py::test_population_arrays_grow_with_count_when_every_mesh_fits[16] SCALING population specimens=16 input_bytes=700800 cache_peak_bytes=700800
+PASSED
+tests/test_resource_scaling.py::test_cache_pressure_changes_reuse_not_geometry[0] SCALING pressure specimens=8 capacity=0 cache_peak_bytes=0 hits=0 misses=16 evictions=0
+PASSED
+tests/test_resource_scaling.py::test_cache_pressure_changes_reuse_not_geometry[1] SCALING pressure specimens=8 capacity=1 cache_peak_bytes=43800 hits=1 misses=15 evictions=14
+PASSED
+tests/test_resource_scaling.py::test_cache_pressure_changes_reuse_not_geometry[2] SCALING pressure specimens=8 capacity=2 cache_peak_bytes=87600 hits=2 misses=14 evictions=12
+PASSED
+tests/test_resource_scaling.py::test_cache_pressure_changes_reuse_not_geometry[4] SCALING pressure specimens=8 capacity=4 cache_peak_bytes=175200 hits=4 misses=12 evictions=8
+PASSED
+tests/test_resource_scaling.py::test_cache_pressure_changes_reuse_not_geometry[8] SCALING pressure specimens=8 capacity=8 cache_peak_bytes=350400 hits=8 misses=8 evictions=0
+PASSED
+tests/test_resource_scaling.py::test_cache_budget_does_not_bound_caller_owned_population SCALING caller retained_bytes=350400 cache_budget_bytes=87600 cache_after_close=0
+PASSED
+tests/test_resource_scaling.py::test_source_image_buffers_scale_with_area_not_sequential_file_count[1-256] SCALING images files=1 edge=256 peak_decoded_payload_bytes=524288 payload_after_each_file=0
+PASSED
+tests/test_resource_scaling.py::test_source_image_buffers_scale_with_area_not_sequential_file_count[4-256] SCALING images files=4 edge=256 peak_decoded_payload_bytes=524288 payload_after_each_file=0
+PASSED
+tests/test_resource_scaling.py::test_source_image_buffers_scale_with_area_not_sequential_file_count[16-256] SCALING images files=16 edge=256 peak_decoded_payload_bytes=524288 payload_after_each_file=0
+PASSED
+tests/test_resource_scaling.py::test_source_image_buffers_scale_with_area_not_sequential_file_count[4-128] SCALING images files=4 edge=128 peak_decoded_payload_bytes=131072 payload_after_each_file=0
+PASSED
+tests/test_resource_scaling.py::test_source_image_buffers_scale_with_area_not_sequential_file_count[4-512] SCALING images files=4 edge=512 peak_decoded_payload_bytes=2097152 payload_after_each_file=0
+PASSED
+tests/test_resource_scaling.py::test_source_image_buffers_scale_with_area_not_sequential_file_count[4-1024] SCALING images files=4 edge=1024 peak_decoded_payload_bytes=8388608 payload_after_each_file=0
+PASSED
+
+============================== 15 passed in 3.63s ==============================

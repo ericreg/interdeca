@@ -1,7 +1,7 @@
 # CPU and memory optimization plan
 
-Status: Phases 0–5 accepted; Phase 6 is next. Each phase must pass its checks
-before becoming the baseline for the next phase.
+Status: Phases 0–6 complete. B5 is the final accepted application baseline;
+Phase 6 adds scaling checks and consolidates the evidence without changing it.
 
 ## Acceptance history
 
@@ -9,6 +9,10 @@ The last accepted **performance** baseline is **B5** at
 `~/Library/Application Support/InterDeCA/optimization/B5`. Phase 6 uses this final
 application baseline and the preserved original B0 reference in the same parent
 directory. Phase 5 was compared against its immediate predecessor B4b and B0.
+The [final results](docs/profiling/optimization/RESULTS.md),
+[complete measurement tables](docs/profiling/optimization/phase6-tables.md), and
+[completion audit](docs/profiling/optimization/COMPLETION_AUDIT.md) consolidate the
+outcome and its limits.
 
 | Phase | Decision and evidence | Next comparison reference |
 | --- | --- | --- |
@@ -19,6 +23,7 @@ directory. Phase 5 was compared against its immediate predecessor B4b and B0.
 | 4a | Accepted: 165 focused tests, nine budget trials, two allocation controls, both real Slicer/CLI cases (504.93 s), and all 12 profiling captures pass. Outputs and metadata match B3/B0. MorphoWeave wall/CPU time falls 10.18%/10.38%; the confirmed 91.7 MiB cache cost is an explicit tradeoff. | B4a |
 | 4b | Accepted: 182 focused tests, nine budget trials, both real Slicer/CLI cases (433.26 s), and all 12 profiling captures pass. Outputs and metadata match B4a/B0 with no investigation alerts. MorphoWeave wall/CPU time falls 21.39%/23.72%, application RSS falls 8.13%, and tracked heap falls 2.90%. | B4b |
 | 5 | Accepted: 212 focused tests, both real Slicer/CLI cases (548.00 s), and all 12 captures pass. Outputs and metadata match B4b/B0 with no investigation alerts. MorphoWeave application RSS falls 8.05% and tracked heap falls 2.20%; lifetime checks verify earlier release. Wall/CPU times remain within observed variation. | B5 |
+| 6 | Complete: 15 bounded scaling checks pass; all accepted measurements and both-reference deltas are consolidated. The final application/capture code and lockfile match B5, so its complete profiling/parity suite remains applicable. | B5, final |
 
 Phase 0 was committed as `31fb5d9`; Phase 1 was committed as `0cf6ece`. Its captures
 used the Phase 0 revision plus the source changes
@@ -384,8 +389,9 @@ cloned large files remain outside Git at
 `~/Library/Application Support/InterDeCA/optimization/B5`. The earlier six
 pre-commit baseline captures remain separately in `B5-candidate`, with a record
 verifying their source hashes against the same checkpoint; they are not mixed
-into the accepted measurements. Phase 6 must use B5 as the final application
-baseline and consolidate its cumulative and per-phase comparisons.
+into the accepted measurements. Phase 5's acceptance was committed as `385815c`.
+Phase 6 uses B5 as the final application baseline and consolidates its cumulative
+and per-phase comparisons in the final results linked above.
 
 Phase 0 preserved 606 original input/output/profile/source files outside Git and
 pytest scratch storage, with an archive SHA-256 manifest. Its evidence is in
@@ -725,6 +731,17 @@ reduction and RSS. Keep changes only where ownership or measured resource use
 actually improves.
 
 ## Phase 6 — Consolidate results and assess scaling limits
+
+**Completed:** The [results](docs/profiling/optimization/RESULTS.md) and
+[tables](docs/profiling/optimization/phase6-tables.md) include all requested metrics,
+absolute/percentage changes, provenance, and commands. The final B5 suite has
+12 captures and both real Slicer/CLI cases; all 44 captured Python source hashes
+and the lockfile still match the final application. No measured source changed
+in this phase. Fifteen additional [scaling tests](tests/test_resource_scaling.py)
+pass, varying synthetic population count, image area, and cache pressure
+independently. Their [log](docs/profiling/optimization/phase6-scaling.log) and the
+[completion audit](docs/profiling/optimization/COMPLETION_AUDIT.md) preserve the
+checks and distinguish logical buffer accounting from full-process memory.
 
 **Work:** Run the complete profiling and parity suite against the final candidate.
 Publish a phase-by-phase table against B0 and the immediate predecessor, including
