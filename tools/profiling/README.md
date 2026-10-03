@@ -38,6 +38,10 @@ Parsed originals and validated saved intermediates share one budget; actual OBJ
 files remain complete and operation-local saved entries are released with their
 directory. VTK copies and transient parsing buffers
 remain covered by RSS and the separate allocation pass.
+Cache records also identify whether cleanup ran during an operation or after a
+completed task. Manager-retained array counts inspect only its results lookup;
+controllers and undelivered events can retain the same data separately. Use
+allocation profiles and lifetime tests to establish when buffers actually die.
 
 Initialize the MorphoWeave submodule first on a fresh checkout, and
 install Blender as described in `tests/end_to_end/README.md`. The existing

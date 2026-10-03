@@ -237,28 +237,28 @@ class MorphoWeave:
             MorphoWeave._validate_landmarks(specimen.landmarks)
         if workspace is not None:
             MorphoWeave._check_workspace(specimens, workspace)
-        host = Host(specimens[0].landmarks.labels)
-        upstream = load_atlas_builder(host)
-        context = BuildContext(upstream.MorphoWeaveAtlasBuilderLogic(), logger.info)
-        scope = (
-            MorphoWeave.stage_inputs(specimens)
-            if workspace is None
-            else nullcontext(workspace)
-        )
-        with (
-            scope as staged,
-            tempfile.TemporaryDirectory(prefix="mean-", dir=staged.root) as directory,
-            staged.cache.forget_after(directory),
-        ):
-            host.cache = staged.cache
-            folders = MorphoWeave._folders(staged, Path(directory))
-            # Call the actual upstream high-level workflow without constructing widgets.
-            model, landmarks = upstream.MorphoWeaveAtlasBuilderWidget._generateAtlas(
-                context, folders, normalize_scale, "tps", False
+        with Host(specimens[0].landmarks.labels) as host:
+            upstream = load_atlas_builder(host)
+            context = BuildContext(upstream.MorphoWeaveAtlasBuilderLogic(), logger.info)
+            scope = (
+                MorphoWeave.stage_inputs(specimens)
+                if workspace is None
+                else nullcontext(workspace)
             )
-            # Cleanup precedes the atlas indexing/UV contract, as before.
-            surface = context.logic.cleanPolyData(model.GetPolyData(), normals=False)
-            return AtlasModel(host.mesh(surface), landmarks.landmarks)
+            with (
+                scope as staged,
+                tempfile.TemporaryDirectory(prefix="mean-", dir=staged.root) as directory,
+                staged.cache.forget_after(directory),
+            ):
+                host.cache = staged.cache
+                folders = MorphoWeave._folders(staged, Path(directory))
+                # Call the actual upstream high-level workflow without constructing widgets.
+                model, landmarks = upstream.MorphoWeaveAtlasBuilderWidget._generateAtlas(
+                    context, folders, normalize_scale, "tps", False
+                )
+                # Cleanup precedes the atlas indexing/UV contract, as before.
+                surface = context.logic.cleanPolyData(model.GetPolyData(), normals=False)
+                return AtlasModel(host.mesh(surface), landmarks.landmarks)
 
     @staticmethod
     def restore_input_scale(
@@ -332,55 +332,55 @@ class MorphoWeave:
         specimens = Dataset.validate_specimens(specimens)
         if workspace is not None:
             MorphoWeave._check_workspace(specimens, workspace)
-        host = Host(atlas.landmarks.labels)
-        upstream = load_atlas_builder(host)
-        logic = upstream.MorphoWeaveAtlasBuilderLogic()
-        base = host.AddNewNodeByClass("vtkMRMLModelNode", "atlas")
-        base.SetAndObservePolyData(MeshIO.to_polydata(atlas.mesh))
-        landmarks = host.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "atlas")
-        landmarks.landmarks = atlas.landmarks
-        scope = (
-            MorphoWeave.stage_inputs(specimens)
-            if workspace is None
-            else nullcontext(workspace)
-        )
-        with (
-            scope as staged,
-            tempfile.TemporaryDirectory(prefix="align-", dir=staged.root) as directory,
-            staged.cache.forget_after(directory),
-        ):
-            host.cache = staged.cache
-            folders = MorphoWeave._folders(staged, Path(directory))
-            logic.runAlign(
-                base,
-                landmarks,
-                folders["originalModels"],
-                folders["originalLMs"],
-                folders["alignedModels"],
-                folders["alignedLMs"],
-                normalize_scale,
-                progress=lambda done, total, name: logger.info(
-                    "Aligned %s (%s/%s)", name, done, total
-                ),
+        with Host(atlas.landmarks.labels) as host:
+            upstream = load_atlas_builder(host)
+            logic = upstream.MorphoWeaveAtlasBuilderLogic()
+            base = host.AddNewNodeByClass("vtkMRMLModelNode", "atlas")
+            base.SetAndObservePolyData(MeshIO.to_polydata(atlas.mesh))
+            landmarks = host.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "atlas")
+            landmarks.landmarks = atlas.landmarks
+            scope = (
+                MorphoWeave.stage_inputs(specimens)
+                if workspace is None
+                else nullcontext(workspace)
             )
-            aligned = []
-            for specimen in specimens:
-                # Upstream lowercases file pairing; restore the original application ID.
-                stem = specimen.specimen_id.lower()
-                mesh = staged.cache.read(Path(folders["alignedModels"]) / f"{stem}.obj")
-                if mesh.topology_key != specimen.mesh.topology_key:
-                    raise ValueError(
-                        f"MorphoWeave alignment changed source topology or UVs: {specimen.specimen_id}"
+            with (
+                scope as staged,
+                tempfile.TemporaryDirectory(prefix="align-", dir=staged.root) as directory,
+                staged.cache.forget_after(directory),
+            ):
+                host.cache = staged.cache
+                folders = MorphoWeave._folders(staged, Path(directory))
+                logic.runAlign(
+                    base,
+                    landmarks,
+                    folders["originalModels"],
+                    folders["originalLMs"],
+                    folders["alignedModels"],
+                    folders["alignedLMs"],
+                    normalize_scale,
+                    progress=lambda done, total, name: logger.info(
+                        "Aligned %s (%s/%s)", name, done, total
+                    ),
+                )
+                aligned = []
+                for specimen in specimens:
+                    # Upstream lowercases file pairing; restore the original application ID.
+                    stem = specimen.specimen_id.lower()
+                    mesh = staged.cache.read(Path(folders["alignedModels"]) / f"{stem}.obj")
+                    if mesh.topology_key != specimen.mesh.topology_key:
+                        raise ValueError(
+                            f"MorphoWeave alignment changed source topology or UVs: {specimen.specimen_id}"
+                        )
+                    points = LandmarkIO.read(
+                        Path(folders["alignedLMs"]) / f"{stem}.mrk.json"
                     )
-                points = LandmarkIO.read(
-                    Path(folders["alignedLMs"]) / f"{stem}.mrk.json"
-                )
-                aligned.append(
-                    Specimen(
-                        specimen.specimen_id, mesh, points, specimen.texture_path
-                    ).validated()
-                )
-            return tuple(aligned)
+                    aligned.append(
+                        Specimen(
+                            specimen.specimen_id, mesh, points, specimen.texture_path
+                        ).validated()
+                    )
+                return tuple(aligned)
 
     @staticmethod
     def _landmark_polydata(landmarks: Landmarks) -> vtkPolyData:
@@ -399,43 +399,43 @@ class MorphoWeave:
         Diagnostics measure query-to-surface distance in the aligned specimen's
         space, unlike the original backend's common warped space.
         """
-        host = Host(atlas.landmarks.labels)
-        logic = load_atlas_builder(host).MorphoWeaveAtlasBuilderLogic()
-        MorphoWeave._validate_landmarks(atlas.landmarks)
-        MorphoWeave._validate_landmarks(specimen.landmarks)
-        # A single-specimen batch keeps upstream behavior while preserving our task
-        # boundaries for progress and cooperative cancellation between specimens.
-        surfaces, landmarks = vtkMultiBlockDataSet(), vtkMultiBlockDataSet()
-        surfaces.SetBlock(0, MeshIO.to_polydata(specimen.mesh))
-        subject = MorphoWeave._landmark_polydata(
-            specimen.landmarks.reordered(atlas.landmarks.labels)
-        )
-        landmarks.SetBlock(0, subject)
-        atlas_lm = MorphoWeave._landmark_polydata(atlas.landmarks).GetPoints()
-        surface = MeshIO.to_polydata(atlas.mesh)
-        indices = np.arange(len(atlas.mesh.vertices), dtype=np.int64)
-        result = logic.sparseCorrespondenceBaseMesh(
-            landmarks,
-            surfaces,
-            surface,
-            atlas_lm,
-            indices,
-            warp_method="tps",
-            allow_fallback=False,
-        )[0]
-        # Upstream exports only projected points. Reuse its TPS implementation on
-        # the same float32 queries to retain honest projection-distance diagnostics.
-        queries = vtkPolyData()
-        points = vtkPoints()
-        points.SetData(numpy_to_vtk(atlas.mesh.vertices.astype(np.float32), deep=True))
-        queries.SetPoints(points)
-        warped = logic._warp_polydata_tps(queries, atlas_lm, subject.GetPoints())
-        distances = np.linalg.norm(
-            result - vtk_to_numpy(warped.GetPoints().GetData()), axis=1
-        )
-        mesh = CorrespondenceMeshData(
-            vertices=result, faces=atlas.mesh.faces, uv=atlas.mesh.uv
-        ).to_internal()
-        return ResampledSpecimenData.from_internal(
-            ResampledSpecimen(specimen.specimen_id, mesh, specimen.landmarks, distances)
-        ).to_internal()
+        with Host(atlas.landmarks.labels) as host:
+            logic = load_atlas_builder(host).MorphoWeaveAtlasBuilderLogic()
+            MorphoWeave._validate_landmarks(atlas.landmarks)
+            MorphoWeave._validate_landmarks(specimen.landmarks)
+            # A single-specimen batch keeps upstream behavior while preserving our task
+            # boundaries for progress and cooperative cancellation between specimens.
+            surfaces, landmarks = vtkMultiBlockDataSet(), vtkMultiBlockDataSet()
+            surfaces.SetBlock(0, MeshIO.to_polydata(specimen.mesh))
+            subject = MorphoWeave._landmark_polydata(
+                specimen.landmarks.reordered(atlas.landmarks.labels)
+            )
+            landmarks.SetBlock(0, subject)
+            atlas_lm = MorphoWeave._landmark_polydata(atlas.landmarks).GetPoints()
+            surface = MeshIO.to_polydata(atlas.mesh)
+            indices = np.arange(len(atlas.mesh.vertices), dtype=np.int64)
+            result = logic.sparseCorrespondenceBaseMesh(
+                landmarks,
+                surfaces,
+                surface,
+                atlas_lm,
+                indices,
+                warp_method="tps",
+                allow_fallback=False,
+            )[0]
+            # Upstream exports only projected points. Reuse its TPS implementation on
+            # the same float32 queries to retain honest projection-distance diagnostics.
+            queries = vtkPolyData()
+            points = vtkPoints()
+            points.SetData(numpy_to_vtk(atlas.mesh.vertices.astype(np.float32), deep=True))
+            queries.SetPoints(points)
+            warped = logic._warp_polydata_tps(queries, atlas_lm, subject.GetPoints())
+            distances = np.linalg.norm(
+                result - vtk_to_numpy(warped.GetPoints().GetData()), axis=1
+            )
+            mesh = CorrespondenceMeshData(
+                vertices=result, faces=atlas.mesh.faces, uv=atlas.mesh.uv
+            ).to_internal()
+            return ResampledSpecimenData.from_internal(
+                ResampledSpecimen(specimen.specimen_id, mesh, specimen.landmarks, distances)
+            ).to_internal()

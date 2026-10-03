@@ -250,6 +250,10 @@ class ApplicationSession:
                             details=format_exc(),
                         )
                     )
+                finally:
+                    # The next Queue.get can wait indefinitely. A delivered
+                    # callback may own numerical results that state no longer uses.
+                    del item
         finally:
             self.controller.close()
             logging.getLogger("interdeca").removeHandler(self.log_handler)

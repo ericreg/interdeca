@@ -184,6 +184,11 @@ class Recorder:
             capture = CacheCapture(
                 budget_bytes=cache.budget_bytes,
                 bytes_before_close=before,
+                closed_after_task=(
+                    getattr(self.local, "last_completed_task", None)
+                    if not getattr(self.local, "task", "") else None
+                ),
+                closed_during_task=getattr(self.local, "task", "") or None,
                 **cache.stats._asdict(),
             )
             with (self.config.output / "mesh-cache.jsonl").open("a") as stream:
@@ -200,11 +205,13 @@ class Recorder:
                 recorder.local.active_task = recorder.span(event.task_id, "task")
                 recorder.local.task_values = recorder.local.active_task.__enter__()
             elif event.kind in ("task_completed", "failed"):
+                if event.kind == "task_completed":
+                    recorder.local.last_completed_task = event.task_id
                 active = getattr(recorder.local, "active_task", None)
                 if active is not None:
                     if event.kind == "failed":
                         recorder.local.task_values["failed"] = True
-                    # The emitting frame is the unchanged manager's _execute method.
+                    # The emitting frame is the manager's _execute method.
                     # Its results lookup is inspected only here and never stored.
                     caller = inspect.currentframe().f_back
                     recorder.local.task_values["retained_array_bytes"] = retained_bytes(
@@ -219,6 +226,7 @@ class Recorder:
         def execute(manager, submission):
             recorder.pipeline_index += 1
             recorder.local.pipeline = submission.pipeline.label
+            recorder.local.last_completed_task = None
             profile = recorder.config.mode == "cpu"
             try:
                 with recorder.span(submission.pipeline.label, "pipeline"):

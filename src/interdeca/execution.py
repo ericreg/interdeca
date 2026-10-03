@@ -24,6 +24,11 @@ class Task(NamedTuple):
     downstream tasks; cleanup finishes before the run's terminal notification.
     Resources cannot suppress task failures, and final outputs must not require
     a still-open resource after the run ends.
+
+    release_after optionally names the final task that needs this resource open.
+    This is a workflow assertion: every later result must own its data, rather
+    than forwarding a resource or a path into it. Without that assertion, a
+    resource remains open for the whole run, including indirect consumers.
     """
 
     task_id: str
@@ -31,6 +36,7 @@ class Task(NamedTuple):
     inputs: tuple
     label: str = ""
     manage_resource: bool = False
+    release_after: str | None = None
 
 
 class Pipeline(NamedTuple):
@@ -128,6 +134,19 @@ class TaskValues:
         return value
 
     @staticmethod
+    def references(value: Any) -> tuple[ResultRef, ...]:
+        """List every dependency occurrence, including repeated and nested inputs."""
+        references = []
+
+        def collect(reference: ResultRef) -> ResultRef:
+            references.append(reference)
+            return reference
+
+        # Reuse the input traversal rules without copying numerical buffers.
+        TaskValues.map(value, collect)
+        return tuple(references)
+
+    @staticmethod
     def snapshot(pipeline: Pipeline, operations: Mapping[str, Callable]) -> Pipeline:
         """Reject ambiguous graphs before any operation can produce side effects."""
         seen: set[str] = set()
@@ -150,6 +169,10 @@ class TaskValues:
                     raise ValueError(f"Unknown operation: {task.operation}")
                 if not isinstance(task.manage_resource, bool):
                     raise TypeError("manage_resource must be a boolean.")
+                if task.release_after is not None and (
+                    not isinstance(task.release_after, str) or not task.release_after
+                ):
+                    raise TypeError("release_after must be a nonempty task ID or None.")
                 if not isinstance(task.inputs, tuple) or not hasattr(
                     task.inputs, "_fields"
                 ):
@@ -166,4 +189,23 @@ class TaskValues:
         for output in pipeline.outputs:
             if output.task_id not in seen:
                 raise ValueError(f"Unknown pipeline output: {output.task_id}")
+        # An explicit early boundary cannot precede acquisition or a later
+        # direct use. Indirect lifetime remains the workflow author's contract.
+        tasks = tuple(task for stage in stages for task in stage)
+        positions = {task.task_id: index for index, task in enumerate(tasks)}
+        for task in tasks:
+            if task.release_after is None:
+                continue
+            if not task.manage_resource:
+                raise ValueError("release_after requires a managed resource.")
+            until = positions.get(task.release_after, -1)
+            if until < positions[task.task_id]:
+                raise ValueError("Resource release boundary must name this or a later task.")
+            later = tuple(
+                reference
+                for consumer in tasks[until + 1:]
+                for reference in TaskValues.references(consumer.inputs)
+            ) + tuple(pipeline.outputs)
+            if any(reference.task_id == task.task_id for reference in later):
+                raise ValueError("A resource is referenced after its release boundary.")
         return Pipeline(tuple(stages), tuple(pipeline.outputs), pipeline.label)

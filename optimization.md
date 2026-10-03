@@ -1,7 +1,8 @@
 # CPU and memory optimization plan
 
-Status: Phases 0–4b accepted; Phase 5 is next. Each phase must pass its checks
-before becoming the baseline for the next phase.
+Status: Phases 0–4b accepted; Phase 5 is an implementation checkpoint with
+validation incomplete. Each phase must pass its checks before becoming the
+baseline for the next phase.
 
 ## Acceptance history
 
@@ -307,6 +308,38 @@ Complete artifacts remain outside Git at
 files use independent filesystem clones, verified against B0. Final comparisons
 passed again after promotion from `B4b-candidate` to `B4b`. Phase 5 must use B4b
 as its immediate predecessor.
+
+Phase 4b was committed as `4ffb536`. Phase 5 now has a candidate that closes the
+MorphoWeave workspace after final alignment, before publication and texture
+baking. The workflow explicitly declares that resource boundary; ordinary managed
+resources retain their run-wide lifetime so indirect consumers of a resource or
+its files keep working. Final aligned meshes and landmarks own their arrays, and
+source texture paths refer to external inputs.
+
+The manager counts every nested/repeated result reference and final output before
+dropping its own unused entries. Controllers retain partial results for failed,
+cancelled, stale, or unsuccessfully published runs; after successful publication,
+only useful session results remain. Worker/application threads drop completed
+queue items before blocking again, and queued execution callbacks retain their
+observer instead of the whole pipeline snapshot. Numerical host scopes clear VTK
+handles explicitly without closing a borrowed workspace cache.
+
+The candidate passes [212 focused tests](docs/profiling/optimization/phase5-focused.log), including weak-reference checks with no
+manual garbage collection, indirect resource forwarding, nested fan-out and final
+references, queued/active cancellation, early cleanup failures, host-node cleanup,
+and repeated four-specimen synthetic PCA/UMAP fitting and reconstruction. Manager
+retention counts alone do not prove total live-memory reduction because observers
+can hold the same arrays. At the user's request, this implementation and the plan
+are committed as a checkpoint. Full profiling against B4b/B0 and fresh real
+Slicer/CLI parity are still required before accepting this phase; B4b remains the
+last accepted baseline. No Phase 5 CPU or peak-memory improvement is claimed yet.
+
+Partial pre-commit baseline captures are preserved outside Git in
+`~/Library/Application Support/InterDeCA/optimization/B5-candidate`. The validation
+runner was stopped after its active baseline batch completed. Continue validation
+in a fresh capture directory at the checkpoint revision: the profiler intentionally
+rejects resuming across repository HEAD changes. Preserve these partial captures
+as preliminary evidence, and complete the Phase 5 exit checks before Phase 6.
 
 Phase 0 preserved 606 original input/output/profile/source files outside Git and
 pytest scratch storage, with an archive SHA-256 manifest. Its evidence is in

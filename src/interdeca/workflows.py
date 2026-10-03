@@ -353,13 +353,16 @@ class Workflows:
             ]
         )
         if options.backend == "morphoweave":
-            # Stage once for both upstream workflows. The generic resource scope
-            # also cleans up when cleanup/UV preparation fails before alignment.
+            # Final alignment returns owned arrays and external texture paths.
+            # Its staging files/cache have no consumers during later baking.
+            # Failures before that boundary still close the resource normally.
             stages.append(
                 [
                     task(
                         "morphoweave_inputs", "morphoweave_inputs", ref("specimens")
-                    )._replace(manage_resource=True)
+                    )._replace(
+                        manage_resource=True, release_after="morphoweave_aligned"
+                    )
                 ]
             )
         if options.atlas_model is not None:

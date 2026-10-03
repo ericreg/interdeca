@@ -9,7 +9,7 @@ import pytest
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
 from interdeca._mesh_cache import MeshCache
-from interdeca._morphoweave_host import CORNER_UV, Host
+from interdeca._morphoweave_host import CORNER_UV, Host, load_atlas_builder
 from interdeca.io import MeshIO
 from interdeca.models import Mesh
 
@@ -330,6 +330,34 @@ def test_invalid_saved_mesh_cannot_create_a_file_or_entry(files, field):
         cache.write_obj(mesh._replace(**{field: values}), path)
     assert not path.exists()
     assert cache.stats.entries == 0
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_host_scope_releases_nodes_without_closing_borrowed_cache(files, fail):
+    mesh, paths = files
+    cache = MeshCache(paths[0].parent, 8192)
+    try:
+        with Host((), cache) as host:
+            upstream = load_atlas_builder(host)
+            node = host.loadModel(paths[0])
+            node_reference = weakref.ref(node)
+            surface_reference = weakref.ref(node.GetPolyData())
+            result = Host.mesh(node.GetPolyData())
+            del node
+            if fail:
+                raise ValueError("host operation failed")
+    except ValueError as error:
+        assert fail and str(error) == "host operation failed"
+    # Keep the upstream module and its host import context alive deliberately.
+    # Explicit node cleanup must work without waiting for cyclic GC.
+    assert upstream.MorphoWeaveAtlasBuilderLogic is not None
+    assert not host.nodes and host.cache is None
+    assert node_reference() is None
+    assert surface_reference() is None
+    assert not cache.closed
+    equal_mesh(cache.read(paths[0]), mesh)
+    cache.close()
+    equal_mesh(result, mesh)
 
 
 def test_changed_during_parse_is_not_cached_and_missing_files_are_not_hits(

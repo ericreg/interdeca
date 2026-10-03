@@ -15,6 +15,7 @@ from interdeca._mesh_cache import MeshCache
 from interdeca._morphoweave_host import Host, load_atlas_builder
 from interdeca.application_models import AtlasOptions
 from interdeca.atlas import Atlas
+from interdeca.execution import Pipeline, ResultRef
 from interdeca.io import LandmarkIO, MeshIO
 from interdeca.models import AtlasModel, AtlasScaleConversion, Landmarks, Mesh, Specimen
 from interdeca.morphoweave import MorphoWeave
@@ -692,3 +693,55 @@ def test_repeated_host_operations_release_only_their_saved_entries(specimens):
         assert before.landmarks.points.tobytes() == after.landmarks.points.tobytes()
         for left, right in zip(before.mesh, after.mesh, strict=True):
             assert left.tobytes() == right.tobytes()
+
+
+def test_workflow_closes_workspace_before_publishing_owned_alignment(specimens, tmp_path):
+    models, landmarks = tmp_path / "models", tmp_path / "landmarks"
+    for specimen in specimens:
+        MeshIO.write_obj(specimen.mesh, models / f"{specimen.specimen_id}.obj")
+        LandmarkIO.write_json(specimen.landmarks, landmarks / f"{specimen.specimen_id}.mrk.json")
+    options = AtlasOptions(models, landmarks, tmp_path / "out", backend="morphoweave")
+    pipeline = Workflows.atlas(options)
+    stages = []
+    for stage in pipeline.stages:
+        stages.append(stage)
+        if any(task.task_id == "saved_atlas" for task in stage):
+            break
+    pipeline = Pipeline(stages, (ResultRef("saved_atlas"),))
+    operations = Operations.registry()
+    acquire, save = operations["morphoweave_inputs"], operations["save_atlas"]
+    workspaces = []
+
+    def stage(inputs):
+        workspace = acquire(inputs)
+        workspaces.append(workspace)
+        return workspace
+
+    def publish(inputs):
+        workspace = workspaces[0]
+        assert not workspace.root.exists()
+        assert workspace.cache.closed
+        assert workspace.cache.stats.array_bytes == 0
+        assert workspace.cache.stats.peak_array_bytes > 0
+        assert np.isfinite(inputs.arguments[0].mesh.vertices).all()
+        return save(inputs)
+
+    operations.update(
+        morphoweave_inputs=stage, save_atlas=publish,
+        blender=lambda inputs: None,
+        clean=lambda inputs: inputs.arguments[0],
+        uv=lambda inputs: inputs.arguments[0],
+    )
+    callbacks, events = Queue(), []
+    manager = SerialExecutionManager(operations, Callbacks(callbacks.put))
+    try:
+        manager.submit(pipeline, events.append, run_id="early-workspace")
+        while not events or events[-1].kind not in ("completed", "failed", "cancelled"):
+            callbacks.get(timeout=10)()
+        assert events[-1].kind == "completed", events[-1].failure
+        result = events[-1].result[0]
+        path = next((tmp_path / "out").glob("*/atlas.obj"))
+        assert MeshIO.read(path).vertices.tobytes() == result.mesh.vertices.tobytes()
+    finally:
+        manager.close()
+        assert manager.join(10)

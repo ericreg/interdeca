@@ -1,5 +1,6 @@
 """FIFO implementation of the execution interface with one private worker."""
 
+from collections import Counter
 from collections.abc import Callable, Mapping
 from contextlib import ExitStack
 from queue import Queue
@@ -85,10 +86,13 @@ class SerialExecutionManager:
         return not self._worker.is_alive()
 
     def _emit(self, submission: _Submission, event: ExecutionEvent) -> None:
+        # Delivery needs the observer, not the pipeline's potentially large input
+        # snapshot. Queued notifications must not keep that snapshot alive.
+        observer = submission.observer
         # Recheck at delivery time because the user may close the view after posting.
         def deliver() -> None:
             if not self._closed:
-                submission.observer(event)
+                observer(event)
 
         self._dispatcher.post(deliver)
 
@@ -100,6 +104,9 @@ class SerialExecutionManager:
             finally:
                 with self._lock:
                     self._pending.pop(submission.run_id, None)
+                # Queue.get may now block indefinitely; drop the previous run's
+                # input snapshot before waiting for another user action.
+                del submission
 
     @staticmethod
     def _manage(resources: ExitStack, resource: Any) -> Any:
@@ -121,6 +128,20 @@ class SerialExecutionManager:
 
     def _execute(self, submission: _Submission) -> None:
         results = {}
+        tasks = tuple(task for stage in submission.pipeline.stages for task in stage)
+        dependencies = {
+            task.task_id: TaskValues.references(task.inputs) for task in tasks
+        }
+        remaining = Counter(
+            reference.task_id
+            for references in (*dependencies.values(), submission.pipeline.outputs)
+            for reference in references
+        )
+        releases: dict[str, list[str]] = {}
+        for task in tasks:
+            if task.release_after is not None:
+                releases.setdefault(task.release_after, []).append(task.task_id)
+        scopes: dict[str, ExitStack] = {}
         count = 0
         total = sum(len(stage) for stage in submission.pipeline.stages)
         base = ExecutionEvent(
@@ -159,7 +180,12 @@ class SerialExecutionManager:
                         )
                         result = self._operations[task.operation](inputs)
                         if task.manage_resource:
-                            result = self._manage(resources, result)
+                            # A child stack supports one explicit early close and
+                            # still receives exception details on failure. Closing
+                            # it again at run exit is harmless because it is empty.
+                            scope = resources.enter_context(ExitStack())
+                            result = self._manage(scope, result)
+                            scopes[task.task_id] = scope
                         results[task.task_id] = result
                         count += 1
                         self._emit(
@@ -168,6 +194,19 @@ class SerialExecutionManager:
                                 kind="task_completed", completed=count, result=result
                             ),
                         )
+                        # Observers may retain diagnostic results separately.
+                        # Remove only the manager's now-unused references; arrays
+                        # shared with downstream results remain alive normally.
+                        for reference in dependencies[task.task_id]:
+                            remaining[reference.task_id] -= 1
+                            if remaining[reference.task_id] == 0:
+                                results.pop(reference.task_id)
+                        if remaining[task.task_id] == 0:
+                            results.pop(task.task_id)
+                        del inputs, result
+                        operation = "release_resources"
+                        for resource_id in reversed(releases.get(task.task_id, ())):
+                            scopes.pop(resource_id).close()
                     if terminal is not None:
                         break
                 # A cancel during the final operation still cancels the run. Keep

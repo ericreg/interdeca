@@ -326,6 +326,12 @@ class ApplicationController:
             )
         self._render()
 
+        # Completed intermediates serve failure/cancellation diagnostics. After
+        # successful publication, the state and view own the useful final data.
+        # Keep diagnostics if any presentation callback above raises instead.
+        if not stale and event.kind == "completed":
+            self.completed_tasks = ()
+
     def close(self) -> None:
         """Detach the view before asking the execution implementation to shut down."""
         self._closed = True

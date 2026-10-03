@@ -37,6 +37,8 @@ class CacheCapture(Data):
     peak_metadata_bytes: int
     write_admissions: int = 0
     write_bypasses: int = 0
+    closed_after_task: str | None = None
+    closed_during_task: str | None = None
 
 
 class Span(Data):

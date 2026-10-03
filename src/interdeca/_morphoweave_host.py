@@ -13,6 +13,7 @@ from contextlib import nullcontext
 from hashlib import sha256
 from pathlib import Path
 from types import ModuleType
+from typing import Self
 
 import numpy as np
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
@@ -72,6 +73,16 @@ class Host:
         self.labels = labels
         self.cache = cache
         self.nodes: set[DataNode] = set()
+
+    def __enter__(self) -> Self:
+        return self
+
+    def __exit__(self, *_error: object) -> None:
+        # The isolated upstream module can form Python cycles. Release its VTK
+        # handles explicitly; returned numerical records already own their data.
+        # The workspace, not this borrowed host, controls cache lifetime.
+        self.nodes.clear()
+        self.cache = None
 
     def AddNewNodeByClass(self, kind, name):
         # Unknown node types indicate a new upstream contract, not a silent fallback.
