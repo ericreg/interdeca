@@ -46,7 +46,7 @@ class Dataset:
                 raise ValueError(
                     f"{specimen_id}: a textured source mesh needs UV coordinates."
                 )
-            TextureIO.read(texture)
+            TextureIO.validate_file(texture)
         # Apply the same alignment requirements used for a whole population so
         # inspection cannot report a specimen as usable when alignment would fail.
         specimen = Specimen(specimen_id, mesh, landmarks, texture).validated()

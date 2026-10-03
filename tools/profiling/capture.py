@@ -237,7 +237,7 @@ class Recorder:
             (Dataset, ("validate_specimens",)),
             (MeshIO, ("read", "to_polydata")),
             (LandmarkIO, ("read", "write_json")),
-            (TextureIO, ("read", "write_png")),
+            (TextureIO, ("read", "validate_file", "write_png")),
             (Host, ("loadModel", "saveNode", "mesh")),
             (DataNode, ("SetAndObservePolyData",)),
             (Blender, ("_run", "_save_mesh")),

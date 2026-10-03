@@ -279,7 +279,7 @@ class Blender:
             raise FileExistsError(destination)
         # Decode the source once here so corrupt input is reported at the file
         # boundary instead of appearing as an opaque Blender subprocess failure.
-        TextureIO.read(specimen.texture_path)
+        TextureIO.validate_file(specimen.texture_path)
         # Keep intermediate files private until the worker has completed and its
         # output dimensions have been checked against the requested resolution.
         with tempfile.TemporaryDirectory(prefix="interdeca-bake-") as directory:

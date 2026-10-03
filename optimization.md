@@ -5,17 +5,18 @@ becoming the baseline for the next phase.
 
 ## Acceptance history
 
-The last accepted **performance** baseline is **B1** at
-`~/Library/Application Support/InterDeCA/optimization/B1`. Phase 2 must compare
-against B1 and the preserved original B0 reference in the same parent directory.
+The last accepted **performance** baseline is **B2** at
+`~/Library/Application Support/InterDeCA/optimization/B2`. Phase 3 must compare
+against B2 and the preserved original B0 reference in the same parent directory.
 
 | Phase | Decision and evidence | Next comparison reference |
 | --- | --- | --- |
 | 0 | Accepted: 19 comparison tests pass; real native/MorphoWeave Slicer/CLI parity passes (2 cases, 428.65 s); all ten B0 captures compare identically, including metadata. | B0 |
 | 1 | Accepted: 89 focused checks and both fresh Slicer/CLI cases pass (512.49 s). All 12 profiling runs succeed and match B0 outputs and metadata. Application RSS falls 36–38% and tracked peak heap falls 54%, with no investigation alerts. | B1 |
+| 2 | Accepted: 115 focused tests and both real Slicer/CLI cases pass (616.61 s). All 12 profiling captures succeed and match B1 and B0, including metadata, with no investigation alerts. Application RSS falls 58–64% and tracked peak heap falls 74% relative to B1. | B2 |
 
-Phase 0 was committed as `31fb5d9`. The commit containing this acceptance record
-implements Phase 1. Its captures used that parent revision plus the source changes
+Phase 0 was committed as `31fb5d9`; Phase 1 was committed as `0cf6ece`. Its captures
+used the Phase 0 revision plus the source changes
 identified by all 43 Python file hashes in the
 [environment record](docs/profiling/optimization/phase1-environment.json); these
 hashes and the dependency lock were checked against the files being committed.
@@ -50,7 +51,47 @@ No mesh, texture-resolution, precision, or upstream algorithm change was made.
 The substantial memory reduction is the primary acceptance evidence. Session
 times above are observed medians from this machine, not promised speedups on other
 workloads. CPU-profiler elapsed times are excluded from these speed measurements;
-the CPU captures took 239.7 s (native) and 751.1 s (MorphoWeave). Phase 2 is next.
+the CPU captures took 239.7 s (native) and 751.1 s (MorphoWeave).
+
+The commit containing this Phase 2 acceptance record implements the change. The
+captures used parent revision `0cf6ece` plus the source hashes in the
+[environment record](docs/profiling/optimization/phase2-environment.json), checked
+against the files being committed. Completed captures are preserved at
+`~/Library/Application Support/InterDeCA/optimization/B2`. The focused
+tests cover supported image modes, corrupt/truncated images, file-handle cleanup,
+revalidation between inspection and baking, and the CLI raw-texture presentation.
+The CLI also discarded numerical colors solely for validation and now uses the
+same operation. Both real Slicer/CLI cases passed in 616.61 s; their combined
+elapsed time includes host startup and comparison work and is not the performance
+benchmark. CPU captures passed in 234.4 s (native) and 744.4 s (MorphoWeave).
+
+The [summary](docs/profiling/optimization/phase2-summary.json),
+[focused-test log](docs/profiling/optimization/phase2-focused.log), and
+[Slicer/CLI log](docs/profiling/optimization/phase2-e2e.log) are retained in Git.
+As for B1, complete outputs and raw profiles remain outside Git. Byte-identical
+large files share filesystem blocks with B0 through independent file clones; their
+contents were verified before replacement and rechecked by the comparisons after
+promotion from `B2-candidate` to `B2`.
+
+Accepted Phase 2 measurements against the last accepted baseline, B1:
+
+| Metric | Native B1 → B2 | MorphoWeave B1 → B2 |
+| --- | --- | --- |
+| Median session wall time | 50.53 → 48.54 s (3.95% lower) | 95.87 → 93.77 s (2.19% lower) |
+| Median application CPU | 43.21 → 41.34 s (4.32% lower) | 88.54 → 86.60 s (2.19% lower) |
+| Maximum baseline application RSS | 5.06 → 1.84 GiB (63.73% lower) | 5.38 → 2.25 GiB (58.22% lower) |
+| Tracked live heap at peak | 3.21 → 0.84 GiB (73.90% lower) | 3.19 → 0.83 GiB (74.16% lower) |
+
+The native allocation peak now contains two 256 MiB byte-image buffers plus
+geometry allocations. MorphoWeave's peak moved to OBJ parsing and mesh validation.
+Both the [B1 comparison](docs/profiling/optimization/phase2-vs-B1.json) and the
+[B0 comparison](docs/profiling/optimization/phase2-vs-B0.json) report compatible
+environments, identical outputs and metadata, and no investigation alerts. All 33
+fingerprints per backend match both references. Against B0, application RSS is
+77.56% lower for native and 73.17% lower for MorphoWeave. These figures exclude
+CPU-profiler wall time. The memory reduction is the main acceptance evidence;
+the small measured time reductions are observations from these repeated runs.
+Phase 3 is next; its reference is B2.
 
 Phase 0 preserved 606 original input/output/profile/source files outside Git and
 pytest scratch storage, with an archive SHA-256 manifest. Its evidence is in
@@ -294,6 +335,16 @@ Own workspace lifetime in the application/workflow integration. Numerical core
 records must not acquire execution-manager or UI dependencies. Standalone calls
 must still own and clean up their required workspace explicitly. A staging directory
 must never be a process-global cache or leak between input revisions.
+
+Use an explicitly managed task resource for the shared workspace: its producer
+stages the validated originals, and later tasks reference that same workspace.
+The execution layer should manage a generic context-manager lifetime, without
+importing MorphoWeave or introducing execution dependencies into numerical code.
+Release the resource before reporting a terminal run state, including when a
+later task fails, a queued/active run is cancelled, or the manager closes. A
+standalone core caller should use the same workspace in a `with` scope. Keep
+geometry/input identity checks at reuse boundaries, and leave room for the bounded
+run-local cache in Phase 4 to share that explicit cleanup lifetime.
 
 **Tests:** Test workspace reuse within a run and isolation between runs, file
 pairing/case rules, unchanged staged geometry, and cleanup after success, failure,

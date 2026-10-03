@@ -1,0 +1,21 @@
+Starting native-baseline-1
+native-baseline-1: exit=0, wall=51.6s, peak tree RSS=2758 MiB
+Starting morphoweave-baseline-1
+morphoweave-baseline-1: exit=0, wall=97.0s, peak tree RSS=3091 MiB
+Starting morphoweave-baseline-2
+morphoweave-baseline-2: exit=0, wall=96.7s, peak tree RSS=2691 MiB
+Starting native-baseline-2
+native-baseline-2: exit=0, wall=51.5s, peak tree RSS=2751 MiB
+Starting native-baseline-3
+native-baseline-3: exit=0, wall=51.8s, peak tree RSS=2756 MiB
+Starting morphoweave-baseline-3
+morphoweave-baseline-3: exit=0, wall=97.3s, peak tree RSS=3065 MiB
+Starting native-spans-1
+native-spans-1: exit=0, wall=53.0s, peak tree RSS=2745 MiB
+Starting morphoweave-spans-1
+morphoweave-spans-1: exit=0, wall=97.6s, peak tree RSS=2943 MiB
+Starting native-memory-1
+native-memory-1: exit=0, wall=68.8s, peak tree RSS=2707 MiB
+Starting morphoweave-memory-1
+morphoweave-memory-1: exit=0, wall=141.5s, peak tree RSS=3342 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/B2-candidate

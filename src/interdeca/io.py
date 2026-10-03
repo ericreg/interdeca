@@ -384,6 +384,33 @@ class TextureIO:
     """Read/write 8-bit sRGB images with alpha as an explicit validity signal."""
 
     @staticmethod
+    def validate_file(path: Path | str) -> None:
+        """Decode a supported source texture without allocating numerical colors.
+
+        A header alone cannot expose truncated pixel data. Decode and convert the
+        first image to RGBA just as read() does, retaining only byte-image buffers.
+        This checks current file contents on every call; no result is cached.
+        """
+        # The same decoder and conversion as numerical loading detect unusable
+        # inputs before Blender starts, without float64 buffers that nobody uses.
+        with Image.open(Path(path).expanduser()) as image:
+            TextureIO._check_encoding(image)
+            with image.convert("RGBA") as decoded:
+                decoded.load()
+
+    @staticmethod
+    def _check_encoding(image: Image.Image) -> None:
+        """Keep file validation and numerical loading on the same image contract."""
+        # Reject implicit quantization and unsupported color spaces before either
+        # caller can convert the image; accepted byte values are already bounded.
+        if image.mode not in ("RGB", "RGBA", "P", "L", "LA"):
+            raise ValueError(
+                f"Unsupported texture mode {image.mode}; supply an 8-bit sRGB image."
+            )
+        if image.width < 1 or image.height < 1:
+            raise ValueError("Texture images need nonempty dimensions.")
+
+    @staticmethod
     def read(path: Path | str) -> TexturePixels:
         """Return RGB in [0, 1] and alpha in [0, 1], without treating black as missing.
 
@@ -393,10 +420,7 @@ class TextureIO:
         # Restrict conversion to supported 8-bit inputs so higher-precision or
         # differently encoded images are not silently quantized or misinterpreted.
         with Image.open(Path(path).expanduser()) as image:
-            if image.mode not in ("RGB", "RGBA", "P", "L", "LA"):
-                raise ValueError(
-                    f"Unsupported texture mode {image.mode}; supply an 8-bit sRGB image."
-                )
+            TextureIO._check_encoding(image)
             # A uniform RGBA representation gives opaque images full coverage
             # while retaining explicit transparency where the source provides it.
             pixels = np.asarray(image.convert("RGBA"))

@@ -435,7 +435,7 @@ def raw_texture(app, texture, mesh, coordinates):
     numerical = app.choose_mesh(mesh, coordinates)
     if numerical.uv is None:
         raise click.UsageError("A raw texture requires mesh UV coordinates.")
-    TextureIO.read(texture)
+    TextureIO.validate_file(texture)
     store = app.client.artifacts
     references = {
         "vertices": store.write(numerical.vertices, "outputs"),
