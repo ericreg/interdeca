@@ -266,6 +266,12 @@ def main():
         "git_status": subprocess.check_output(
             ["git", "status", "--short"], cwd=REPOSITORY, text=True
         ),
+        "lock_sha256": sha256(REPOSITORY / "uv.lock"),
+        "source_sha256": {
+            str(path.relative_to(REPOSITORY)): sha256(path)
+            for folder in ("src", "client", "tools/profiling")
+            for path in (REPOSITORY / folder).rglob("*.py")
+        },
         "inputs_sha256": {
             str(p.relative_to(root / "inputs")): sha256(p)
             for p in (root / "inputs").rglob("*")
@@ -286,8 +292,12 @@ def main():
         if (
             previous["inputs_sha256"] != environment["inputs_sha256"]
             or previous["git_head"] != environment["git_head"]
+            or previous.get("lock_sha256") != environment["lock_sha256"]
+            or previous.get("source_sha256") != environment["source_sha256"]
         ):
-            raise RuntimeError("Cannot resume with changed inputs or repository HEAD.")
+            raise RuntimeError(
+                "Cannot resume with changed inputs, sources, lockfile, or repository HEAD."
+            )
         (root / "environment-resume.json").write_text(
             json.dumps(environment, indent=2) + "\n"
         )

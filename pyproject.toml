@@ -65,4 +65,5 @@ interdeca-worker = "interdeca.worker:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = ["end_to_end: launches Slicer, the uv worker, and Blender"]

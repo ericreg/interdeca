@@ -1,8 +1,25 @@
 # CPU and memory optimization plan
 
-Status: proposed implementation phases. This document does not implement the
-optimizations. Each phase must pass its checks before becoming the baseline for
-the next phase.
+Status: implementation in progress. Each phase must pass its checks before
+becoming the baseline for the next phase.
+
+## Acceptance history
+
+The last accepted **performance** baseline is **B0** at
+`~/Library/Application Support/InterDeCA/optimization/B0`. Phase 0 improves the
+comparison infrastructure and leaves that numerical/performance reference intact.
+
+| Phase | Decision and evidence | Next comparison reference |
+| --- | --- | --- |
+| 0 | Accepted: 19 comparison tests pass; real native/MorphoWeave Slicer/CLI parity passes (2 cases, 428.65 s); all ten B0 captures compare identically, including metadata. | B0 |
+
+Phase 0 preserved 606 original input/output/profile/source files outside Git and
+pytest scratch storage, with an archive SHA-256 manifest. Its evidence is in
+[docs/profiling/optimization](docs/profiling/optimization/phase0-comparison.json).
+The new command is `uv run --group profiling python -m tools.profiling.compare
+--reference REF --candidate CANDIDATE --output REPORT.json`; use it against the
+last accepted phase and B0. Numerical/environment failures stop acceptance;
+resource deltas and investigation alerts require a separate improvement decision.
 
 ## Objective and constraints
 

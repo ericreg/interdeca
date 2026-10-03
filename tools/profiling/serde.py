@@ -108,3 +108,25 @@ class Summary(Data):
     functions: dict[str, dict[str, FunctionCost]]
     peak_allocations: dict[str, list[AllocationSite]]
     tracked_heap_peaks: dict[str, int]
+
+
+class MetricChange(Data):
+    reference: float
+    candidate: float
+    reduction: float
+    reduction_percent: float | None
+
+
+class Comparison(Data):
+    """Correctness and measurements stay separate from the acceptance decision."""
+
+    schema_version: Literal[1] = 1
+    reference: Path
+    candidate: Path
+    reference_revision: str
+    candidate_revision: str
+    compatible_environment: bool
+    identical_outputs: bool
+    issues: list[str]
+    investigation_alerts: list[str]
+    metrics: dict[str, dict[str, MetricChange]]

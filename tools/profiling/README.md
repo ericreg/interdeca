@@ -23,6 +23,8 @@ uv run --group profiling python -m tools.profiling.summarize \
 Choose a **new** output directory. The harness refuses to replace previous
 results. `--resume` verifies existing outputs and input hashes before continuing
 missing runs; incomplete or rejected run directories must be moved aside explicitly.
+Resume also checks the dependency lock and source hashes, including uncommitted
+code, so an experiment cannot silently combine implementations.
 Initialize the MorphoWeave submodule first on a fresh checkout, and
 install Blender as described in `tests/end_to_end/README.md`. The existing
 `BLENDER_EXECUTABLE` and `INTERDECA_SMALL_CLAMS` overrides apply.
@@ -120,3 +122,33 @@ Native symbol quality can vary on macOS. These limits follow the
 The three-specimen profile does not establish a fifty-specimen peak. Population
 retention and per-specimen temporary work scale differently; extrapolating the
 entire measured peak linearly would be misleading.
+
+## Compare an optimization with its accepted predecessor
+
+```sh
+uv run --group profiling python -m tools.profiling.compare \
+  --reference /path/to/last-accepted-profile \
+  --candidate /path/to/candidate-profile \
+  --output /path/to/comparison.json
+```
+
+Run this against the **last accepted baseline**, and again against B0. The command
+rehashes prepared inputs and actual outputs, validates capture success, compares
+all result presentations and terminal actions, checks atlas scale/settings/upstream
+metadata, and compares environments. It checks every run within each backend as
+well as across directories. Archived absolute paths are resolved inside the
+archive, so the original temporary directory is not needed.
+
+Numerical or environment differences fail the command. Resource deltas and 5%
+time/CPU or 10% memory investigation alerts are reported separately; success is
+not automatic acceptance of a performance improvement. The optimization plan
+defines the required measurements and acceptance decision. Missing instrumented
+metrics are reported as unavailable rather than improvements.
+
+An older capture lacking Blender/lockfile metadata needs a `provenance.json`
+containing only `blender` and `lock_sha256`, recovered from preserved experiment
+evidence. It cannot override a recorded value. B0's durable archive is at
+`~/Library/Application Support/InterDeCA/optimization/B0`; it contains the
+original inputs, outputs, raw profiles, environment, source/lock snapshots,
+and an archive hash manifest. No benchmark artifacts belong in pytest scratch
+directories used for later tests.

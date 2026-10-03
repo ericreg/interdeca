@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "reference": "/Users/eric/Library/Application Support/InterDeCA/optimization/B0",
+  "candidate": "/Users/eric/Library/Application Support/InterDeCA/optimization/B0",
+  "reference_revision": "129c2e218c3eecce6b475a8a19279bf75d1f8b32",
+  "candidate_revision": "129c2e218c3eecce6b475a8a19279bf75d1f8b32",
+  "compatible_environment": true,
+  "identical_outputs": true,
+  "issues": [],
+  "investigation_alerts": [],
+  "metrics": {
+    "native": {
+      "ATLAS and Texture Transfer_wall_s": {
+        "reference": 38.24768541648518,
+        "candidate": 38.24768541648518,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "Color processing_wall_s": {
+        "reference": 16.69485704199178,
+        "candidate": 16.69485704199178,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "application_cpu_s": {
+        "reference": 45.9316395,
+        "candidate": 45.9316395,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "array_copy_bytes": {
+        "reference": 20926040140.0,
+        "candidate": 20926040140.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "blender_cpu_s": {
+        "reference": 7.250197,
+        "candidate": 7.250197,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "obj_read_bytes": {
+        "reference": 235765927.0,
+        "candidate": 235765927.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "obj_read_calls": {
+        "reference": 3.0,
+        "candidate": 3.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "obj_write_bytes": {
+        "reference": 341657750.0,
+        "candidate": 341657750.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "obj_write_calls": {
+        "reference": 7.0,
+        "candidate": 7.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "peak_rss_bytes": {
+        "reference": 8780775424.0,
+        "candidate": 8780775424.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "retained_array_bytes": {
+        "reference": 346832400.0,
+        "candidate": 346832400.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "session_wall_s": {
+        "reference": 55.358786541968584,
+        "candidate": 55.358786541968584,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "tracked_heap_peak_bytes": {
+        "reference": 7477102595.0,
+        "candidate": 7477102595.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "tree_peak_rss_bytes": {
+        "reference": 8780775424.0,
+        "candidate": 8780775424.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      }
+    },
+    "morphoweave": {
+      "ATLAS and Texture Transfer_wall_s": {
+        "reference": 82.67102941696066,
+        "candidate": 82.67102941696066,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "Color processing_wall_s": {
+        "reference": 16.405015166528756,
+        "candidate": 16.405015166528756,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "application_cpu_s": {
+        "reference": 90.41526350000001,
+        "candidate": 90.41526350000001,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "array_copy_bytes": {
+        "reference": 22674541882.0,
+        "candidate": 22674541882.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "blender_cpu_s": {
+        "reference": 7.2798435,
+        "candidate": 7.2798435,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "obj_read_bytes": {
+        "reference": 1291794097.0,
+        "candidate": 1291794097.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "obj_read_calls": {
+        "reference": 16.0,
+        "candidate": 16.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "obj_write_bytes": {
+        "reference": 1282113002.0,
+        "candidate": 1282113002.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "obj_write_calls": {
+        "reference": 19.0,
+        "candidate": 19.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "peak_rss_bytes": {
+        "reference": 8992030720.0,
+        "candidate": 8992030720.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "retained_array_bytes": {
+        "reference": 280193064.0,
+        "candidate": 280193064.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "session_wall_s": {
+        "reference": 99.47936458350159,
+        "candidate": 99.47936458350159,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "tracked_heap_peak_bytes": {
+        "reference": 7454615902.0,
+        "candidate": 7454615902.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      },
+      "tree_peak_rss_bytes": {
+        "reference": 8992030720.0,
+        "candidate": 8992030720.0,
+        "reduction": 0.0,
+        "reduction_percent": 0.0
+      }
+    }
+  }
+}
