@@ -1,0 +1,41 @@
+{
+  "UF_IZ_507781": {
+    "vertices": 272222,
+    "triangles": 544440,
+    "vertex_bytes": 6533328,
+    "triangle_bytes": 13066560,
+    "corner_uv_bytes": 26133120,
+    "texture": "UF_IZ_507781.png",
+    "texture_metadata": {
+      "width": 8192,
+      "height": 8192,
+      "mode": "RGBA"
+    }
+  },
+  "UF_IZ_507782": {
+    "vertices": 167607,
+    "triangles": 335214,
+    "vertex_bytes": 4022568,
+    "triangle_bytes": 8045136,
+    "corner_uv_bytes": 16090272,
+    "texture": "UF_IZ_507782.tiff",
+    "texture_metadata": {
+      "width": 8192,
+      "height": 8192,
+      "mode": "RGBA"
+    }
+  },
+  "UF_IZ_507879": {
+    "vertices": 132563,
+    "triangles": 265122,
+    "vertex_bytes": 3181512,
+    "triangle_bytes": 6362928,
+    "corner_uv_bytes": 12725856,
+    "texture": "UF_IZ_507879.png",
+    "texture_metadata": {
+      "width": 4096,
+      "height": 4096,
+      "mode": "RGBA"
+    }
+  }
+}

@@ -398,3 +398,11 @@ Earlier core, Blender, and Slicer smoke checks are recorded in
 [the parity checklist](docs/slicer.md).
 Exhaustive numerical comparisons, broader Blender versions, and large datasets
 still need separate validation.
+
+The [profiling harness](tools/profiling/README.md) measures both atlas backends
+on the same three small clams, using separate baseline, CPU, and allocation
+runs. It records the application and Blender process memory, retained arrays,
+file conversion costs, and output fingerprints. Profiling dependencies are
+installed only with `uv sync --group profiling`.
+The [initial profile report](docs/profiling/2026-10-02/index.html) records measured
+runtime, allocation peaks, serialization costs, and their scaling implications.

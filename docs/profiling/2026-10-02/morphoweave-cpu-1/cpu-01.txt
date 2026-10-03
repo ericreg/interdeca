@@ -1,0 +1,207 @@
+
+name           id     tid              ttot      scnt        
+Thread         0      6153940992       682.2756  4970      
+_MainThread    1      8326865280       0.711175  4894      
+Thread         43     6389510144       0.047171  2         
+Thread         33     6221246464       0.041705  2         
+Thread         40     6339031040       0.038918  2         
+Thread         39     6322204672       0.038526  2         
+Thread         38     6305378304       0.037740  2         
+Thread         41     6355857408       0.036306  2         
+Thread         42     6372683776       0.035429  2         
+Thread         44     6406336512       0.034878  2         
+Thread         32     6204420096       0.034804  2         
+Thread         35     6254899200       0.033184  2         
+Thread         34     6238072832       0.031280  2         
+Thread         37     6288551936       0.030102  2         
+Thread         31     6187593728       0.020763  2         
+Thread         36     6271725568       0.020128  2         
+Thread         30     6406336512       0.019293  2         
+Thread         29     6389510144       0.018212  2         
+Thread         28     6372683776       0.017546  2         
+Thread         19     6221246464       0.017399  2         
+Thread         24     6305378304       0.017033  2         
+Thread         27     6355857408       0.016492  2         
+Thread         26     6339031040       0.015204  2         
+Thread         25     6322204672       0.015107  2         
+Thread         17     6187593728       0.013807  2         
+Thread         2      6170767360       0.013504  50        
+Thread         18     6204420096       0.012622  2         
+Thread         20     6238072832       0.012318  2         
+Thread         23     6288551936       0.012058  2         
+Thread         22     6271725568       0.011983  2         
+Thread         16     6406336512       0.011880  2         
+Thread         14     6372683776       0.011519  2         
+Thread         15     6389510144       0.011214  2         
+Thread         21     6254899200       0.011080  2         
+Thread         3      6187593728       0.011080  2         
+Thread         13     6355857408       0.010731  2         
+Thread         11     6322204672       0.009540  2         
+Thread         10     6305378304       0.009399  2         
+Thread         7      6254899200       0.009384  2         
+Thread         8      6271725568       0.009242  2         
+Thread         9      6288551936       0.009135  2         
+Thread         5      6221246464       0.008614  2         
+Thread         6      6238072832       0.008549  2         
+Thread         4      6204420096       0.008281  2         
+Thread         12     6339031040       0.008071  2         
+Fri Oct  2 13:59:35 2026    /private/tmp/interdeca-profile.3quIrY/run/morphoweave-cpu-1/cpu-01.pstats
+
+         466051858 function calls (466069890 primitive calls) in 683.822 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1380 to 70 due to restriction <70>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001  682.275  682.275 /Users/eric/code/interdeca/src/interdeca/serial_execution.py:103(SerialExecutionManager._execute)
+       25    0.000    0.000  682.213   27.289 /Users/eric/code/interdeca/src/interdeca/workflows.py:68(invoke)
+  134/905    0.710    0.005  680.785    0.752 /Users/eric/code/interdeca/tools/profiling/capture.py:143(observed)
+       16    0.000    0.000  409.986   25.624 /Users/eric/code/interdeca/src/interdeca/io.py:64(read)
+       16  219.604   13.725  409.296   25.581 /Users/eric/code/interdeca/src/interdeca/io.py:129(_read_obj)
+        1    0.000    0.000  281.915  281.915 /Users/eric/code/interdeca/src/interdeca/morphoweave.py:101(build_atlas)
+       10    0.000    0.000  259.865   25.986 /Users/eric/code/interdeca/src/interdeca/_morphoweave_host.py:85(Host.loadModel)
+       19   48.117    2.532  252.494   13.289 /Users/eric/code/interdeca/src/interdeca/io.py:209(write_obj)
+        2    0.001    0.001  249.131  124.566 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:915(MorphoWeaveAtlasBuilderLogic.runAlign)
+        1    0.000    0.000  247.146  247.146 /Users/eric/code/interdeca/src/interdeca/morphoweave.py:188(align_specimens)
+        1    0.000    0.000  234.127  234.127 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:503(BuildContext._generateAtlas)
+ 28042312   64.324    0.000  184.920    0.000 builtins:0(<method 'join' of 'str' objects>)
+ 56087676   63.327    0.000   97.516    0.000 /Users/eric/code/interdeca/src/interdeca/io.py:243(<genexpr>)
+       12    0.000    0.000   92.749    7.729 /Users/eric/code/interdeca/src/interdeca/_morphoweave_host.py:127(saveNode)
+        2    0.000    0.000   92.748   46.374 /Users/eric/code/interdeca/src/interdeca/morphoweave.py:74(_inputs)
+        3    0.000    0.000   78.600   26.200 /Users/eric/code/interdeca/src/interdeca/dataset.py:15(inspect_specimen)
+        1    0.000    0.000   74.524   74.524 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:897(MorphoWeaveAtlasBuilderLogic.runMean)
+        1    0.000    0.000   74.315   74.315 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:624(MorphoWeaveAtlasBuilderLogic.importPaired)
+        3    0.000    0.000   74.308   24.769 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:619(MorphoWeaveAtlasBuilderLogic._load_clean_model_polydata)
+        6    0.000    0.000   62.068   10.345 /Users/eric/code/interdeca/src/interdeca/workflows.py:134(save_specimen)
+84648479/84648902   51.722    0.000   51.723    0.000 builtins:0(len)
+ 72127814   45.354    0.000   45.354    0.000 builtins:0(<method 'append' of 'list' objects>)
+ 46729668   42.844    0.000   42.844    0.000 builtins:0(format)
+ 47015091   31.976    0.000   31.976    0.000 builtins:0(<method 'split' of 'str' objects>)
+ 37609920   26.250    0.000   26.250    0.000 /Users/eric/code/interdeca/src/interdeca/io.py:198(_obj_index)
+ 12450512   14.425    0.000   23.080    0.000 /Users/eric/code/interdeca/src/interdeca/io.py:236(<genexpr>)
+ 28040503   18.548    0.000   18.548    0.000 builtins:0(<method 'write' of '_io.StringIO' objects>)
+ 28207478   17.964    0.000   17.964    0.000 builtins:0(<method 'partition' of 'str' objects>)
+ 18809038   11.896    0.000   11.896    0.000 builtins:0(<method 'add' of 'set' objects>)
+       12    0.265    0.022    8.237    0.686 /Users/eric/code/interdeca/src/interdeca/io.py:386(read)
+        6    0.000    0.000    5.917    0.986 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:668(MorphoWeaveAtlasBuilderLogic.maybeWarnDense)
+        2    3.107    1.554    5.916    2.958 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:639(MorphoWeaveAtlasBuilderLogic._mesh_density_score)
+1624/2224    0.008    0.000    5.379    0.002 builtins:0(<method 'validate_python' of 'pydantic_core._pydantic_core.SchemaValidator' objects>)
+        1    0.000    0.000    5.159    5.159 /Users/eric/code/interdeca/src/interdeca/workflows.py:126(save_atlas)
+1635/1957    0.003    0.000    4.669    0.002 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/pydantic/main.py:253(Span.__init__)
+        3    0.004    0.001    4.510    1.503 /Users/eric/code/interdeca/src/interdeca/blender.py:207(bake_specimen_texture)
+     1294    4.194    0.003    4.431    0.003 numpy:0(asarray)
+      535    0.841    0.002    3.352    0.006 /Users/eric/code/interdeca/src/interdeca/models.py:32(frozen)
+       12    0.000    0.000    3.008    0.251 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/PIL/Image.py:1017(PngImageFile.convert)
+     1862    2.827    0.002    2.827    0.002 builtins:0(<method 'decode' of 'ImagingDecoder' objects>)
+        3    0.000    0.000    2.551    0.850 /Users/eric/code/interdeca/src/interdeca/morphoweave.py:247(resample_specimen)
+      564    2.464    0.004    2.464    0.004 numpy:0(array)
+        3    0.658    0.219    2.458    0.819 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:1046(MorphoWeaveAtlasBuilderLogic.sparseCorrespondenceBaseMesh)
+  3266640    2.037    0.000    2.037    0.000 builtins:0(<method 'GetId' of 'vtkmodules.vtkCommonCore.vtkIdList' objects>)
+       73    0.001    0.000    1.979    0.027 /Users/eric/code/interdeca/src/interdeca/serde.py:168(LandmarksData.validate_record)
+       13    0.584    0.045    1.947    0.150 /Users/eric/code/interdeca/src/interdeca/models.py:715(TexturePixels.validated)
+      189    0.001    0.000    1.926    0.010 /Users/eric/code/interdeca/src/interdeca/serde.py:68(floating)
+      4/6    0.000    0.000    1.761    0.293 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/PIL/TiffImagePlugin.py:1304(TiffImageFile.load)
+        2    0.000    0.000    1.761    0.880 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/PIL/TiffImagePlugin.py:1332(TiffImageFile._load_libtiff)
+       59    0.621    0.011    1.472    0.025 /Users/eric/code/interdeca/src/interdeca/models.py:82(Mesh.validated)
+       58    0.000    0.000    1.437    0.025 /Users/eric/code/interdeca/src/interdeca/serde.py:320(MeshData.validate_record)
+        5    0.000    0.000    1.247    0.249 /Users/eric/code/interdeca/tools/profiling/capture.py:254(load)
+        5    0.000    0.000    1.245    0.249 /Users/eric/code/interdeca/src/interdeca/_morphoweave_host.py:161(load_atlas_builder)
+    67/79    0.000    0.000    1.236    0.016 builtins:0(__import__)
+    9/162    0.001    0.000    1.236    0.008 <frozen importlib._bootstrap>:1349(_find_and_load)
+    9/162    0.001    0.000    1.235    0.008 <frozen importlib._bootstrap>:1304(_find_and_load_unlocked)
+   10/162    0.001    0.000    1.233    0.008 <frozen importlib._bootstrap>:911(_load_unlocked)
+    10/24    0.000    0.000    1.233    0.051 <frozen importlib._bootstrap_external>:1017(SourceFileLoader.exec_module)
+   15/341    0.001    0.000    1.233    0.004 <frozen importlib._bootstrap>:480(_call_with_frames_removed)
+    12/29    0.000    0.000    1.231    0.042 builtins:0(exec)
+        5    0.000    0.000    1.213    0.243 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:1(<module>)
+       80    0.000    0.000    1.212    0.015 /Users/eric/code/interdeca/src/interdeca/_morphoweave_host.py:195(scoped_import)
+        1    0.001    0.001    1.210    1.210 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/vtk.py:1(<module>)
+   188001    1.210    0.000    1.210    0.000 builtins:0(<method 'FindClosestPoint' of 'vtkmodules.vtkCommonDataModel.vtkStaticCellLocator' objects>)
+       24    0.005    0.000    1.168    0.049 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/PIL/ImageFile.py:291(PngImageFile.load)
+       42    0.827    0.020    0.827    0.020 /Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:984(Thread.run)
+      167    0.001    0.000    0.813    0.005 <frozen importlib._bootstrap>:806(module_from_spec)
+      138    0.000    0.000    0.808    0.006 <frozen importlib._bootstrap_external>:1315(VTKLoader.create_module)
+      138    0.807    0.006    0.807    0.006 _imp:0(create_dynamic)
+  1088880    0.763    0.000    0.763    0.000 builtins:0(<method 'GetCellAtId' of 'vtkmodules.vtkCommonDataModel.vtkCellArray' objects>)
+
+
+Fri Oct  2 13:59:35 2026    /private/tmp/interdeca-profile.3quIrY/run/morphoweave-cpu-1/cpu-01.pstats
+
+         466051858 function calls (466069890 primitive calls) in 683.822 seconds
+
+   Ordered by: internal time
+   List reduced from 1380 to 70 due to restriction <70>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+       16  219.604   13.725  409.296   25.581 /Users/eric/code/interdeca/src/interdeca/io.py:129(_read_obj)
+ 28042312   64.324    0.000  184.920    0.000 builtins:0(<method 'join' of 'str' objects>)
+ 56087676   63.327    0.000   97.516    0.000 /Users/eric/code/interdeca/src/interdeca/io.py:243(<genexpr>)
+84648479/84648902   51.722    0.000   51.723    0.000 builtins:0(len)
+       19   48.117    2.532  252.494   13.289 /Users/eric/code/interdeca/src/interdeca/io.py:209(write_obj)
+ 72127814   45.354    0.000   45.354    0.000 builtins:0(<method 'append' of 'list' objects>)
+ 46729668   42.844    0.000   42.844    0.000 builtins:0(format)
+ 47015091   31.976    0.000   31.976    0.000 builtins:0(<method 'split' of 'str' objects>)
+ 37609920   26.250    0.000   26.250    0.000 /Users/eric/code/interdeca/src/interdeca/io.py:198(_obj_index)
+ 28040503   18.548    0.000   18.548    0.000 builtins:0(<method 'write' of '_io.StringIO' objects>)
+ 28207478   17.964    0.000   17.964    0.000 builtins:0(<method 'partition' of 'str' objects>)
+ 12450512   14.425    0.000   23.080    0.000 /Users/eric/code/interdeca/src/interdeca/io.py:236(<genexpr>)
+ 18809038   11.896    0.000   11.896    0.000 builtins:0(<method 'add' of 'set' objects>)
+     1294    4.194    0.003    4.431    0.003 numpy:0(asarray)
+        2    3.107    1.554    5.916    2.958 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:639(MorphoWeaveAtlasBuilderLogic._mesh_density_score)
+     1862    2.827    0.002    2.827    0.002 builtins:0(<method 'decode' of 'ImagingDecoder' objects>)
+      564    2.464    0.004    2.464    0.004 numpy:0(array)
+  3266640    2.037    0.000    2.037    0.000 builtins:0(<method 'GetId' of 'vtkmodules.vtkCommonCore.vtkIdList' objects>)
+   188001    1.210    0.000    1.210    0.000 builtins:0(<method 'FindClosestPoint' of 'vtkmodules.vtkCommonDataModel.vtkStaticCellLocator' objects>)
+      535    0.841    0.002    3.352    0.006 /Users/eric/code/interdeca/src/interdeca/models.py:32(frozen)
+       42    0.827    0.020    0.827    0.020 /Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:984(Thread.run)
+      138    0.807    0.006    0.807    0.006 _imp:0(create_dynamic)
+  1088880    0.763    0.000    0.763    0.000 builtins:0(<method 'GetCellAtId' of 'vtkmodules.vtkCommonDataModel.vtkCellArray' objects>)
+  134/905    0.710    0.005  680.785    0.752 /Users/eric/code/interdeca/tools/profiling/capture.py:143(observed)
+        3    0.658    0.219    2.458    0.819 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:1046(MorphoWeaveAtlasBuilderLogic.sparseCorrespondenceBaseMesh)
+       59    0.621    0.011    1.472    0.025 /Users/eric/code/interdeca/src/interdeca/models.py:82(Mesh.validated)
+       13    0.584    0.045    1.947    0.150 /Users/eric/code/interdeca/src/interdeca/models.py:715(TexturePixels.validated)
+    20397    0.499    0.000    0.499    0.000 builtins:0(<method 'acquire' of '_thread.lock' objects>)
+       44    0.410    0.009    0.410    0.009 builtins:0(<method 'Update' of 'vtkmodules.vtkCommonExecutionModel.vtkAlgorithm' objects>)
+     1119    0.349    0.000    0.349    0.000 builtins:0(<method 'reduce' of 'numpy.ufunc' objects>)
+   157735    0.276    0.000    0.716    0.000 <frozen codecs>:322(IncrementalDecoder.decode)
+        6    0.273    0.046    0.273    0.046 builtins:0(<method 'SetInput' of 'vtkmodules.vtkFiltersCore.vtkImplicitPolyDataDistance' objects>)
+       12    0.265    0.022    8.237    0.686 /Users/eric/code/interdeca/src/interdeca/io.py:386(read)
+      162    0.253    0.002    0.524    0.003 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/numpy/linalg/_linalg.py:2598(norm)
+   376002    0.251    0.000    0.251    0.000 builtins:0(<method 'SetPoint' of 'vtkmodules.vtkCommonCore.vtkPoints' objects>)
+   157735    0.250    0.000    0.440    0.000 /Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/encodings/utf_8_sig.py:54(IncrementalDecoder._buffer_decode)
+   157735    0.190    0.000    0.190    0.000 _codecs:0(utf_8_decode)
+       43    0.183    0.004    0.183    0.004 builtins:0(<method 'write' of '_io.BufferedWriter' objects>)
+    18535    0.145    0.000    0.145    0.000 builtins:0(<method 'encode' of 'ImagingEncoder' objects>)
+       19    0.136    0.007    0.136    0.007 builtins:0(<method 'getvalue' of '_io.StringIO' objects>)
+   188001    0.132    0.000    0.132    0.000 builtins:0(<method 'GetPoint' of 'vtkmodules.vtkCommonDataModel.vtkPointSet' objects>)
+   188001    0.128    0.000    0.128    0.000 builtins:0(<method 'GetPoint' of 'vtkmodules.vtkCommonCore.vtkPoints' objects>)
+      213    0.127    0.001    0.127    0.001 builtins:0(<method 'astype' of 'numpy.ndarray' objects>)
+       47    0.097    0.002    0.230    0.005 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/numpy/_core/numeric.py:1563(cross)
+        3    0.086    0.029    0.173    0.058 /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:843(MorphoWeaveAtlasBuilderLogic._corr_pair_kdtree)
+       12    0.078    0.007    0.078    0.007 builtins:0(<method 'copy' of 'ImagingCore' objects>)
+      758    0.077    0.000    0.126    0.000 /Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/glob.py:430(select_wildcard)
+        6    0.070    0.012    0.070    0.012 _posixsubprocess:0(fork_exec)
+       17    0.067    0.004    0.067    0.004 builtins:0(<method 'SetCells' of 'vtkmodules.vtkCommonDataModel.vtkCellArray' objects>)
+       33    0.066    0.002    0.066    0.002 builtins:0(<method 'join' of 'bytes' objects>)
+     1089    0.066    0.000    0.066    0.000 builtins:0(<method 'encode' of 'str' objects>)
+      138    0.064    0.000    0.065    0.000 _imp:0(exec_dynamic)
+       18    0.058    0.003    0.058    0.003 builtins:0(<method 'update' of '_hashlib.HASH' objects>)
+        3    0.056    0.019    0.056    0.019 builtins:0(<method 'BuildLocator' of 'vtkmodules.vtkCommonDataModel.vtkStaticCellLocator' objects>)
+       12    0.056    0.005    0.056    0.005 PIL._imaging:0(new)
+       43    0.054    0.001    0.054    0.001 posix:0(unlink)
+     5120    0.049    0.000    0.690    0.000 /Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/queue.py:177(Queue.get)
+     5004    0.047    0.000    0.585    0.000 /Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:327(Condition.wait)
+    68994    0.047    0.000    0.047    0.000 builtins:0(<method 'match' of 're.Pattern' objects>)
+ 25/11026    0.034    0.001    0.052    0.000 /Users/eric/code/interdeca/tools/profiling/capture.py:61(visit)
+       21    0.030    0.001    0.030    0.001 builtins:0(compile)
+       12    0.025    0.002    0.234    0.020 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/PIL/Image.py:842(Image.tobytes)
+    40071    0.025    0.000    0.026    0.000 builtins:0(isinstance)
+       17    0.025    0.001    0.025    0.001 /Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/numpy/lib/_shape_base_impl.py:607(column_stack)
+       40    0.023    0.001    0.023    0.001 builtins:0(<method 'DeepCopy' of 'vtkmodules.vtkCommonDataModel.vtkPolyData' objects>)
+      193    0.019    0.000    0.019    0.000 builtins:0(<method 'write' of '_io.BufferedRandom' objects>)
+      595    0.017    0.000    0.043    0.000 <frozen posixpath>:388(realpath)
+     5978    0.017    0.000    0.017    0.000 builtins:0(<method 'read' of '_io.BufferedReader' objects>)
+    10136    0.015    0.000    0.023    0.000 /Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/queue.py:266(Queue._qsize)
+        3    0.015    0.005    0.015    0.005 /Users/eric/code/interdeca/src/interdeca/io.py:422(to_linear)
+
+

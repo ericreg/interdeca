@@ -1,0 +1,26 @@
+{
+  "schema_version": 2,
+  "options": {
+    "models": "/private/tmp/interdeca-profile.3quIrY/run/inputs/models",
+    "landmarks": "/private/tmp/interdeca-profile.3quIrY/run/inputs/landmarks",
+    "output": "/private/tmp/interdeca-profile.3quIrY/run/native-baseline-1/atlas",
+    "textures": "/private/tmp/interdeca-profile.3quIrY/run/inputs/textures",
+    "atlas_model": null,
+    "atlas_landmarks": null,
+    "blender": null,
+    "merge_distance": 0.0001,
+    "uv_angle": 66.0,
+    "island_margin": 0.002,
+    "bake_size": 512,
+    "extrusion": 0.001,
+    "bake_margin": 2,
+    "backend": "native",
+    "normalize_scale": false
+  },
+  "upstream_revision": null,
+  "upstream_source_sha256": null,
+  "reference_normalizes_scale": false,
+  "atlas_scale_conversion": null,
+  "correspondence_method": "barycentric_common_space",
+  "projection_distance_space": "common_warped"
+}

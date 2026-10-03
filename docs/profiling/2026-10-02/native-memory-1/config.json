@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "backend": "native",
+  "mode": "memory",
+  "inputs": "/private/tmp/interdeca-profile.3quIrY/run/inputs",
+  "output": "/private/tmp/interdeca-profile.3quIrY/run/native-memory-1"
+}

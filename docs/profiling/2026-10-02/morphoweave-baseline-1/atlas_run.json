@@ -1,0 +1,36 @@
+{
+  "schema_version": 2,
+  "options": {
+    "models": "/private/tmp/interdeca-profile.3quIrY/run/inputs/models",
+    "landmarks": "/private/tmp/interdeca-profile.3quIrY/run/inputs/landmarks",
+    "output": "/private/tmp/interdeca-profile.3quIrY/run/morphoweave-baseline-1/atlas",
+    "textures": "/private/tmp/interdeca-profile.3quIrY/run/inputs/textures",
+    "atlas_model": null,
+    "atlas_landmarks": null,
+    "blender": null,
+    "merge_distance": 0.0001,
+    "uv_angle": 66.0,
+    "island_margin": 0.002,
+    "bake_size": 512,
+    "extrusion": 0.001,
+    "bake_margin": 2,
+    "backend": "morphoweave",
+    "normalize_scale": false
+  },
+  "upstream_revision": "6fd9e448fb3441b71f7fed2bec9434a9b2190d24",
+  "upstream_source_sha256": "bed88b0b2f3759161bef3cde54ac2d75063a9897fbc09b47fca9602dea9e3f94",
+  "reference_normalizes_scale": true,
+  "atlas_scale_conversion": {
+    "method": "mean_input_landmark_centroid_size",
+    "source_centroid_size": 1.0,
+    "target_centroid_size": 0.08808232667325555,
+    "factor": 0.08808232667325555,
+    "center": [
+      -7.806255641895632e-18,
+      -3.5236570605778894e-19,
+      1.3588667228484988e-17
+    ]
+  },
+  "correspondence_method": "morphoweave_tps_projection",
+  "projection_distance_space": "aligned_specimen"
+}

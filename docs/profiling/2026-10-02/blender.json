@@ -1,0 +1,9 @@
+{
+  "executable": "/opt/homebrew/Caskroom/blender/5.2.1/.homebrew-command-wrappers/blender",
+  "version": [
+    5,
+    2,
+    1
+  ],
+  "description": "Blender 5.2.1 LTS"
+}

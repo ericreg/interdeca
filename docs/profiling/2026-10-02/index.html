@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlas and MorphoWeave: CPU and memory baseline, 2 October 2026</title>
+  <style>
+    body { font: 16px/1.65 system-ui, sans-serif; color: #17212b; max-width: 1080px; margin: 40px auto; padding: 0 24px; }
+    h1, h2, h3 { line-height: 1.25; }
+    h2 { margin-top: 2em; }
+    a { color: #175b94; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+    td, th { text-align: left; border-bottom: 1px solid #ccd6df; padding: 9px; vertical-align: top; }
+    th { background: #edf3f7; }
+    img { width: 100%; height: auto; }
+    code { overflow-wrap: anywhere; }
+    .finding { border-left: 4px solid #226ca8; background: #f0f6fa; padding: 12px 20px; }
+    .small { font-size: 14px; color: #465463; }
+    pre { overflow-x: auto; background: #f3f5f7; padding: 16px; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <p class="small">Measured 2 October 2026 · three small clams · before optimization</p>
+  <h1>Atlas and MorphoWeave: CPU and memory baseline</h1>
+  <p class="finding"><strong>The additional MorphoWeave runtime is predominantly repeated OBJ parsing and formatting in the adapter path.</strong>
+    Both backends have a separate, larger memory problem: validation of an 8192 × 8192 source texture keeps about 6 GiB of floating-point texture buffers alive at once.</p>
+  <p>Ten successful fresh-process runs covered both backends. The same backend produced identical SHA-256 hashes for 33 exported files and presentation arrays across all five of its runs.
+    These checks establish that profiling preserved the measured outputs; they do not establish equivalence between the two numerical backends.
+    No numerical implementation, upstream source, or execution strategy was changed.</p>
+  <p><a href="report.html">Full measured tables</a> · <a href="summary.json">Machine-readable summary</a> ·
+    <a href="../../../tools/profiling/README.md">Harness and metric definitions</a></p>
+
+  <h2>1. Runtime and CPU</h2>
+  <p>The first table uses two baseline repeats per backend, reversing backend order on the second repeat.
+    These are descriptive medians, not confidence intervals. Session time starts after imports and includes the complete CLI action chain.
+    Process startup adds approximately three seconds. Baselines include task timers and retained-array accounting, but no function or allocation profiler.</p>
+  <table>
+    <thead><tr><th>Measurement</th><th>Original Atlas (<code>native</code>)</th><th>MorphoWeave</th></tr></thead>
+    <tbody>
+      <tr><td>Complete CLI session, median wall time</td><td>55.36 s</td><td>99.48 s</td></tr>
+      <tr><td>Atlas construction, alignment and texture transfer, median</td><td>38.24 s</td><td>82.67 s</td></tr>
+      <tr><td>Color-processing pipeline, median</td><td>16.69 s</td><td>16.40 s</td></tr>
+      <tr><td>Application CPU, median, all application threads</td><td>45.93 CPU s</td><td>90.42 CPU s</td></tr>
+      <tr><td>Completed Blender child CPU, median</td><td>7.25 CPU s</td><td>7.28 CPU s</td></tr>
+      <tr><td>Sampled peak application RSS, range across repeats</td><td>7.52–8.18 GiB</td><td>8.29–8.37 GiB</td></tr>
+      <tr><td>Maximum unique NumPy buffers retained by execution manager</td><td>330.8 MiB</td><td>267.2 MiB</td></tr>
+    </tbody>
+  </table>
+  <p>MorphoWeave took approximately 1.80 times as long overall and 2.16 times as long in the atlas-and-texture pipeline.
+    The near-equal color-processing and Blender CPU times locate the difference mainly in the application-side atlas integration.</p>
+
+  <h3>Where the extra time goes</h3>
+  <p>A separate pass added nested timers around selected boundaries, without a call profiler or allocation tracker.
+    Its atlas pipeline took 36.86 s for native and 81.55 s for MorphoWeave, consistent with the baseline difference.
+    The following function durations come from that timer pass. Inclusive duration includes any validation performed inside the codec.</p>
+  <table>
+    <thead><tr><th>Operation</th><th>Native</th><th>MorphoWeave</th></tr></thead>
+    <tbody>
+      <tr><td>OBJ reads</td><td>3 calls · 5.71 s</td><td>16 calls · 30.98 s</td></tr>
+      <tr><td>OBJ writes</td><td>7 calls · 7.80 s</td><td>19 calls · 29.43 s</td></tr>
+      <tr><td>Total OBJ codec wall time</td><td>13.51 s</td><td>60.41 s</td></tr>
+      <tr><td>OBJ codec exclusive calling-thread CPU</td><td>13.05 CPU s</td><td>58.71 CPU s</td></tr>
+      <tr><td>Logical OBJ bytes read</td><td>224.8 MiB</td><td>1,232.0 MiB</td></tr>
+      <tr><td>Logical OBJ bytes written</td><td>325.8 MiB</td><td>1,222.7 MiB</td></tr>
+      <tr><td>Source/output texture reads during atlas pipeline</td><td>12 calls · 7.67 s</td><td>12 calls · 7.72 s</td></tr>
+      <tr><td>Blender subprocess waits</td><td>5 calls · 8.49 s</td><td>5 calls · 8.72 s</td></tr>
+      <tr><td>Explicit mesh validation during atlas pipeline</td><td>40 calls · 0.84 s</td><td>59 calls · 1.45 s</td></tr>
+      <tr><td>Mesh-to-VTK conversion during atlas pipeline</td><td>6 calls · 0.04 s</td><td>17 calls · 0.11 s</td></tr>
+    </tbody>
+  </table>
+  <p>The extra OBJ time is 46.91 s, explaining essentially all of the 44.68 s atlas-pipeline gap in this pass; other stage differences offset part of it.
+    Codec CPU is close to codec wall time. This points to text parsing, number formatting, and Python object handling rather than evidence of a storage-bandwidth bottleneck.
+    Logical byte totals include repeated and cached access, and are not physical disk measurements.</p>
+  <p>The adapter's <a href="../../../src/interdeca/morphoweave.py"><code>MorphoWeave._inputs</code></a> writes all three source meshes once for mean construction and again for final alignment.
+    Upstream loads the reference mesh, reads and writes meshes for pre-alignment, imports the aligned population for its mean,
+    then reads and writes meshes during final alignment. The adapter reads those final outputs back into internal records.
+    Including common inspection and export, this becomes 16 reads and 19 writes, compared with native's 3 and 7.</p>
+  <p>The two upstream <code>runAlign</code> calls took 23.10 s inclusively; <code>runMean</code> took 6.01 s.
+    Those totals contain the same file handling already counted above, so they must not be added to it.
+    Inside <code>runMean</code>, <code>denseCorrespondence</code> took only 0.30 s for this dataset.
+    This evidence supports preserving the upstream algorithms while reducing serialization around them.</p>
+  <p>Thread-aware Yappi CPU captures independently identify the OBJ parsing/formatting call stacks:
+    <a href="native-cpu-1/cpu-01.txt">native atlas CPU table</a> and
+    <a href="morphoweave-cpu-1/cpu-01.txt">MorphoWeave atlas CPU table</a>.
+    Profiling every Python call inflated whole-process runtime to 246 s and 767 s respectively; those durations are excluded from the performance comparison.
+    Per-pipeline <code>.pstats</code> and readable tables are archived alongside these files.</p>
+
+  <h2>2. Memory: texture validation dominates the small dataset</h2>
+  <p><img src="memory.svg" alt="Application and Blender resident memory over the first baseline run of each backend, with much smaller manager-retained NumPy buffers."></p>
+  <p class="small">Each panel has its own time range and the same memory scale. Dashed lines mark the end of atlas/texture processing and color processing.
+    Green measures only arrays reachable from the manager's task-result table; it resets when that table is released.
+    It excludes application-owned results, VTK objects, active-operation temporaries, and allocator retention.</p>
+  <p>The source textures are 8192 × 8192 RGBA PNG, 8192 × 8192 RGBA TIFF, and 4096 × 4096 RGBA PNG.
+    A single 8192² RGBA image in float64 occupies <code>8192 × 8192 × 4 × 8 = 2 GiB</code>.
+    The 512 × 512 bake setting affects output textures; it does not reduce these source-image validation allocations.</p>
+  <p>Memray's tracked live-allocation peak was 7,130.7 MiB for native and 7,109.3 MiB for MorphoWeave, approximately 6.96 and 6.94 GiB.
+    Both peaks occurred in the same pre-bake source-texture read, with these buffers simultaneously alive:</p>
+  <table>
+    <thead><tr><th>Live allocation group at peak</th><th>Size in each backend</th><th>Evidence in source</th></tr></thead>
+    <tbody>
+      <tr><td>Initial float64 RGBA representation</td><td>2,048 MiB</td><td><code>io.py:402</code>, <code>TextureIO.read</code></td></tr>
+      <tr><td>Boundary validation copies of RGB and alpha</td><td>2,048 MiB</td><td><code>serde.py:78</code>, <code>ArraySerde.floating → Arrays.frozen</code></td></tr>
+      <tr><td>Internal record validation copies</td><td>1,536 MiB RGB + 512 MiB alpha</td><td><code>models.py:719</code>, <code>TexturePixels.validated</code></td></tr>
+      <tr><td>Decoded 8-bit TIFF</td><td>256 MiB</td><td>Pillow TIFF decoding</td></tr>
+      <tr><td>Two RGB range-check masks</td><td>192 MiB each</td><td><code>models.py:729</code></td></tr>
+    </tbody>
+  </table>
+  <p>The three floating-point representations alone total 6 GiB, about 86% of the tracked live peak.
+    <a href="../../../src/interdeca/blender.py"><code>Blender.bake_specimen_texture</code></a> calls <code>TextureIO.read</code> to validate the original texture before passing its path to Blender.
+    Inspection also performs full source-texture validation earlier. These transient allocations recur; they do not mean all source textures are cached simultaneously.</p>
+  <p>Inspect the call chains in the <a href="native-memory-1/allocations.html">native allocation flame graph</a> and
+    <a href="morphoweave-memory-1/allocations.html">MorphoWeave allocation flame graph</a>.
+    Baseline RSS exceeds the tracked heap peak because these are different runs and metrics: RSS includes imports, interpreter and library memory, allocator-retained pages, and other resident mappings.
+    Changes in resident pages alone do not prove a memory leak.</p>
+  <p>Across the entire timer pass, <code>Arrays.frozen</code> returned copies totalling 19.49 GiB for native and 21.12 GiB for MorphoWeave.
+    This is cumulative copy traffic, not live memory. The 331/267 MiB manager-retained-array figures describe another distinct quantity:
+    population geometry and completed task arrays kept until the pipeline returns.</p>
+
+  <h2>3. What this implies for fifty specimens</h2>
+  <p>No fifty-specimen or full-clams run was performed. The current implementation is not a streaming population pipeline in either backend:
+    both inspect and retain the source meshes, and the serial manager keeps completed task results until the pipeline finishes.
+    Native also retains mean contributions. Upstream MorphoWeave's <code>importPaired</code> builds a group containing all meshes,
+    and <code>runMean</code> constructs a correspondence group before averaging.</p>
+  <p>The three source meshes require 91.7 MiB for raw vertex, triangle-index, and per-corner UV arrays
+    (<a href="input-sizes.json">per-specimen dimensions and array sizes</a>).
+    Fifty meshes of the same average density would require approximately 1.49 GiB for those arrays alone, before aligned copies,
+    correspondence, VTK, temporary arrays, Python objects, or textures. This is an illustrative geometry-size calculation, not a forecast of peak RSS.</p>
+  <p>Population geometry grows with specimen count. The large transient source-texture allocation depends mainly on the largest image dimensions
+    and how many images are processed simultaneously. Multiplying the entire three-clam memory peak by 50/3 would therefore be misleading.
+    Caching every decoded texture or every serialized mesh copy would add memory without addressing the ownership problem.</p>
+  <p>A bounded adapter cache can reduce duplicate transfers, but cannot by itself make upstream <code>runMean</code> stream one specimen at a time.
+    Its bulk population contract must remain explicit in any memory budget.</p>
+
+  <h2>4. Recommended next changes, not implemented here</h2>
+  <ol>
+    <li><strong>Reduce OBJ round trips at the host boundary.</strong> Investigate reusing already validated meshes and staged files between mean construction and alignment,
+      while continuing to call upstream workflows. Bound the cache by bytes, release stage-local objects promptly, and retain disk-backed fallback.
+      Preserve vertex/triangle order, per-corner UVs, coordinate transforms, and upstream cleanup behavior.</li>
+    <li><strong>Reduce full-resolution texture validation copies.</strong> Separate path/encoding validation from numerical pixel consumption where appropriate,
+      and avoid repeatedly copying an already validated array. Preserve accepted input validation, sRGB/alpha semantics, and numerical output.</li>
+    <li><strong>Measure again after each change.</strong> Repeat baseline, timer, and allocation passes and check the same output fingerprints.
+      Only after this should a separately approved larger dataset establish population memory growth.</li>
+  </ol>
+  <p>These priorities address two distinct measured costs: adapter serialization is the strongest MorphoWeave CPU opportunity,
+    while shared texture handling is the strongest small-dataset memory opportunity. A faster IPC transport would not remove the OBJ conversions
+    measured inside this single application process.</p>
+
+  <h2>5. Scope, environment and reproducibility</h2>
+  <p>Core revision: <code>129c2e218c3eecce6b475a8a19279bf75d1f8b32</code>.
+    MorphoWeave submodule: <code>6fd9e448fb3441b71f7fed2bec9434a9b2190d24</code>.
+    The scale-restoration behavior is included. Upstream and production sources are unchanged.</p>
+  <p>macOS 26.6.2 arm64, 14 reported logical cores, 24 GiB RAM, Python 3.13.12, NumPy 2.5.3, SciPy 1.18.1, VTK 9.7.1, Blender 5.2.1,
+    Yappi 1.7.6, Memray 1.20.0, and psutil 7.2.2.
+    The resolved <a href="blender.json">Blender executable and version</a> were confirmed after the runs.
+    Exact environment and input hashes are preserved in <a href="environment.json">the initial environment record</a> and
+    <a href="environment-resume.json">the resumed environment record</a>.
+    Backend run metadata is archived for the first <a href="native-baseline-1/atlas_run.json">native</a> and
+    <a href="morphoweave-baseline-1/atlas_run.json">MorphoWeave</a> baselines.</p>
+  <p>Inputs were only <code>UF_IZ_507781</code>, <code>UF_IZ_507782</code>, and <code>UF_IZ_507879</code>, prepared using the existing e2e fixture's RAS conversion outside the measurement.
+    The real Click client executed atlas creation, 512px baking, 1,000-face neighbor-averaged color sampling, PCA with two components,
+    axis changes, reconstruction, display, selection, export, and selection clearing through the shared application core.
+    Slicer UI startup/rendering and UMAP fitting were not profiled.</p>
+  <pre>uv sync --group profiling
+uv run --group profiling python -m tools.profiling \
+  --output /tmp/interdeca-profile-new
+uv run --group profiling python -m tools.profiling.summarize \
+  /tmp/interdeca-profile-new</pre>
+  <p>The default harness makes ten sequential fresh-process runs: two baselines, one nested-timer pass, one CPU pass, and one allocation pass per backend.
+    This recorded experiment completed the timer passes last. No cold filesystem-cache assumption is made.</p>
+  <ul>
+    <li>Process-tree RSS and CPU were sampled every 100 ms. Brief peaks can be missed, and summing process RSS can double-count shared pages.
+      The OS process high-water RSS is also archived in each <code>rusage.json</code>.</li>
+    <li>Private memory (USS) was unavailable for these processes on this Mac and remains null. It was not substituted with RSS or zero.</li>
+    <li>Yappi tables combine Python thread contexts; OS application CPU includes native-library threads. Blender CPU is recorded separately.
+      Nested inclusive times overlap; exclusive timer spans subtract only other instrumented spans.</li>
+    <li>Memray begins after imports and measures the application process. Executed Blender processes are measured by external sampling, not Memray.
+      Aggregated captures preserve allocations live at the peak, not total churn or a full allocation timeline.</li>
+    <li>Memray warned that interpreter debug symbols were unavailable on this Mac. Allocation sizes and Python call chains are available;
+      detailed native C/C++ symbol attribution is incomplete.</li>
+    <li>An initial cProfile/custom-thread-clock attempt produced invalid negative timings and was rejected, including an interrupted companion run.
+      Both were replaced with successful Yappi captures. They are excluded from all ten-run summaries and comparisons.</li>
+  </ul>
+  <p>This archive includes generated tables, summary data, baseline process samples, task/pipeline/session boundaries for all runs,
+    CPU tables and profiles, allocation flame graphs, run configurations, output hashes, and environment records.
+    Original input/output meshes, all detailed function-span logs, and raw Memray captures remain at
+    <code>/tmp/interdeca-profile.3quIrY/run</code> (approximately 4.2 GiB); rejected captures are in the sibling <code>rejected</code> directory.
+    Temporary files are not a durable archive. These repository report files preserve the findings without duplicating the datasets.
+    <code>evidence-sha256.json</code> records the archived evidence hashes.</p>
+</body>
+</html>

@@ -52,6 +52,12 @@ interdeca-client = { workspace = true }
 dev = [
     "pytest>=9,<10",
 ]
+profiling = [
+    "matplotlib>=3.10,<4",
+    "memray>=1.19,<2 ; sys_platform != 'win32'",
+    "psutil>=7,<8",
+    "yappi>=1.7,<2",
+]
 
 [project.scripts]
 interdeca = "interdeca.cli:main"

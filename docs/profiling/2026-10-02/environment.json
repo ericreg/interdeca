@@ -1,0 +1,35 @@
+{
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "python": "3.13.12 (main, Feb 12 2026, 01:06:02) [Clang 21.1.4 ]",
+  "logical_cpus": 14,
+  "physical_cpus": 14,
+  "ram_bytes": 25769803776,
+  "versions": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "vtk": "9.7.1",
+    "memray": "1.20.0",
+    "psutil": "7.2.2",
+    "interdeca": "0.1.0"
+  },
+  "git_head": "129c2e218c3eecce6b475a8a19279bf75d1f8b32",
+  "git_status": " M pyproject.toml\n M uv.lock\n?? .DS_Store\n?? docs/tutorials/\n?? slicer/.DS_Store\n?? tools/\n",
+  "inputs_sha256": {
+    "curve.npy": "cfc451a65dd903977e9d51a224868256765073359929a1684f6deb00553cb7c7",
+    "textures/UF_IZ_507781.png": "5b113badd1bbf573c329faee93c5e56e8b3c79af2387bbe723d7e9ea3e151bc7",
+    "textures/UF_IZ_507782.tiff": "e0fa7fc71b64d923381972af24ea9b6f1b5feb6ebc88eb413140a0893efe5208",
+    "textures/UF_IZ_507879.png": "9e6ed1ca4b01cc7659978e04c92eac89570a1ff96a78f75c38d11348193539e9",
+    "models/UF_IZ_507781.obj": "73a36fdfc98f80b786812d6b3986783f7d7c119874f642ee02a42bdb1540a9aa",
+    "models/UF_IZ_507782.obj": "ffd33ad30ce913cd632f9ed4647168c222be6196dfc0a225dbbf43afe9e82162",
+    "models/UF_IZ_507879.obj": "3bf4c792064374bb5b9f4fadc0353611d3e5a53c118b8b2c0e4decd1b14750c2",
+    "landmarks/UF_IZ_507781.mrk.json": "01b44813c8e31fd51c746123cb0b329b0e340f36aadea469e851f53a7775a4a1",
+    "landmarks/UF_IZ_507879.mrk.json": "2f702df14f335b1a34ebd07ba61dba9e9283b6366150f821e5b078d3f2b964f2",
+    "landmarks/UF_IZ_507782.mrk.json": "d305d241c67c24ae7be66879f6f3c7b311edb3bf93eb0b928591917d8e146280"
+  },
+  "thread_environment": {
+    "OMP_NUM_THREADS": null,
+    "OPENBLAS_NUM_THREADS": null,
+    "MKL_NUM_THREADS": null,
+    "VECLIB_MAXIMUM_THREADS": null
+  }
+}
