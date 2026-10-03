@@ -165,6 +165,59 @@
       "config": {
         "schema_version": 1,
         "backend": "morphoweave",
+        "mode": "cpu",
+        "inputs": "/Users/eric/Library/Application Support/InterDeCA/optimization/B3-cpu-candidate/inputs",
+        "output": "/Users/eric/Library/Application Support/InterDeCA/optimization/B3-cpu-candidate/morphoweave-cpu-1"
+      },
+      "exit_code": 0,
+      "wall_seconds": 697.7737686670152,
+      "sample_interval_seconds": 0.1,
+      "parent_peak_rss_bytes": 2088730624,
+      "tree_peak_rss_bytes": 3020144640,
+      "parent_peak_uss_bytes": null,
+      "tree_peak_uss_bytes": null,
+      "sampled_processes": 7,
+      "output_hashes": {
+        "atlas/atlas.mrk.json": "808370527818c4b6bff52ab4af4cfe35be3d07c781f2e9deabaed2460af6883d",
+        "atlas/atlas.obj": "ae46fb6f917f57a8345f11d7d6c8e9b271c535fa5222260f0770e346b7f0490d",
+        "atlas/textures/UF_IZ_507781.png": "088639c8625a28c865321dc1cd0f7a4fee556bc6daab7821303269a3ef4c4c34",
+        "atlas/textures/UF_IZ_507782.png": "c87dfa4b16bacfc168eb468cb37f3af5b4029d0f4f437ea566ada2bddee52228",
+        "atlas/textures/average_texture.png": "35bc6e50d3d0cac3c2a0ec5fbb634c071f99dd661139b3ee7050bd39fe49d852",
+        "atlas/textures/UF_IZ_507879.png": "4b57871667101b9ef93cb8a2d0d9ef567aedd74c8b82ad60c292ac3e5a29ecdc",
+        "atlas/aligned/UF_IZ_507781.mrk.json": "3360cc41f99fe7edeafe892534702f0ed318f68e8e30fe75e5739c34595247ac",
+        "atlas/aligned/UF_IZ_507879.mrk.json": "f2f6fc816866b44ab49543344cb0f48d5e22a28132a9a22e395241b3476b5c83",
+        "atlas/aligned/UF_IZ_507781.obj": "f295b4250e2ec6121fb205278ac6ffa2db547572d4a73f34ef371cfd4f102443",
+        "atlas/aligned/UF_IZ_507782.obj": "aab6fef470621bae0e851e3c5b115fffde4a6bc497e5a0d26134520f5673d819",
+        "atlas/aligned/UF_IZ_507782.mrk.json": "010c017dab3ac30496c4eec58b833dcf1b3d99fac8c7093717e084f1068aff8a",
+        "atlas/aligned/UF_IZ_507879.obj": "588e78060813bf7514f97e31d808ce5f6a54598dc3f7d1f7247300fadf38a493",
+        "atlas/resampled/UF_IZ_507781.mrk.json": "3360cc41f99fe7edeafe892534702f0ed318f68e8e30fe75e5739c34595247ac",
+        "atlas/resampled/UF_IZ_507879.mrk.json": "f2f6fc816866b44ab49543344cb0f48d5e22a28132a9a22e395241b3476b5c83",
+        "atlas/resampled/UF_IZ_507781.obj": "9f54f6319b01818da1252f0d787af9cd876a18adc053d5560b5a7a3e908ebf06",
+        "atlas/resampled/UF_IZ_507782.obj": "df46fe2347f298770d7f9498f72819c52fd8fbcfeef3cd8d6cd33f4ce58328af",
+        "atlas/resampled/UF_IZ_507782.mrk.json": "010c017dab3ac30496c4eec58b833dcf1b3d99fac8c7093717e084f1068aff8a",
+        "atlas/resampled/UF_IZ_507879.obj": "7a3feb3a9488c09b04122d9a65682691a1ce296e328fdeef7d8211ff13a0a6e4",
+        "presentations/atlas/mesh/vertices": "c6d4e175e51b321921736cfb3f3701ad6c143c9f93908dadd17e319eafac2196",
+        "presentations/atlas/mesh/faces": "12e66849889181ca87479a938230fa39b39edc8506aee8646999dcce418394bf",
+        "presentations/atlas/mesh/uv": "601304a7eb674041527df5e7d79fa4eb5309ec21f8a02d15efc0cea98b8e1b46",
+        "presentations/plot/scores": "595fdbb166c7bf126db1c1098cb3f79e750e2d88a352de0df74c719a58de05ad",
+        "presentations/morphospace/rgb": "4f13bf46b7eb0a21c603f794e9d1c7836b1a67f8c86f8437118225c159912f81",
+        "presentations/morphospace/valid": "84c08442f1f7c6ed5a44002c5e6239b5eb8d9edfdfebb472b65318e18fd101c2",
+        "presentations/display/rgb": "8681749476e4c4540824051b8ba4132b6b392f4f543f5e229beb1ca182e04671",
+        "presentations/display/valid": "84c08442f1f7c6ed5a44002c5e6239b5eb8d9edfdfebb472b65318e18fd101c2",
+        "presentations/selection/vertices": "2919694954f340fd3ba6fea6cbac75904b574caae5eb88552f9730c59f817760",
+        "presentations/selection/faces": "bd755b6c62c3caa69adaf7d75dcf35de79b17f4e1bd52b45bd4c46c161a434d9",
+        "presentations/export/mesh/vertices": "c5083cfa1db23b679763fe17aef8358fd38a6d67995f2fee04fd261657423ed0",
+        "presentations/export/mesh/faces": "3edaeeef524daa6ed36f96425c9008646ec093c3b09b1722267a542d55d26210",
+        "presentations/export/mesh/uv": "2a78d2ca7d330c948376deab76b81ef1469bb20d515e01827e59c807f72cbf67",
+        "presentations/export/original_vertices": "c8cf35bbbe441c2d7ba70204096a65a7d8bf31cad3af69866117838db7ae2ed9",
+        "presentations/export/original_faces": "bd755b6c62c3caa69adaf7d75dcf35de79b17f4e1bd52b45bd4c46c161a434d9"
+      }
+    },
+    {
+      "schema_version": 1,
+      "config": {
+        "schema_version": 1,
+        "backend": "morphoweave",
         "mode": "memory",
         "inputs": "/Users/eric/Library/Application Support/InterDeCA/optimization/B3-candidate/inputs",
         "output": "/Users/eric/Library/Application Support/InterDeCA/optimization/B3-candidate/morphoweave-memory-1"
@@ -386,6 +439,59 @@
       "sample_interval_seconds": 0.1,
       "parent_peak_rss_bytes": 1952694272,
       "tree_peak_rss_bytes": 2876522496,
+      "parent_peak_uss_bytes": null,
+      "tree_peak_uss_bytes": null,
+      "sampled_processes": 7,
+      "output_hashes": {
+        "atlas/atlas.mrk.json": "b38bc0f89af9bb26592ad194e0e65a24b81491c9b4a02deca8e962e1fa01a01c",
+        "atlas/atlas.obj": "e3d1b2ed41c106999a7f91c2f9bc48c2d0c7f8aa33d240c61f201d3bde29fc71",
+        "atlas/textures/UF_IZ_507781.png": "1ce7b5b54afcf913e95d8ab2c308dfd486bc56a682f096c2a7ed7bb048e5f51e",
+        "atlas/textures/UF_IZ_507782.png": "06a9c4d781c344398d69ef0e85a37761f60062412bde1ee4247b1efb7457c593",
+        "atlas/textures/average_texture.png": "55d578ce41f43c384321b23fa0b6cd75f27f3ac447a01dbe4c28ff64012b6c0d",
+        "atlas/textures/UF_IZ_507879.png": "757f690cce8eb8545978db9c928b227276af21e80170aa90c99367be9dc47a64",
+        "atlas/aligned/UF_IZ_507781.mrk.json": "8e58bc824ed8b38dd4dea14d7fca45a22ab0bd636b7604be41ba0ab943d38d73",
+        "atlas/aligned/UF_IZ_507879.mrk.json": "ed951cb06ec0cd884be209e2a3ba0105e4090791e08485d8433aae3cc3afc928",
+        "atlas/aligned/UF_IZ_507781.obj": "10873a0ee270618cebff17c6c7680aed9330f2eaead830572f4c05c073ee39a7",
+        "atlas/aligned/UF_IZ_507782.obj": "3f3c8447f80290f251228d4c0a61b0e3235f74011954077cb034d5a6477740fe",
+        "atlas/aligned/UF_IZ_507782.mrk.json": "85bbc15198c70badd4d3b9edc36d54dddcde63c2a4c6181f328e705c82aa6ecf",
+        "atlas/aligned/UF_IZ_507879.obj": "8a4d699580c68fe9b0b1110d084220e92d9f6f19544026e39463ceb3b849f127",
+        "atlas/resampled/UF_IZ_507781.mrk.json": "8e58bc824ed8b38dd4dea14d7fca45a22ab0bd636b7604be41ba0ab943d38d73",
+        "atlas/resampled/UF_IZ_507879.mrk.json": "ed951cb06ec0cd884be209e2a3ba0105e4090791e08485d8433aae3cc3afc928",
+        "atlas/resampled/UF_IZ_507781.obj": "3e9c97fef81e74693ac9de1a5f3ce9d12d45680e5722fa30735dddacfa4afac1",
+        "atlas/resampled/UF_IZ_507782.obj": "f2673071c1dd972dc6176f3733ab0e7bd528abe20e407cdb23bd4a108601a476",
+        "atlas/resampled/UF_IZ_507782.mrk.json": "85bbc15198c70badd4d3b9edc36d54dddcde63c2a4c6181f328e705c82aa6ecf",
+        "atlas/resampled/UF_IZ_507879.obj": "88232b04a7eeaaab886b85d2f5cf6899e3559110d502a5d513483db52e7bf176",
+        "presentations/atlas/mesh/vertices": "4d4e382a659aee299e8fce7fefb3a0ed335ea5d12187b60be6cb06433941c65a",
+        "presentations/atlas/mesh/faces": "fa8b2f409e76b27cd9c641b90270f238e979e5f51f7c4e62da8b6a8507d2b1cd",
+        "presentations/atlas/mesh/uv": "7d2d26e77e3270c2501ad96658443168c63714cdf5c6bea591185fc987b90d49",
+        "presentations/plot/scores": "0482564b5d935dbada9441bc4050e2595e445faaa25c1f4d686d47cd93954d29",
+        "presentations/morphospace/rgb": "448b6bd7b70e58f887291d366f977c8a34567caa31361d5b0f3db355bd2578cd",
+        "presentations/morphospace/valid": "5c631cd85a4ac22f28c7d23d54fc1167ae5872476bdcd798f2c2eba04991d582",
+        "presentations/display/rgb": "d304017c574986e635e2d24a5bea88edbd1cc646163eb978de8cdbaf52b37641",
+        "presentations/display/valid": "5c631cd85a4ac22f28c7d23d54fc1167ae5872476bdcd798f2c2eba04991d582",
+        "presentations/selection/vertices": "5683d1d3628fd080c71fdc5aad80d5fcbdf5a26e35d901303f523a68338609a2",
+        "presentations/selection/faces": "abf1ede66119dbe8d2391dda42093ab0cb386957d854c9932755ea22531f84e3",
+        "presentations/export/mesh/vertices": "dcef461c5d34ec92f93ee9bf22899b2509bab9fe734f4c7e846bb1c424bdf9af",
+        "presentations/export/mesh/faces": "c778ef02a9c985eee23f4f58da8ccca153f6843881a269315b0dd78b6ac752fb",
+        "presentations/export/mesh/uv": "91c3914352fd7c2f1a9652a451fee7e57f4c14a201fa0016dfb148017b3d349c",
+        "presentations/export/original_vertices": "99f7aa29186b48a6da9699e41a0988ced5ee16531155e3781483b0f805444cec",
+        "presentations/export/original_faces": "abf1ede66119dbe8d2391dda42093ab0cb386957d854c9932755ea22531f84e3"
+      }
+    },
+    {
+      "schema_version": 1,
+      "config": {
+        "schema_version": 1,
+        "backend": "native",
+        "mode": "cpu",
+        "inputs": "/Users/eric/Library/Application Support/InterDeCA/optimization/B3-cpu-candidate/inputs",
+        "output": "/Users/eric/Library/Application Support/InterDeCA/optimization/B3-cpu-candidate/native-cpu-1"
+      },
+      "exit_code": 0,
+      "wall_seconds": 234.57788591698045,
+      "sample_interval_seconds": 0.1,
+      "parent_peak_rss_bytes": 1670774784,
+      "tree_peak_rss_bytes": 2593062912,
       "parent_peak_uss_bytes": null,
       "tree_peak_uss_bytes": null,
       "sampled_processes": 7,
@@ -1856,6 +1962,448 @@
         "children_cpu_seconds": 0.0,
         "parent_peak_rss_bytes": 1239351296,
         "tree_peak_rss_bytes": 1239351296,
+        "retained_array_bytes": 8035056
+      }
+    ],
+    "morphoweave-cpu-1": [
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "blender",
+        "wall_seconds": 0.1842177910148166,
+        "parent_cpu_seconds": 0.011063000000000045,
+        "children_cpu_seconds": 0.154878,
+        "parent_peak_rss_bytes": 368099328,
+        "tree_peak_rss_bytes": 389611520,
+        "retained_array_bytes": 0
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "inspect_0",
+        "wall_seconds": 35.0625703749829,
+        "parent_cpu_seconds": 35.087633,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1161887744,
+        "tree_peak_rss_bytes": 1161887744,
+        "retained_array_bytes": 45734160
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "inspect_1",
+        "wall_seconds": 22.32624287501676,
+        "parent_cpu_seconds": 22.339168,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1444200448,
+        "tree_peak_rss_bytes": 1444200448,
+        "retained_array_bytes": 73893288
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "inspect_2",
+        "wall_seconds": 16.935112332983408,
+        "parent_cpu_seconds": 16.953087000000004,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1340571648,
+        "tree_peak_rss_bytes": 1340571648,
+        "retained_array_bytes": 96164736
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "specimens",
+        "wall_seconds": 0.004620416963007301,
+        "parent_cpu_seconds": 0.004755000000002951,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1121173504,
+        "tree_peak_rss_bytes": 1121173504,
+        "retained_array_bytes": 96168192
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "morphoweave_inputs",
+        "wall_seconds": 44.61823491600808,
+        "parent_cpu_seconds": 44.596413999999996,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1216774144,
+        "tree_peak_rss_bytes": 1216774144,
+        "retained_array_bytes": 96168192
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "atlas",
+        "wall_seconds": 230.6103003329481,
+        "parent_cpu_seconds": 231.393978,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1798193152,
+        "tree_peak_rss_bytes": 1798193152,
+        "retained_array_bytes": 115769232
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "scaled_atlas",
+        "wall_seconds": 0.05083637498319149,
+        "parent_cpu_seconds": 0.05100500000003194,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1086750720,
+        "tree_peak_rss_bytes": 1086750720,
+        "retained_array_bytes": 135370272
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "clean",
+        "wall_seconds": 1.4308219169615768,
+        "parent_cpu_seconds": 0.07735000000002401,
+        "children_cpu_seconds": 1.2778249999999998,
+        "parent_peak_rss_bytes": 1107132416,
+        "tree_peak_rss_bytes": 1781907456,
+        "retained_array_bytes": 139922784
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "uv",
+        "wall_seconds": 0.8636344579863362,
+        "parent_cpu_seconds": 0.04147900000003801,
+        "children_cpu_seconds": 0.756219,
+        "parent_peak_rss_bytes": 1113309184,
+        "tree_peak_rss_bytes": 1482932224,
+        "retained_array_bytes": 150572304
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "morphoweave_aligned",
+        "wall_seconds": 196.94519966596272,
+        "parent_cpu_seconds": 197.02466999999996,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1787559936,
+        "tree_peak_rss_bytes": 1787559936,
+        "retained_array_bytes": 246737040
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "saved_atlas",
+        "wall_seconds": 5.002423333993647,
+        "parent_cpu_seconds": 5.001273999999967,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1109491712,
+        "tree_peak_rss_bytes": 1109491712,
+        "retained_array_bytes": 246737040
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "aligned_0",
+        "wall_seconds": 21.499510874971747,
+        "parent_cpu_seconds": 21.493697999999995,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1489829888,
+        "tree_peak_rss_bytes": 1489829888,
+        "retained_array_bytes": 246737040
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "aligned_1",
+        "wall_seconds": 13.408953792008106,
+        "parent_cpu_seconds": 13.400342000000023,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1537835008,
+        "tree_peak_rss_bytes": 1537835008,
+        "retained_array_bytes": 246737040
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "aligned_2",
+        "wall_seconds": 10.501768707996234,
+        "parent_cpu_seconds": 10.498831999999993,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1542815744,
+        "tree_peak_rss_bytes": 1542815744,
+        "retained_array_bytes": 246737040
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resample_0",
+        "wall_seconds": 0.8457307919743471,
+        "parent_cpu_seconds": 0.8460139999999683,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1554776064,
+        "tree_peak_rss_bytes": 1554776064,
+        "retained_array_bytes": 257889048
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resample_1",
+        "wall_seconds": 0.7941382499993779,
+        "parent_cpu_seconds": 0.7942860000000564,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1581285376,
+        "tree_peak_rss_bytes": 1581285376,
+        "retained_array_bytes": 269041056
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resample_2",
+        "wall_seconds": 0.9175329999998212,
+        "parent_cpu_seconds": 0.9176290000000336,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1586003968,
+        "tree_peak_rss_bytes": 1586003968,
+        "retained_array_bytes": 280193064
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resampled_0",
+        "wall_seconds": 5.00947550003184,
+        "parent_cpu_seconds": 5.000868999999966,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1586659328,
+        "tree_peak_rss_bytes": 1586659328,
+        "retained_array_bytes": 280193064
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resampled_1",
+        "wall_seconds": 5.035616541979834,
+        "parent_cpu_seconds": 5.025288000000046,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1583136768,
+        "tree_peak_rss_bytes": 1583136768,
+        "retained_array_bytes": 280193064
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resampled_2",
+        "wall_seconds": 5.0715733749675564,
+        "parent_cpu_seconds": 5.046049000000039,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1580384256,
+        "tree_peak_rss_bytes": 1580384256,
+        "retained_array_bytes": 280193064
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "bake_0",
+        "wall_seconds": 2.7201238330453634,
+        "parent_cpu_seconds": 0.5876140000000305,
+        "children_cpu_seconds": 2.029819,
+        "parent_peak_rss_bytes": 2050277376,
+        "tree_peak_rss_bytes": 3020144640,
+        "retained_array_bytes": 280193064
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "bake_1",
+        "wall_seconds": 2.595942457963247,
+        "parent_cpu_seconds": 0.9802539999999453,
+        "children_cpu_seconds": 1.5455969999999999,
+        "parent_peak_rss_bytes": 2088386560,
+        "tree_peak_rss_bytes": 2996011008,
+        "retained_array_bytes": 280193064
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "bake_2",
+        "wall_seconds": 1.4802144590066746,
+        "parent_cpu_seconds": 0.1857870000000048,
+        "children_cpu_seconds": 1.2117330000000006,
+        "parent_peak_rss_bytes": 2066808832,
+        "tree_peak_rss_bytes": 2746679296,
+        "retained_array_bytes": 280193064
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "average",
+        "wall_seconds": 0.08693616703385487,
+        "parent_cpu_seconds": 0.08288199999992685,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 2084208640,
+        "tree_peak_rss_bytes": 2084208640,
+        "retained_array_bytes": 280193064
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "result",
+        "wall_seconds": 0.0049751250189729035,
+        "parent_cpu_seconds": 0.005113999999935004,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 2084225024,
+        "tree_peak_rss_bytes": 2084225024,
+        "retained_array_bytes": 280193064
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "analysis",
+        "wall_seconds": 29.814236208971124,
+        "parent_cpu_seconds": 29.734520999999972,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1431748608,
+        "tree_peak_rss_bytes": 1431748608,
+        "retained_array_bytes": 18868328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "texture_0",
+        "wall_seconds": 1.1151298329932615,
+        "parent_cpu_seconds": 1.1154010000000198,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 828080128,
+        "tree_peak_rss_bytes": 828080128,
+        "retained_array_bytes": 18868328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "texture_1",
+        "wall_seconds": 1.122971833043266,
+        "parent_cpu_seconds": 1.123136000000045,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 837533696,
+        "tree_peak_rss_bytes": 837533696,
+        "retained_array_bytes": 18868328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "texture_2",
+        "wall_seconds": 1.1208181250258349,
+        "parent_cpu_seconds": 1.1209599999999682,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 846987264,
+        "tree_peak_rss_bytes": 846987264,
+        "retained_array_bytes": 18868328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "sample_0",
+        "wall_seconds": 10.047793125035241,
+        "parent_cpu_seconds": 10.384898000000021,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 854278144,
+        "tree_peak_rss_bytes": 854278144,
+        "retained_array_bytes": 18893328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "sample_1",
+        "wall_seconds": 9.993234749999829,
+        "parent_cpu_seconds": 10.326632000000018,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 855375872,
+        "tree_peak_rss_bytes": 855375872,
+        "retained_array_bytes": 18918328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "sample_2",
+        "wall_seconds": 9.9879825420212,
+        "parent_cpu_seconds": 10.323412000000076,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 864813056,
+        "tree_peak_rss_bytes": 864813056,
+        "retained_array_bytes": 18943328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "process_0",
+        "wall_seconds": 1.1263883330393583,
+        "parent_cpu_seconds": 1.1264980000000833,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 864976896,
+        "tree_peak_rss_bytes": 864976896,
+        "retained_array_bytes": 18992328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "process_1",
+        "wall_seconds": 1.1198187500122003,
+        "parent_cpu_seconds": 1.1199149999999918,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 874430464,
+        "tree_peak_rss_bytes": 874430464,
+        "retained_array_bytes": 19041328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "process_2",
+        "wall_seconds": 1.1209816250484437,
+        "parent_cpu_seconds": 1.1211329999999862,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 883965952,
+        "tree_peak_rss_bytes": 883965952,
+        "retained_array_bytes": 19090328
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "result",
+        "wall_seconds": 1.1167128749657422,
+        "parent_cpu_seconds": 1.116800000000012,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 893419520,
+        "tree_peak_rss_bytes": 893419520,
+        "retained_array_bytes": 19090328
+      },
+      {
+        "pipeline": "Population analysis",
+        "task": "features",
+        "wall_seconds": 0.6619956250069663,
+        "parent_cpu_seconds": 0.6620470000000296,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 893468672,
+        "tree_peak_rss_bytes": 893468672,
+        "retained_array_bytes": 71208
+      },
+      {
+        "pipeline": "Population analysis",
+        "task": "fit",
+        "wall_seconds": 0.05004487495170906,
+        "parent_cpu_seconds": 0.04817199999990862,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 893517824,
+        "tree_peak_rss_bytes": 893517824,
+        "retained_array_bytes": 118728
+      },
+      {
+        "pipeline": "Population analysis",
+        "task": "result",
+        "wall_seconds": 0.026683458010666072,
+        "parent_cpu_seconds": 0.026739000000020496,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 893517824,
+        "tree_peak_rss_bytes": 893517824,
+        "retained_array_bytes": 118728
+      },
+      {
+        "pipeline": "reconstruct",
+        "task": "result",
+        "wall_seconds": 0.6966773330350406,
+        "parent_cpu_seconds": 0.6970039999999926,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 900038656,
+        "tree_peak_rss_bytes": 900038656,
+        "retained_array_bytes": 3175525
+      },
+      {
+        "pipeline": "display",
+        "task": "result",
+        "wall_seconds": 0.6276442919624969,
+        "parent_cpu_seconds": 0.6277069999999867,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 900038656,
+        "tree_peak_rss_bytes": 900038656,
+        "retained_array_bytes": 3175525
+      },
+      {
+        "pipeline": "select",
+        "task": "result",
+        "wall_seconds": 0.01106737501686439,
+        "parent_cpu_seconds": 0.011474999999904867,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 912687104,
+        "tree_peak_rss_bytes": 912687104,
+        "retained_array_bytes": 1003080
+      },
+      {
+        "pipeline": "extract",
+        "task": "result",
+        "wall_seconds": 0.01600320904981345,
+        "parent_cpu_seconds": 0.017006000000037602,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 920109056,
+        "tree_peak_rss_bytes": 920109056,
         "retained_array_bytes": 8035056
       }
     ],
@@ -4189,6 +4737,488 @@
         "retained_array_bytes": 8262976
       }
     ],
+    "native-cpu-1": [
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "blender",
+        "wall_seconds": 0.18056812504073605,
+        "parent_cpu_seconds": 0.009045000000000414,
+        "children_cpu_seconds": 0.153605,
+        "parent_peak_rss_bytes": 369508352,
+        "tree_peak_rss_bytes": 391921664,
+        "retained_array_bytes": 0
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "inspect_0",
+        "wall_seconds": 34.952925624966156,
+        "parent_cpu_seconds": 34.985046999999994,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1160740864,
+        "tree_peak_rss_bytes": 1160740864,
+        "retained_array_bytes": 45734160
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "inspect_1",
+        "wall_seconds": 22.179655791958794,
+        "parent_cpu_seconds": 22.200896,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1446133760,
+        "tree_peak_rss_bytes": 1446133760,
+        "retained_array_bytes": 73893288
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "inspect_2",
+        "wall_seconds": 17.081514915975276,
+        "parent_cpu_seconds": 17.068709000000005,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1344897024,
+        "tree_peak_rss_bytes": 1344897024,
+        "retained_array_bytes": 96164736
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "specimens",
+        "wall_seconds": 0.004131167021114379,
+        "parent_cpu_seconds": 0.004251000000010663,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1122828288,
+        "tree_peak_rss_bytes": 1122828288,
+        "retained_array_bytes": 96168192
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "reference",
+        "wall_seconds": 0.06006687501212582,
+        "parent_cpu_seconds": 0.06027900000000841,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1162248192,
+        "tree_peak_rss_bytes": 1162248192,
+        "retained_array_bytes": 115770672
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "contribute_0",
+        "wall_seconds": 1.4151972079998814,
+        "parent_cpu_seconds": 1.4157050000000027,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1307672576,
+        "tree_peak_rss_bytes": 1307672576,
+        "retained_array_bytes": 137549488
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "contribute_1",
+        "wall_seconds": 1.8725601669866592,
+        "parent_cpu_seconds": 1.873232999999999,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1323827200,
+        "tree_peak_rss_bytes": 1323827200,
+        "retained_array_bytes": 159328304
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "contribute_2",
+        "wall_seconds": 3.0754333750228398,
+        "parent_cpu_seconds": 3.075810000000004,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1080705024,
+        "tree_peak_rss_bytes": 1080705024,
+        "retained_array_bytes": 181107120
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "atlas",
+        "wall_seconds": 0.06870641704881564,
+        "parent_cpu_seconds": 0.06919599999999093,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1080705024,
+        "tree_peak_rss_bytes": 1080705024,
+        "retained_array_bytes": 200708160
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "clean",
+        "wall_seconds": 1.4067503329715692,
+        "parent_cpu_seconds": 0.07333199999999351,
+        "children_cpu_seconds": 1.262581,
+        "parent_peak_rss_bytes": 1092550656,
+        "tree_peak_rss_bytes": 1761755136,
+        "retained_array_bytes": 205384320
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "uv",
+        "wall_seconds": 0.8641507909633219,
+        "parent_cpu_seconds": 0.04096599999999739,
+        "children_cpu_seconds": 0.7572849999999998,
+        "parent_peak_rss_bytes": 1098858496,
+        "tree_peak_rss_bytes": 1482194944,
+        "retained_array_bytes": 216317280
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "align_0",
+        "wall_seconds": 0.0593425000552088,
+        "parent_cpu_seconds": 0.05981599999999787,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1125007360,
+        "tree_peak_rss_bytes": 1125007360,
+        "retained_array_bytes": 262051536
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "align_1",
+        "wall_seconds": 0.03295625001192093,
+        "parent_cpu_seconds": 0.033136000000013155,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1141243904,
+        "tree_peak_rss_bytes": 1141243904,
+        "retained_array_bytes": 290210760
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "align_2",
+        "wall_seconds": 0.027076416998170316,
+        "parent_cpu_seconds": 0.02721800000000485,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1141243904,
+        "tree_peak_rss_bytes": 1141243904,
+        "retained_array_bytes": 312482304
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "saved_atlas",
+        "wall_seconds": 5.149049791973084,
+        "parent_cpu_seconds": 5.148804999999996,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1143963648,
+        "tree_peak_rss_bytes": 1143963648,
+        "retained_array_bytes": 312482304
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "aligned_0",
+        "wall_seconds": 21.680829000019003,
+        "parent_cpu_seconds": 21.67882,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1308213248,
+        "tree_peak_rss_bytes": 1308213248,
+        "retained_array_bytes": 312482304
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "aligned_1",
+        "wall_seconds": 13.357313334010541,
+        "parent_cpu_seconds": 13.350110999999998,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1353351168,
+        "tree_peak_rss_bytes": 1353351168,
+        "retained_array_bytes": 312482304
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "aligned_2",
+        "wall_seconds": 10.53875591699034,
+        "parent_cpu_seconds": 10.509257999999988,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1309818880,
+        "tree_peak_rss_bytes": 1309818880,
+        "retained_array_bytes": 312482304
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resample_0",
+        "wall_seconds": 0.6166277080192231,
+        "parent_cpu_seconds": 0.6167339999999797,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1222590464,
+        "tree_peak_rss_bytes": 1222590464,
+        "retained_array_bytes": 323932336
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resample_1",
+        "wall_seconds": 0.5365815419936553,
+        "parent_cpu_seconds": 0.5367400000000089,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1243676672,
+        "tree_peak_rss_bytes": 1243676672,
+        "retained_array_bytes": 335382368
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resample_2",
+        "wall_seconds": 0.6839543340029195,
+        "parent_cpu_seconds": 0.6841139999999939,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1254408192,
+        "tree_peak_rss_bytes": 1254408192,
+        "retained_array_bytes": 346832400
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resampled_0",
+        "wall_seconds": 5.211163416970521,
+        "parent_cpu_seconds": 5.21100899999999,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1257930752,
+        "tree_peak_rss_bytes": 1257930752,
+        "retained_array_bytes": 346832400
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resampled_1",
+        "wall_seconds": 5.1390148749924265,
+        "parent_cpu_seconds": 5.138612999999992,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1265090560,
+        "tree_peak_rss_bytes": 1265090560,
+        "retained_array_bytes": 346832400
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "resampled_2",
+        "wall_seconds": 5.208842249994632,
+        "parent_cpu_seconds": 5.205908999999991,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1130774528,
+        "tree_peak_rss_bytes": 1130774528,
+        "retained_array_bytes": 346832400
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "bake_0",
+        "wall_seconds": 2.7266485830186866,
+        "parent_cpu_seconds": 0.6055310000000134,
+        "children_cpu_seconds": 2.046453,
+        "parent_peak_rss_bytes": 1628045312,
+        "tree_peak_rss_bytes": 2593062912,
+        "retained_array_bytes": 346832400
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "bake_1",
+        "wall_seconds": 2.5875532080535777,
+        "parent_cpu_seconds": 0.9685910000000035,
+        "children_cpu_seconds": 1.543584000000001,
+        "parent_peak_rss_bytes": 1669120000,
+        "tree_peak_rss_bytes": 2581643264,
+        "retained_array_bytes": 346832400
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "bake_2",
+        "wall_seconds": 1.4524522499996237,
+        "parent_cpu_seconds": 0.17351099999999064,
+        "children_cpu_seconds": 1.2133159999999998,
+        "parent_peak_rss_bytes": 1648738304,
+        "tree_peak_rss_bytes": 2324185088,
+        "retained_array_bytes": 346832400
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "average",
+        "wall_seconds": 0.07992866699350998,
+        "parent_cpu_seconds": 0.07845900000000938,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1661698048,
+        "tree_peak_rss_bytes": 1661698048,
+        "retained_array_bytes": 346832400
+      },
+      {
+        "pipeline": "ATLAS and Texture Transfer",
+        "task": "result",
+        "wall_seconds": 0.004161583026871085,
+        "parent_cpu_seconds": 0.004297000000008211,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1661714432,
+        "tree_peak_rss_bytes": 1661714432,
+        "retained_array_bytes": 346832400
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "analysis",
+        "wall_seconds": 30.841402582998853,
+        "parent_cpu_seconds": 30.93061499999999,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 1195737088,
+        "tree_peak_rss_bytes": 1195737088,
+        "retained_array_bytes": 19349312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "texture_0",
+        "wall_seconds": 1.189257792022545,
+        "parent_cpu_seconds": 1.1894240000000025,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 722829312,
+        "tree_peak_rss_bytes": 722829312,
+        "retained_array_bytes": 19349312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "texture_1",
+        "wall_seconds": 1.180881624983158,
+        "parent_cpu_seconds": 1.1811830000000043,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 722845696,
+        "tree_peak_rss_bytes": 722845696,
+        "retained_array_bytes": 19349312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "texture_2",
+        "wall_seconds": 1.1870208330219612,
+        "parent_cpu_seconds": 1.1871149999999773,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 734412800,
+        "tree_peak_rss_bytes": 734412800,
+        "retained_array_bytes": 19349312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "sample_0",
+        "wall_seconds": 10.451027250033803,
+        "parent_cpu_seconds": 10.809761000000009,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 748077056,
+        "tree_peak_rss_bytes": 748077056,
+        "retained_array_bytes": 19374312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "sample_1",
+        "wall_seconds": 10.39469691697741,
+        "parent_cpu_seconds": 10.699400999999995,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 754368512,
+        "tree_peak_rss_bytes": 754368512,
+        "retained_array_bytes": 19399312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "sample_2",
+        "wall_seconds": 10.434105124964844,
+        "parent_cpu_seconds": 10.78606099999999,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 595296256,
+        "tree_peak_rss_bytes": 595296256,
+        "retained_array_bytes": 19424312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "process_0",
+        "wall_seconds": 1.1698242090060376,
+        "parent_cpu_seconds": 1.169969000000009,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 604913664,
+        "tree_peak_rss_bytes": 604913664,
+        "retained_array_bytes": 19473312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "process_1",
+        "wall_seconds": 1.1719022499746643,
+        "parent_cpu_seconds": 1.1720139999999901,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 615137280,
+        "tree_peak_rss_bytes": 615137280,
+        "retained_array_bytes": 19522312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "process_2",
+        "wall_seconds": 1.171093542012386,
+        "parent_cpu_seconds": 1.1711810000000185,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 633044992,
+        "tree_peak_rss_bytes": 633044992,
+        "retained_array_bytes": 19571312
+      },
+      {
+        "pipeline": "Color processing",
+        "task": "result",
+        "wall_seconds": 1.1692743329913355,
+        "parent_cpu_seconds": 1.1693839999999796,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 650887168,
+        "tree_peak_rss_bytes": 650887168,
+        "retained_array_bytes": 19571312
+      },
+      {
+        "pipeline": "Population analysis",
+        "task": "features",
+        "wall_seconds": 0.6906496660085395,
+        "parent_cpu_seconds": 0.6907060000000058,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 635371520,
+        "tree_peak_rss_bytes": 635371520,
+        "retained_array_bytes": 71352
+      },
+      {
+        "pipeline": "Population analysis",
+        "task": "fit",
+        "wall_seconds": 0.047316124953795224,
+        "parent_cpu_seconds": 0.04735399999998435,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 635420672,
+        "tree_peak_rss_bytes": 635420672,
+        "retained_array_bytes": 118968
+      },
+      {
+        "pipeline": "Population analysis",
+        "task": "result",
+        "wall_seconds": 0.027215417008846998,
+        "parent_cpu_seconds": 0.027244999999993524,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 635420672,
+        "tree_peak_rss_bytes": 635420672,
+        "retained_array_bytes": 118968
+      },
+      {
+        "pipeline": "reconstruct",
+        "task": "result",
+        "wall_seconds": 0.7236712499870919,
+        "parent_cpu_seconds": 0.7240150000000085,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 642236416,
+        "tree_peak_rss_bytes": 642236416,
+        "retained_array_bytes": 3258750
+      },
+      {
+        "pipeline": "display",
+        "task": "result",
+        "wall_seconds": 0.6564442079979926,
+        "parent_cpu_seconds": 0.6565070000000048,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 642236416,
+        "tree_peak_rss_bytes": 642236416,
+        "retained_array_bytes": 3258750
+      },
+      {
+        "pipeline": "select",
+        "task": "result",
+        "wall_seconds": 0.010786624974571168,
+        "parent_cpu_seconds": 0.011202999999994745,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 659308544,
+        "tree_peak_rss_bytes": 659308544,
+        "retained_array_bytes": 1031968
+      },
+      {
+        "pipeline": "extract",
+        "task": "result",
+        "wall_seconds": 0.01696070801699534,
+        "parent_cpu_seconds": 0.01793100000000436,
+        "children_cpu_seconds": 0.0,
+        "parent_peak_rss_bytes": 667926528,
+        "tree_peak_rss_bytes": 667926528,
+        "retained_array_bytes": 8262976
+      }
+    ],
     "native-memory-1": [
       {
         "pipeline": "ATLAS and Texture Transfer",
@@ -5158,6 +6188,305 @@
     "morphoweave-baseline-1": {},
     "morphoweave-baseline-2": {},
     "morphoweave-baseline-3": {},
+    "morphoweave-cpu-1": {
+      "Arrays.frozen": {
+        "calls": 127554,
+        "inclusive_wall_seconds": 5.697531566955149,
+        "exclusive_wall_seconds": 5.697531566955149,
+        "exclusive_thread_cpu_seconds": 5.684731951984872,
+        "array_copy_bytes": 2945147834,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Mesh.validated": {
+        "calls": 63,
+        "inclusive_wall_seconds": 1.4818561701104045,
+        "exclusive_wall_seconds": 1.3947225818410516,
+        "exclusive_thread_cpu_seconds": 1.3942797429996503,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MeshIO._read_obj": {
+        "calls": 16,
+        "inclusive_wall_seconds": 401.6784516260377,
+        "exclusive_wall_seconds": 401.08025929605355,
+        "exclusive_thread_cpu_seconds": 400.9073692909998,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 1291794097,
+        "logical_write_bytes": 0
+      },
+      "MeshIO.read": {
+        "calls": 16,
+        "inclusive_wall_seconds": 401.6849749570247,
+        "exclusive_wall_seconds": 0.006523330986965448,
+        "exclusive_thread_cpu_seconds": 0.005635501000149645,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Landmarks.validated": {
+        "calls": 87,
+        "inclusive_wall_seconds": 0.029933871410321444,
+        "exclusive_wall_seconds": 0.025743624253664166,
+        "exclusive_thread_cpu_seconds": 0.023162546000108364,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "LandmarkIO.read": {
+        "calls": 19,
+        "inclusive_wall_seconds": 0.028360956930555403,
+        "exclusive_wall_seconds": 0.020835621922742575,
+        "exclusive_thread_cpu_seconds": 0.019056126000222662,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "TextureIO.validate_file": {
+        "calls": 6,
+        "inclusive_wall_seconds": 3.0013714599772356,
+        "exclusive_wall_seconds": 3.0013714599772356,
+        "exclusive_thread_cpu_seconds": 2.998365248999896,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Dataset.validate_specimens": {
+        "calls": 8,
+        "inclusive_wall_seconds": 0.019228959048632532,
+        "exclusive_wall_seconds": 0.012102629989385605,
+        "exclusive_thread_cpu_seconds": 0.010390461000064022,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MeshIO.write_obj": {
+        "calls": 16,
+        "inclusive_wall_seconds": 200.26840245886706,
+        "exclusive_wall_seconds": 199.8554232059978,
+        "exclusive_thread_cpu_seconds": 199.57738166800033,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 1046347075
+      },
+      "LandmarkIO.write_json": {
+        "calls": 16,
+        "inclusive_wall_seconds": 0.025235373992472887,
+        "exclusive_wall_seconds": 0.01960337394848466,
+        "exclusive_thread_cpu_seconds": 0.019305374999845526,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeave._inputs": {
+        "calls": 1,
+        "inclusive_wall_seconds": 44.583410916035064,
+        "exclusive_wall_seconds": 0.001067916105967015,
+        "exclusive_thread_cpu_seconds": 0.0010555410000137044,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic.procrustesImposition": {
+        "calls": 2,
+        "inclusive_wall_seconds": 0.0002711239503696561,
+        "exclusive_wall_seconds": 0.0002711239503696561,
+        "exclusive_thread_cpu_seconds": 0.00027095900004781015,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MeshIO.to_polydata": {
+        "calls": 17,
+        "inclusive_wall_seconds": 0.10067324811825529,
+        "exclusive_wall_seconds": 0.10067324811825529,
+        "exclusive_thread_cpu_seconds": 0.10062308499993833,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "DataNode.SetAndObservePolyData": {
+        "calls": 18,
+        "inclusive_wall_seconds": 0.01208137592766434,
+        "exclusive_wall_seconds": 0.01208137592766434,
+        "exclusive_thread_cpu_seconds": 0.012078832000014472,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Host.loadModel": {
+        "calls": 10,
+        "inclusive_wall_seconds": 254.88748158194358,
+        "exclusive_wall_seconds": 0.013461747905239463,
+        "exclusive_thread_cpu_seconds": 0.013423207999935016,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic._mesh_density_score": {
+        "calls": 2,
+        "inclusive_wall_seconds": 5.717236458032858,
+        "exclusive_wall_seconds": 5.717236458032858,
+        "exclusive_thread_cpu_seconds": 5.714891707999982,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic.cleanPolyData": {
+        "calls": 10,
+        "inclusive_wall_seconds": 0.2758190019521862,
+        "exclusive_wall_seconds": 0.2758190019521862,
+        "exclusive_thread_cpu_seconds": 0.2758222499999192,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic._coord_check_ratio": {
+        "calls": 6,
+        "inclusive_wall_seconds": 0.4511936660273932,
+        "exclusive_wall_seconds": 0.28844654001295567,
+        "exclusive_thread_cpu_seconds": 0.28823295900014045,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Host.mesh": {
+        "calls": 7,
+        "inclusive_wall_seconds": 0.24125204206211492,
+        "exclusive_wall_seconds": 0.004770915838889778,
+        "exclusive_thread_cpu_seconds": 0.0047667509999200774,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Host.saveNode": {
+        "calls": 12,
+        "inclusive_wall_seconds": 90.40301583294058,
+        "exclusive_wall_seconds": 0.0035759569727815688,
+        "exclusive_thread_cpu_seconds": 0.002326583000098026,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic.runAlign": {
+        "calls": 2,
+        "inclusive_wall_seconds": 243.75798691704404,
+        "exclusive_wall_seconds": 0.01816145912744105,
+        "exclusive_thread_cpu_seconds": 0.016394416999929717,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic.importPaired": {
+        "calls": 1,
+        "inclusive_wall_seconds": 73.23932370898547,
+        "exclusive_wall_seconds": 0.0040882951579988,
+        "exclusive_thread_cpu_seconds": 0.00407720799995559,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic._corr_pair_kdtree": {
+        "calls": 3,
+        "inclusive_wall_seconds": 0.2591963329468854,
+        "exclusive_wall_seconds": 0.2591963329468854,
+        "exclusive_thread_cpu_seconds": 0.1720737509999708,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic.denseCorrespondence": {
+        "calls": 1,
+        "inclusive_wall_seconds": 0.29276416602078825,
+        "exclusive_wall_seconds": 0.03343704208964482,
+        "exclusive_thread_cpu_seconds": 0.03342903999998725,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic.computeAverageModelFromGroup": {
+        "calls": 1,
+        "inclusive_wall_seconds": 0.001081500027794391,
+        "exclusive_wall_seconds": 0.001081500027794391,
+        "exclusive_thread_cpu_seconds": 0.0010822499999676438,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic.runMean": {
+        "calls": 1,
+        "inclusive_wall_seconds": 73.53484395798296,
+        "exclusive_wall_seconds": 0.0009502509492449462,
+        "exclusive_thread_cpu_seconds": 0.0009478340000441676,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderWidget._generateAtlas": {
+        "calls": 1,
+        "inclusive_wall_seconds": 229.1535808329936,
+        "exclusive_wall_seconds": 0.004974000039510429,
+        "exclusive_thread_cpu_seconds": 0.0037376639999990857,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Blender._save_mesh": {
+        "calls": 8,
+        "inclusive_wall_seconds": 0.259902749909088,
+        "exclusive_wall_seconds": 0.09448845981387421,
+        "exclusive_thread_cpu_seconds": 0.04761825400015596,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Blender._run": {
+        "calls": 5,
+        "inclusive_wall_seconds": 7.2278957918751985,
+        "exclusive_wall_seconds": 7.2278957918751985,
+        "exclusive_thread_cpu_seconds": 0.0502231649999203,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic.sparseCorrespondenceBaseMesh": {
+        "calls": 3,
+        "inclusive_wall_seconds": 2.4567535840324126,
+        "exclusive_wall_seconds": 2.4567535840324126,
+        "exclusive_thread_cpu_seconds": 2.4554850409999744,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MorphoWeaveAtlasBuilderLogic._warp_polydata_tps": {
+        "calls": 3,
+        "inclusive_wall_seconds": 0.02322029194328934,
+        "exclusive_wall_seconds": 0.02322029194328934,
+        "exclusive_thread_cpu_seconds": 0.023211250000031214,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "TextureIO.read": {
+        "calls": 12,
+        "inclusive_wall_seconds": 0.08714024891378358,
+        "exclusive_wall_seconds": 0.08714024891378358,
+        "exclusive_thread_cpu_seconds": 0.08514678999983971,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "TextureIO.write_png": {
+        "calls": 1,
+        "inclusive_wall_seconds": 0.034087250009179115,
+        "exclusive_wall_seconds": 0.0337345419684425,
+        "exclusive_thread_cpu_seconds": 0.029570083999942653,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      }
+    },
     "morphoweave-memory-1": {
       "Arrays.frozen": {
         "calls": 127554,
@@ -5759,6 +7088,143 @@
     "native-baseline-1": {},
     "native-baseline-2": {},
     "native-baseline-3": {},
+    "native-cpu-1": {
+      "Arrays.frozen": {
+        "calls": 130734,
+        "inclusive_wall_seconds": 5.883119094069116,
+        "exclusive_wall_seconds": 5.883119094069116,
+        "exclusive_thread_cpu_seconds": 5.856932293999556,
+        "array_copy_bytes": 1388972108,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Mesh.validated": {
+        "calls": 47,
+        "inclusive_wall_seconds": 0.9177711652009748,
+        "exclusive_wall_seconds": 0.875751631858293,
+        "exclusive_thread_cpu_seconds": 0.8739691620001051,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MeshIO._read_obj": {
+        "calls": 3,
+        "inclusive_wall_seconds": 72.74774037499446,
+        "exclusive_wall_seconds": 72.6401377088041,
+        "exclusive_thread_cpu_seconds": 72.58437191600002,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 235765927,
+        "logical_write_bytes": 0
+      },
+      "MeshIO.read": {
+        "calls": 3,
+        "inclusive_wall_seconds": 72.7499170830124,
+        "exclusive_wall_seconds": 0.0021767080179415643,
+        "exclusive_thread_cpu_seconds": 0.0011052919999983146,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Landmarks.validated": {
+        "calls": 64,
+        "inclusive_wall_seconds": 0.02237116900505498,
+        "exclusive_wall_seconds": 0.019741085183341056,
+        "exclusive_thread_cpu_seconds": 0.017367878999969832,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "LandmarkIO.read": {
+        "calls": 3,
+        "inclusive_wall_seconds": 0.004241875023581088,
+        "exclusive_wall_seconds": 0.003120041044894606,
+        "exclusive_thread_cpu_seconds": 0.0031201259999988906,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "TextureIO.validate_file": {
+        "calls": 6,
+        "inclusive_wall_seconds": 2.9639938750187866,
+        "exclusive_wall_seconds": 2.9639938750187866,
+        "exclusive_thread_cpu_seconds": 2.960821957999997,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Dataset.validate_specimens": {
+        "calls": 5,
+        "inclusive_wall_seconds": 0.008792208973318338,
+        "exclusive_wall_seconds": 0.005568040010984987,
+        "exclusive_thread_cpu_seconds": 0.00524075200001306,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MeshIO.to_polydata": {
+        "calls": 6,
+        "inclusive_wall_seconds": 0.038760292052756995,
+        "exclusive_wall_seconds": 0.038760292052756995,
+        "exclusive_thread_cpu_seconds": 0.03875279099996476,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Blender._save_mesh": {
+        "calls": 8,
+        "inclusive_wall_seconds": 0.20860949909547344,
+        "exclusive_wall_seconds": 0.05279416620032862,
+        "exclusive_thread_cpu_seconds": 0.04765662999983533,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "Blender._run": {
+        "calls": 5,
+        "inclusive_wall_seconds": 7.220511374005582,
+        "exclusive_wall_seconds": 7.220511374005582,
+        "exclusive_thread_cpu_seconds": 0.042763001000039935,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "MeshIO.write_obj": {
+        "calls": 7,
+        "inclusive_wall_seconds": 66.25426928995876,
+        "exclusive_wall_seconds": 66.12785412394442,
+        "exclusive_thread_cpu_seconds": 66.05385049899999,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 341657750
+      },
+      "LandmarkIO.write_json": {
+        "calls": 7,
+        "inclusive_wall_seconds": 0.0129549999255687,
+        "exclusive_wall_seconds": 0.010419539699796587,
+        "exclusive_thread_cpu_seconds": 0.00872112300000083,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "TextureIO.read": {
+        "calls": 12,
+        "inclusive_wall_seconds": 0.09061929112067446,
+        "exclusive_wall_seconds": 0.09061929112067446,
+        "exclusive_thread_cpu_seconds": 0.0886829579999926,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      },
+      "TextureIO.write_png": {
+        "calls": 1,
+        "inclusive_wall_seconds": 0.027085208042990416,
+        "exclusive_wall_seconds": 0.02677408402087167,
+        "exclusive_thread_cpu_seconds": 0.025082624999953396,
+        "array_copy_bytes": 0,
+        "logical_read_bytes": 0,
+        "logical_write_bytes": 0
+      }
+    },
     "native-memory-1": {
       "Arrays.frozen": {
         "calls": 130734,

@@ -1,0 +1,5 @@
+Starting native-cpu-1
+native-cpu-1: exit=0, wall=234.6s, peak tree RSS=2473 MiB
+Starting morphoweave-cpu-1
+morphoweave-cpu-1: exit=0, wall=697.8s, peak tree RSS=2880 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/B3-cpu-candidate

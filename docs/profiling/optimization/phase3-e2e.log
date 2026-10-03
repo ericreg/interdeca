@@ -1,0 +1,16 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.12, pytest-9.1.1, pluggy-1.6.0 -- /Users/eric/code/interdeca/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/eric/code/interdeca
+configfile: pyproject.toml
+plugins: platformdirs-4.12.2
+collecting ... collected 2 items
+
+tests/end_to_end/test_small_clams.py::test_small_clams_slicer_cli_parity[native] Small-clams artifacts and logs: /private/tmp/interdeca-phase3-e2e/test_small_clams_slicer_cli_pa0
+Matched Slicer 5.12.4 and CLI outputs; Blender (5, 2, 1)
+PASSED
+tests/end_to_end/test_small_clams.py::test_small_clams_slicer_cli_parity[morphoweave] Small-clams artifacts and logs: /private/tmp/interdeca-phase3-e2e/test_small_clams_slicer_cli_pa1
+Matched Slicer 5.12.4 and CLI outputs; Blender (5, 2, 1)
+PASSED
+
+======================== 2 passed in 599.60s (0:09:59) =========================

@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "explanation": "Ten baseline/timer/allocation captures preceded the checkpoint commit. Two CPU captures followed it with identical measured source, lock, input, and runtime hashes. Their files were independently cloned here without rewriting original run paths or environment records.",
+  "baseline_capture_revision": "924aa2363014e5b75822b1d309f07d633e9aa8c4",
+  "cpu_capture_revision": "fd5743bfb8767a1ee66f8baf12e9313e87741139",
+  "baseline_environment_sha256": "9dc1a2ab91993b2197e0ee878997dbb420c5346fa0c7b1f0d31d933997f4df7f",
+  "cpu_environment_sha256": "d2139fd310d60304a3f2332dd617d7b3020242e12f8211a2048d0aec99c72256",
+  "cpu_original_directory": "/Users/eric/Library/Application Support/InterDeCA/optimization/B3-cpu-candidate",
+  "sources_verified": 43,
+  "parity_log_sha256": "debe9fc3521dfe652e75c7c9dd23cfbfe0094260265bed811dfa4e553fcdfd4b",
+  "cpu_output_comparisons": [
+    {
+      "backend": "native",
+      "run_sha256": "6b4b81429b99ca12bb49afca1abdb5cf9566b842e09aa490c25f52315eddcfb8",
+      "output_count": 33
+    },
+    {
+      "backend": "morphoweave",
+      "run_sha256": "0ec4e3f4897e98a17363710b280686c4c15afbbe2ada45c1b4565821eafd8574",
+      "output_count": 33
+    }
+  ]
+}

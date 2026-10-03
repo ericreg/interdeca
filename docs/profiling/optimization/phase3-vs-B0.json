@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "reference": "/Users/eric/Library/Application Support/InterDeCA/optimization/B0",
-  "candidate": "/Users/eric/Library/Application Support/InterDeCA/optimization/B3-candidate",
+  "candidate": "/Users/eric/Library/Application Support/InterDeCA/optimization/B3",
   "reference_revision": "129c2e218c3eecce6b475a8a19279bf75d1f8b32",
   "candidate_revision": "924aa2363014e5b75822b1d309f07d633e9aa8c4",
   "compatible_environment": true,
