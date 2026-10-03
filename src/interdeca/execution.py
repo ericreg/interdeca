@@ -18,12 +18,19 @@ class ResultRef(NamedTuple):
 
 
 class Task(NamedTuple):
-    """One registered operation with a fixed-field input record."""
+    """One registered operation with a fixed-field input record.
+
+    A managed result is a context manager. Its entered value is available to
+    downstream tasks; cleanup finishes before the run's terminal notification.
+    Resources cannot suppress task failures, and final outputs must not require
+    a still-open resource after the run ends.
+    """
 
     task_id: str
     operation: str
     inputs: tuple
     label: str = ""
+    manage_resource: bool = False
 
 
 class Pipeline(NamedTuple):
@@ -141,6 +148,8 @@ class TaskValues:
                     raise ValueError(f"Duplicate or empty task ID: {task.task_id!r}")
                 if task.operation not in operations:
                     raise ValueError(f"Unknown operation: {task.operation}")
+                if not isinstance(task.manage_resource, bool):
+                    raise TypeError("manage_resource must be a boolean.")
                 if not isinstance(task.inputs, tuple) or not hasattr(
                     task.inputs, "_fields"
                 ):

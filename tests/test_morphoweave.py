@@ -1,7 +1,11 @@
 """Exercise the unmodified upstream workflows and the independent host contract."""
 
 import sys
+from collections.abc import Callable
 from pathlib import Path
+from queue import Queue
+from threading import Event
+from typing import NamedTuple
 
 import numpy as np
 import pytest
@@ -10,10 +14,18 @@ from interdeca import _morphoweave_host, morphoweave
 from interdeca._morphoweave_host import Host, load_atlas_builder
 from interdeca.application_models import AtlasOptions
 from interdeca.atlas import Atlas
+from interdeca.io import LandmarkIO, MeshIO
 from interdeca.models import AtlasModel, AtlasScaleConversion, Landmarks, Mesh, Specimen
 from interdeca.morphoweave import MorphoWeave
 from interdeca.serde import AtlasRequest, AtlasRunData, AtlasScaleConversionData
-from interdeca.workflows import Operations
+from interdeca.serial_execution import SerialExecutionManager
+from interdeca.workflows import Operations, Workflows
+
+
+class Callbacks(NamedTuple):
+    """Post thread-safe callbacks for delivery by the test's owning thread."""
+
+    post: Callable
 
 
 @pytest.fixture
@@ -327,3 +339,266 @@ def test_scale_metadata_rejects_invalid_or_inconsistent_factor(factor):
             factor=factor,
             center=(0.0, 0.0, 0.0),
         )
+
+
+@pytest.mark.parametrize("normalize_scale", [False, True])
+def test_shared_staging_matches_standalone_results_and_writes_originals_once(
+    specimens, monkeypatch, normalize_scale
+):
+    # Independently owned calls provide the previous staging behavior as a
+    # numerical control; shared staging must change only repeated file handling.
+    reference_mean = MorphoWeave.build_atlas(specimens, normalize_scale=normalize_scale)
+    reference_atlas = MorphoWeave.restore_input_scale(reference_mean, specimens).atlas
+    reference_aligned = MorphoWeave.align_specimens(
+        specimens, reference_atlas, normalize_scale=normalize_scale
+    )
+    writes, align_directories = [], []
+    original_write, original_loader = MeshIO.write_obj, morphoweave.load_atlas_builder
+
+    def write(mesh, path, **kwargs):
+        if Path(path).parent.name == "originalModels":
+            writes.append(Path(path))
+        return original_write(mesh, path, **kwargs)
+
+    def load(host):
+        module = original_loader(host)
+        original_align = module.MorphoWeaveAtlasBuilderLogic.runAlign
+
+        def align(*args, **kwargs):
+            align_directories.append((Path(args[3]), Path(args[5])))
+            return original_align(*args, **kwargs)
+
+        monkeypatch.setattr(module.MorphoWeaveAtlasBuilderLogic, "runAlign", align)
+        return module
+
+    monkeypatch.setattr(MeshIO, "write_obj", write)
+    monkeypatch.setattr(morphoweave, "load_atlas_builder", load)
+    with MorphoWeave.stage_inputs(specimens) as workspace:
+        root = workspace.root
+        before = {
+            path.relative_to(root): path.read_bytes()
+            for path in root.rglob("*")
+            if path.is_file()
+        }
+        mean = MorphoWeave.build_atlas(
+            specimens, normalize_scale=normalize_scale, workspace=workspace
+        )
+        atlas = MorphoWeave.restore_input_scale(mean, specimens).atlas
+        aligned = MorphoWeave.align_specimens(
+            specimens, atlas, normalize_scale=normalize_scale, workspace=workspace
+        )
+        assert {
+            path.relative_to(root): path.read_bytes()
+            for path in root.rglob("*")
+            if path.is_file()
+        } == before
+        assert len(writes) == len(specimens)
+        assert [pair[0] for pair in align_directories] == [root / "originalModels"] * 2
+        assert align_directories[0][1] != align_directories[1][1]
+        assert all(not pair[1].exists() for pair in align_directories)
+    assert not root.exists()
+    for expected, actual in zip(reference_mean.mesh, mean.mesh, strict=True):
+        np.testing.assert_array_equal(actual, expected)
+    np.testing.assert_array_equal(
+        mean.landmarks.points, reference_mean.landmarks.points
+    )
+    for expected, actual in zip(reference_aligned, aligned, strict=True):
+        assert actual.specimen_id == expected.specimen_id
+        assert actual.landmarks.labels == expected.landmarks.labels
+        np.testing.assert_array_equal(
+            actual.landmarks.points, expected.landmarks.points
+        )
+        for before, after in zip(expected.mesh, actual.mesh, strict=True):
+            np.testing.assert_array_equal(before, after)
+
+
+@pytest.mark.parametrize(
+    "change", ["vertices", "faces", "uv", "landmarks", "labels", "id", "order", "count"]
+)
+def test_staging_rejects_different_input_revision(specimens, change):
+    with MorphoWeave.stage_inputs(specimens) as workspace:
+        first = specimens[0]
+        if change in ("vertices", "faces", "uv"):
+            values = getattr(first.mesh, change).copy()
+            if change == "faces":
+                values = values[::-1]
+            else:
+                values.flat[0] += 0.01
+            changed = (
+                first._replace(mesh=first.mesh._replace(**{change: values})),
+                *specimens[1:],
+            )
+        elif change == "landmarks":
+            points = first.landmarks.points.copy()
+            points[0, 0] += 0.01
+            changed = (
+                first._replace(landmarks=first.landmarks._replace(points=points)),
+                *specimens[1:],
+            )
+        elif change == "labels":
+            changed = tuple(
+                item._replace(
+                    landmarks=item.landmarks._replace(
+                        labels=("changed", *item.landmarks.labels[1:])
+                    )
+                )
+                for item in specimens
+            )
+        elif change == "id":
+            changed = (first._replace(specimen_id="changed"), *specimens[1:])
+        elif change == "order":
+            changed = specimens[::-1]
+        else:
+            changed = specimens[:1]
+        # Both entry points must reject a workspace from another input revision,
+        # including geometrically equivalent changes to index/label ordering.
+        with pytest.raises(ValueError, match="workspace does not match"):
+            MorphoWeave.build_atlas(changed, workspace=workspace)
+        with pytest.raises(ValueError, match="workspace does not match"):
+            MorphoWeave.align_specimens(
+                changed, AtlasModel(first.mesh, first.landmarks), workspace=workspace
+            )
+
+
+def test_workspaces_are_isolated_and_closed_workspaces_are_rejected(specimens):
+    with MorphoWeave.stage_inputs(specimens) as first:
+        with MorphoWeave.stage_inputs(specimens) as second:
+            assert first.root != second.root
+        assert not second.root.exists()
+        assert first.root.is_dir()
+        MorphoWeave.build_atlas(specimens, workspace=first)
+    with pytest.raises(RuntimeError, match="already closed"):
+        MorphoWeave.build_atlas(specimens, workspace=first)
+    with pytest.raises(RuntimeError, match="already closed"):
+        MorphoWeave.align_specimens(
+            specimens,
+            AtlasModel(specimens[0].mesh, specimens[0].landmarks),
+            workspace=first,
+        )
+
+
+@pytest.mark.parametrize("invalid_id", ["first", "nested/name"])
+def test_staging_preserves_filename_rules_and_cleans_partial_files(
+    specimens, tmp_path, monkeypatch, invalid_id
+):
+    monkeypatch.setattr(morphoweave.tempfile, "tempdir", str(tmp_path))
+    invalid = (specimens[0], specimens[1]._replace(specimen_id=invalid_id))
+    with pytest.raises(ValueError, match="lowercasing|filename stem"):
+        MorphoWeave.stage_inputs(invalid)
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_staging_cleans_up_if_writing_an_input_fails(specimens, tmp_path, monkeypatch):
+    monkeypatch.setattr(morphoweave.tempfile, "tempdir", str(tmp_path))
+    original = MeshIO.write_obj
+    calls = []
+
+    def write(mesh, path, **kwargs):
+        calls.append(path)
+        if len(calls) == 2:
+            raise OSError("staging write failed")
+        return original(mesh, path, **kwargs)
+
+    monkeypatch.setattr(MeshIO, "write_obj", write)
+    with pytest.raises(OSError, match="staging write failed"):
+        MorphoWeave.stage_inputs(specimens)
+    assert len(calls) == 2
+    assert list(tmp_path.iterdir()) == []
+
+
+def test_atlas_workflow_releases_shared_inputs_if_cleanup_fails_before_alignment(
+    specimens, tmp_path
+):
+    models, landmarks = tmp_path / "models", tmp_path / "landmarks"
+    for item in specimens:
+        MeshIO.write_obj(item.mesh, models / f"{item.specimen_id}.obj")
+        LandmarkIO.write_json(
+            item.landmarks, landmarks / f"{item.specimen_id}.mrk.json"
+        )
+    options = AtlasOptions(
+        models, landmarks, tmp_path / "output", backend="morphoweave"
+    )
+    operations = Operations.registry()
+    operations["blender"] = lambda inputs: None
+
+    def fail_cleanup(inputs):
+        raise ValueError("cleanup deliberately failed")
+
+    operations["clean"] = fail_cleanup
+    callbacks, events = Queue(), []
+    manager = SerialExecutionManager(operations, Callbacks(callbacks.put))
+    try:
+        manager.submit(Workflows.atlas(options), events.append, run_id="atlas-failure")
+        while not events or events[-1].kind not in ("completed", "failed", "cancelled"):
+            callbacks.get(timeout=10)()
+        terminal = events[-1]
+        assert terminal.kind == "failed"
+        assert terminal.failure.operation == "clean"
+        assert terminal.failure.message == "cleanup deliberately failed"
+        resources = [
+            event.result
+            for event in events
+            if event.kind == "task_completed" and event.task_id == "morphoweave_inputs"
+        ]
+        assert len(resources) == 1
+        assert not resources[0].root.exists()
+        assert all(event.task_id != "morphoweave_aligned" for event in events)
+        assert len(list(models.glob("*.obj"))) == len(specimens)
+    finally:
+        manager.close()
+        assert manager.join(10)
+
+
+@pytest.mark.parametrize("close", [False, True])
+def test_atlas_workflow_releases_staging_on_cancel_or_close(specimens, tmp_path, close):
+    models, landmarks = tmp_path / "models", tmp_path / "landmarks"
+    for item in specimens:
+        MeshIO.write_obj(item.mesh, models / f"{item.specimen_id}.obj")
+        LandmarkIO.write_json(
+            item.landmarks, landmarks / f"{item.specimen_id}.mrk.json"
+        )
+    options = AtlasOptions(
+        models, landmarks, tmp_path / "output", backend="morphoweave"
+    )
+    entered, release = Event(), Event()
+    operations = Operations.registry()
+    operations["blender"] = lambda inputs: None
+
+    def wait_at_cleanup(inputs):
+        entered.set()
+        assert release.wait(10)
+        return inputs.arguments[0]
+
+    # Stop between real upstream mean construction and final alignment. This
+    # exercises the application lifetime, not just a standalone with-statement.
+    operations["clean"] = wait_at_cleanup
+    callbacks, events = Queue(), []
+    manager = SerialExecutionManager(operations, Callbacks(callbacks.put))
+    try:
+        manager.submit(Workflows.atlas(options), events.append, run_id="atlas-cancel")
+        assert entered.wait(10)
+        while not events or events[-1].task_id != "clean":
+            callbacks.get(timeout=10)()
+        workspace = next(
+            event.result
+            for event in events
+            if event.kind == "task_completed" and event.task_id == "morphoweave_inputs"
+        )
+        if close:
+            manager.close()
+        else:
+            manager.cancel("atlas-cancel")
+        assert workspace.root.is_dir()
+        release.set()
+        if close:
+            assert manager.join(10)
+        else:
+            while events[-1].kind not in ("completed", "failed", "cancelled"):
+                callbacks.get(timeout=10)()
+            assert events[-1].kind == "cancelled"
+        assert not workspace.root.exists()
+        assert all(event.task_id != "morphoweave_aligned" for event in events)
+    finally:
+        release.set()
+        manager.close()
+        assert manager.join(10)

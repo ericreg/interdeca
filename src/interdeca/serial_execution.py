@@ -1,10 +1,11 @@
 """FIFO implementation of the execution interface with one private worker."""
 
 from collections.abc import Callable, Mapping
+from contextlib import ExitStack
 from queue import Queue
 from threading import Event, Lock, Thread
 from traceback import format_exc
-from typing import NamedTuple
+from typing import Any, NamedTuple
 
 from interdeca.execution import (
     EventDispatcher,
@@ -100,6 +101,24 @@ class SerialExecutionManager:
                 with self._lock:
                     self._pending.pop(submission.run_id, None)
 
+    @staticmethod
+    def _manage(resources: ExitStack, resource: Any) -> Any:
+        """Enter a task resource without allowing cleanup to hide task failures."""
+        try:
+            enter, leave = type(resource).__enter__, type(resource).__exit__
+        except AttributeError:
+            raise TypeError("Managed task results must be context managers.") from None
+        value = enter(resource)
+
+        # A registered operation's exception remains a failed run even if a
+        # general-purpose context manager would normally suppress that exception.
+        def release(*error):
+            leave(resource, *error)
+            return False
+
+        resources.push(release)
+        return value
+
     def _execute(self, submission: _Submission) -> None:
         results = {}
         count = 0
@@ -115,55 +134,64 @@ class SerialExecutionManager:
         current = base
         operation = "resolve_outputs"
         try:
-            for index, stage in enumerate(submission.pipeline.stages):
-                for task in stage:
-                    if submission.cancelled.is_set():
+            # Only executed producers acquire resources. The stack releases them
+            # in reverse order on success, task failure, cancellation, or close.
+            terminal = None
+            with ExitStack() as resources:
+                for index, stage in enumerate(submission.pipeline.stages):
+                    for task in stage:
+                        if submission.cancelled.is_set():
+                            terminal = current._replace(
+                                kind="cancelled", completed=count
+                            )
+                            break
+                        current = base._replace(
+                            kind="task_started",
+                            task_id=task.task_id,
+                            label=task.label or task.operation,
+                            completed=count,
+                            stage=index + 1,
+                        )
+                        self._emit(submission, current)
+                        operation = task.operation
+                        inputs = TaskValues.map(
+                            task.inputs, lambda ref: TaskValues.resolve(ref, results)
+                        )
+                        result = self._operations[task.operation](inputs)
+                        if task.manage_resource:
+                            result = self._manage(resources, result)
+                        results[task.task_id] = result
+                        count += 1
                         self._emit(
                             submission,
-                            current._replace(kind="cancelled", completed=count),
+                            current._replace(
+                                kind="task_completed", completed=count, result=result
+                            ),
                         )
-                        return
-                    current = base._replace(
-                        kind="task_started",
-                        task_id=task.task_id,
-                        label=task.label or task.operation,
-                        completed=count,
-                        stage=index + 1,
+                    if terminal is not None:
+                        break
+                # A cancel during the final operation still cancels the run. Keep
+                # the event private until the resource stack has completed cleanup.
+                if submission.cancelled.is_set():
+                    terminal = current._replace(kind="cancelled", completed=count)
+                else:
+                    operation = "resolve_outputs"
+                    outputs = tuple(
+                        TaskValues.resolve(ref, results)
+                        for ref in submission.pipeline.outputs
                     )
-                    self._emit(submission, current)
-                    operation = task.operation
-                    inputs = TaskValues.map(
-                        task.inputs, lambda ref: TaskValues.resolve(ref, results)
-                    )
-                    result = self._operations[task.operation](inputs)
-                    results[task.task_id] = result
-                    count += 1
-                    self._emit(
-                        submission,
-                        current._replace(
-                            kind="task_completed", completed=count, result=result
-                        ),
-                    )
-            # A cancel arriving during the final operation still remains a cancelled run.
-            if submission.cancelled.is_set():
-                self._emit(
-                    submission, current._replace(kind="cancelled", completed=count)
-                )
-            else:
-                operation = "resolve_outputs"
-                outputs = tuple(
-                    TaskValues.resolve(ref, results)
-                    for ref in submission.pipeline.outputs
-                )
-                self._emit(
-                    submission,
-                    base._replace(
+                    terminal = base._replace(
                         kind="completed",
                         completed=count,
                         stage=len(submission.pipeline.stages),
                         result=outputs,
-                    ),
-                )
+                    )
+                operation = "release_resources"
+            # Cleanup can itself take time. A cancellation received while the
+            # resource stack was closing still precedes terminal publication.
+            if submission.cancelled.is_set():
+                terminal = current._replace(kind="cancelled", completed=count)
+            self._emit(submission, terminal)
         except Exception as error:  # noqa: BLE001 -- isolate arbitrary registered operation failures
             failure = Failure(operation, str(error), format_exc())
             self._emit(

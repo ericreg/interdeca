@@ -1,7 +1,7 @@
 # CPU and memory optimization plan
 
-Status: implementation in progress. Each phase must pass its checks before
-becoming the baseline for the next phase.
+Status: Phase 3 implementation checkpoint; acceptance checks remain incomplete.
+Each phase must pass its checks before becoming the baseline for the next phase.
 
 ## Acceptance history
 
@@ -14,6 +14,7 @@ against B2 and the preserved original B0 reference in the same parent directory.
 | 0 | Accepted: 19 comparison tests pass; real native/MorphoWeave Slicer/CLI parity passes (2 cases, 428.65 s); all ten B0 captures compare identically, including metadata. | B0 |
 | 1 | Accepted: 89 focused checks and both fresh Slicer/CLI cases pass (512.49 s). All 12 profiling runs succeed and match B0 outputs and metadata. Application RSS falls 36–38% and tracked peak heap falls 54%, with no investigation alerts. | B1 |
 | 2 | Accepted: 115 focused tests and both real Slicer/CLI cases pass (616.61 s). All 12 profiling captures succeed and match B1 and B0, including metadata, with no investigation alerts. Application RSS falls 58–64% and tracked peak heap falls 74% relative to B1. | B2 |
+| 3 | Checkpoint candidate: shared staging and explicit resource cleanup are implemented. All 141 focused tests and ten baseline/timer/allocation captures pass. Outputs match B2 and B0; CPU profiling and fresh Slicer/CLI parity remain pending. | B2 |
 
 Phase 0 was committed as `31fb5d9`; Phase 1 was committed as `0cf6ece`. Its captures
 used the Phase 0 revision plus the source changes
@@ -53,7 +54,7 @@ times above are observed medians from this machine, not promised speedups on oth
 workloads. CPU-profiler elapsed times are excluded from these speed measurements;
 the CPU captures took 239.7 s (native) and 751.1 s (MorphoWeave).
 
-The commit containing this Phase 2 acceptance record implements the change. The
+Phase 2 was committed as `924aa23`. The
 captures used parent revision `0cf6ece` plus the source hashes in the
 [environment record](docs/profiling/optimization/phase2-environment.json), checked
 against the files being committed. Completed captures are preserved at
@@ -91,7 +92,44 @@ fingerprints per backend match both references. Against B0, application RSS is
 77.56% lower for native and 73.17% lower for MorphoWeave. These figures exclude
 CPU-profiler wall time. The memory reduction is the main acceptance evidence;
 the small measured time reductions are observations from these repeated runs.
-Phase 3 is next; its reference is B2.
+Phase 3 uses B2 as its reference. Ten completed candidate captures are preserved at
+`~/Library/Application Support/InterDeCA/optimization/B3-candidate`. The new
+staging operation writes original RAS meshes/landmarks once, verifies their input
+identities on reuse, and supplies separate aligned-output directories for mean
+construction and final alignment. Managed task results close before terminal
+notifications, including cancellation received during cleanup. Standalone core
+calls own their scopes or borrow an explicit one; the core imports no execution
+manager or UI libraries. No Phase 3 improvement is accepted yet.
+
+This checkpoint includes the [focused-test log](docs/profiling/optimization/phase3-focused.log),
+[profiling log](docs/profiling/optimization/phase3-profile.log),
+[summary](docs/profiling/optimization/phase3-summary.json), and
+[environment record](docs/profiling/optimization/phase3-environment.json).
+The captures used B2 commit `924aa23` plus the checkpoint source changes; all 43
+recorded Python file hashes and the dependency lock match the checkpoint. The
+[B2 comparison](docs/profiling/optimization/phase3-vs-B2.json) and
+[B0 comparison](docs/profiling/optimization/phase3-vs-B0.json) report identical
+outputs and metadata, compatible environments, and no investigation alerts for
+the completed captures. Raw profiles and numerical outputs remain outside Git.
+
+Preliminary Phase 3 measurements against B2:
+
+| Metric | Native B2 → candidate | MorphoWeave B2 → candidate |
+| --- | --- | --- |
+| Median session wall time | 48.54 → 48.84 s (0.62% higher) | 93.77 → 87.29 s (6.91% lower) |
+| Median application CPU | 41.34 → 41.38 s (0.09% higher) | 86.60 → 80.66 s (6.87% lower) |
+| Maximum baseline application RSS | 1.835 → 1.870 GiB (1.92% higher) | 2.247 → 2.275 GiB (1.24% higher) |
+| Tracked live heap at peak | 0.839 → 0.839 GiB | 0.825 → 0.825 GiB |
+| OBJ reads / writes | 3 / 7 → 3 / 7 | 16 / 19 → 16 / 16 |
+
+Removing three repeated OBJ writes saves 235,765,927 serialized bytes. These runs
+support a time improvement for MorphoWeave, with essentially unchanged tracked
+peak heap; they do not establish a memory reduction. The checkpoint is not B3:
+CPU-profiler captures and both real Slicer/CLI end-to-end cases remain outstanding.
+Complete those checks and recompare the full capture set against B2 and B0 before
+promotion or Phase 4. If resuming rejects changed Git provenance, use a fresh
+capture directory for a complete run from this committed checkpoint rather than
+rewriting the preserved environment record.
 
 Phase 0 preserved 606 original input/output/profile/source files outside Git and
 pytest scratch storage, with an archive SHA-256 manifest. Its evidence is in

@@ -84,6 +84,7 @@ class Operations:
             "reference": Atlas.compute_reference,
             "contribute": Atlas.prepare_contribution,
             "mean": Atlas.assemble_mean,
+            "morphoweave_inputs": MorphoWeave.stage_inputs,
             "morphoweave_mean": MorphoWeave.build_atlas,
             "morphoweave_scale": MorphoWeave.restore_input_scale,
             "morphoweave_align": MorphoWeave.align_specimens,
@@ -351,6 +352,16 @@ class Workflows:
                 )
             ]
         )
+        if options.backend == "morphoweave":
+            # Stage once for both upstream workflows. The generic resource scope
+            # also cleans up when cleanup/UV preparation fails before alignment.
+            stages.append(
+                [
+                    task(
+                        "morphoweave_inputs", "morphoweave_inputs", ref("specimens")
+                    )._replace(manage_resource=True)
+                ]
+            )
         if options.atlas_model is not None:
             stages.append(
                 [
@@ -370,6 +381,7 @@ class Workflows:
                         "morphoweave_mean",
                         ref("specimens"),
                         normalize_scale=options.normalize_scale,
+                        workspace=ref("morphoweave_inputs"),
                     )
                 ]
             )
@@ -455,6 +467,7 @@ class Workflows:
                         ref("specimens"),
                         ref("uv"),
                         normalize_scale=options.normalize_scale,
+                        workspace=ref("morphoweave_inputs"),
                     )
                 ]
             )

@@ -10,8 +10,10 @@ the upstream calculation or the original comparison backend.
 import logging
 import tempfile
 from collections.abc import Callable, Sequence
+from contextlib import nullcontext
+from hashlib import sha256
 from pathlib import Path
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, Self
 
 import numpy as np
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
@@ -33,6 +35,32 @@ from interdeca.models import (
 from interdeca.serde import CorrespondenceMeshData, ResampledSpecimenData
 
 logger = logging.getLogger(__name__)
+
+
+class MorphoWeaveWorkspace(NamedTuple):
+    """Own staged originals for one explicit scope, independent of any scheduler.
+
+    The directory is private and must not be modified by callers. Consumers check
+    the original geometry/landmark identities before reusing its files. Returned
+    numerical results own their buffers and remain usable after this scope closes.
+    """
+
+    directory: tempfile.TemporaryDirectory
+    identities: tuple[str, ...]
+
+    @property
+    def root(self) -> Path:
+        return Path(self.directory.name)
+
+    def __enter__(self) -> Self:
+        if not self.root.is_dir():
+            raise RuntimeError("MorphoWeave workspace has already closed.")
+        return self
+
+    def __exit__(self, *_error: object) -> None:
+        # Explicit cleanup also covers failed/cancelled application runs. The
+        # standard temporary-directory owner makes repeated cleanup harmless.
+        self.directory.cleanup()
 
 
 class CoordinateCheck(NamedTuple):
@@ -72,14 +100,87 @@ class MorphoWeave:
             raise ValueError("MorphoWeave TPS landmarks must have distinct positions.")
 
     @staticmethod
-    def _inputs(specimens: Sequence[Specimen], root: Path) -> dict[str, str]:
-        # Use the upstream directory contract in a private workspace. Source UVs
-        # survive the RAS OBJ staging; input files and the user's scene are untouched.
-        folders = {}
-        for name in ("originalModels", "originalLMs", "alignedModels", "alignedLMs"):
+    def _identities(specimens: Sequence[Specimen]) -> tuple[str, ...]:
+        """Identify staged values without keeping another geometry copy alive."""
+        identities = []
+        for specimen in specimens:
+            digest = sha256()
+            # Length prefixes keep variable labels unambiguous; geometry order,
+            # corner UVs, dtype, and shape all contribute to the reuse identity.
+            labels = (specimen.specimen_id, *specimen.landmarks.labels)
+            digest.update(len(labels).to_bytes(8, "little"))
+            for label in labels:
+                encoded = label.encode("utf-8")
+                digest.update(len(encoded).to_bytes(8, "little"))
+                digest.update(encoded)
+            for array in (*specimen.mesh, specimen.landmarks.points):
+                if array is None:
+                    digest.update(b"N")
+                    continue
+                values = np.ascontiguousarray(array)
+                description = repr((values.dtype.str, values.shape)).encode("ascii")
+                digest.update(b"A" + len(description).to_bytes(8, "little"))
+                digest.update(description)
+                # Normal validated arrays are contiguous, so hashing reads their
+                # existing buffers instead of allocating image/mesh-sized bytes.
+                if values.size:
+                    digest.update(memoryview(values).cast("B"))
+            identities.append(digest.hexdigest())
+        return tuple(identities)
+
+    @staticmethod
+    def stage_inputs(specimens: Sequence[Specimen]) -> MorphoWeaveWorkspace:
+        """Stage original RAS geometry once; the caller must close the returned scope.
+
+        Standalone callers use ``with MorphoWeave.stage_inputs(specimens) as ...``.
+        Application workflows register it as a managed task resource. Neither the
+        resource nor these numerical operations import an execution manager.
+        """
+        specimens = Dataset.validate_specimens(specimens)
+        identities = MorphoWeave._identities(specimens)
+        workspace = MorphoWeaveWorkspace(
+            tempfile.TemporaryDirectory(prefix="interdeca-morphoweave-inputs-"),
+            identities,
+        )
+        # A producer failure occurs before a caller can enter the returned scope;
+        # release partial staging explicitly rather than relying on garbage collection.
+        try:
+            MorphoWeave._inputs(specimens, workspace.root)
+        except BaseException:
+            workspace.directory.cleanup()
+            raise
+        return workspace
+
+    @staticmethod
+    def _check_workspace(
+        specimens: Sequence[Specimen], workspace: MorphoWeaveWorkspace
+    ) -> None:
+        if not workspace.root.is_dir():
+            raise RuntimeError("MorphoWeave workspace has already closed.")
+        if workspace.identities != MorphoWeave._identities(specimens):
+            raise ValueError("MorphoWeave workspace does not match these specimens.")
+
+    @staticmethod
+    def _folders(workspace: MorphoWeaveWorkspace, root: Path) -> dict[str, str]:
+        # Upstream receives its ordinary directory lookup table. Each operation
+        # gets separate aligned outputs while reading the same staged originals.
+        folders = {
+            name: str(workspace.root / name)
+            for name in ("originalModels", "originalLMs")
+        }
+        for name in ("alignedModels", "alignedLMs"):
             path = root / name
             path.mkdir()
             folders[name] = str(path)
+        return folders
+
+    @staticmethod
+    def _inputs(specimens: Sequence[Specimen], root: Path) -> None:
+        # Use the upstream directory contract in a private workspace. Source UVs
+        # survive the RAS OBJ staging; input files and the user's scene are untouched.
+        models, landmarks = root / "originalModels", root / "originalLMs"
+        models.mkdir()
+        landmarks.mkdir()
         identifiers = [specimen.specimen_id.lower() for specimen in specimens]
         if len(set(identifiers)) != len(identifiers):
             raise ValueError(
@@ -90,17 +191,19 @@ class MorphoWeave:
                 raise ValueError("A specimen ID must be a filename stem.")
             MeshIO.write_obj(
                 specimen.mesh,
-                Path(folders["originalModels"]) / f"{specimen.specimen_id}.obj",
+                models / f"{specimen.specimen_id}.obj",
             )
             LandmarkIO.write_json(
                 specimen.landmarks,
-                Path(folders["originalLMs"]) / f"{specimen.specimen_id}.mrk.json",
+                landmarks / f"{specimen.specimen_id}.mrk.json",
             )
-        return folders
 
     @staticmethod
     def build_atlas(
-        specimens: Sequence[Specimen], *, normalize_scale: bool = False
+        specimens: Sequence[Specimen],
+        *,
+        normalize_scale: bool = False,
+        workspace: MorphoWeaveWorkspace | None = None,
     ) -> AtlasModel:
         """Run upstream reference selection, pre-alignment, and mean construction.
 
@@ -109,23 +212,33 @@ class MorphoWeave:
         Exact duplicate vertices are cleaned before establishing atlas topology;
         the returned atlas still uses upstream scale. The application calls
         restore_input_scale before Blender cleanup and UV generation.
+
+        An explicit workspace reuses staged originals. Without one, this call
+        owns and closes its staging directory before returning numerical results.
         """
         specimens = Dataset.validate_specimens(specimens)
         for specimen in specimens:
             MorphoWeave._validate_landmarks(specimen.landmarks)
+        if workspace is not None:
+            MorphoWeave._check_workspace(specimens, workspace)
         host = Host(specimens[0].landmarks.labels)
         upstream = load_atlas_builder(host)
         context = BuildContext(upstream.MorphoWeaveAtlasBuilderLogic(), logger.info)
-        with tempfile.TemporaryDirectory(
-            prefix="interdeca-morphoweave-mean-"
-        ) as directory:
-            folders = MorphoWeave._inputs(specimens, Path(directory))
+        scope = (
+            MorphoWeave.stage_inputs(specimens)
+            if workspace is None
+            else nullcontext(workspace)
+        )
+        with (
+            scope as staged,
+            tempfile.TemporaryDirectory(prefix="mean-", dir=staged.root) as directory,
+        ):
+            folders = MorphoWeave._folders(staged, Path(directory))
             # Call the actual upstream high-level workflow without constructing widgets.
             model, landmarks = upstream.MorphoWeaveAtlasBuilderWidget._generateAtlas(
                 context, folders, normalize_scale, "tps", False
             )
-            # Nearest-vertex mean construction can create duplicate positions. Cleanup
-            # is legal here because no atlas UVs or population index contract exists yet.
+            # Cleanup precedes the atlas indexing/UV contract, as before.
             surface = context.logic.cleanPolyData(model.GetPolyData(), normals=False)
             return AtlasModel(host.mesh(surface), landmarks.landmarks)
 
@@ -191,9 +304,16 @@ class MorphoWeave:
         atlas: AtlasModel,
         *,
         normalize_scale: bool = False,
+        workspace: MorphoWeaveWorkspace | None = None,
     ) -> tuple[Specimen, ...]:
-        """Use upstream runAlign, preserving native triangle order and corner UVs."""
+        """Use upstream runAlign, preserving native triangle order and corner UVs.
+
+        Reuse an explicit workspace or own a private staging scope for this call.
+        Aligned output files always have a separate, operation-local directory.
+        """
         specimens = Dataset.validate_specimens(specimens)
+        if workspace is not None:
+            MorphoWeave._check_workspace(specimens, workspace)
         host = Host(atlas.landmarks.labels)
         upstream = load_atlas_builder(host)
         logic = upstream.MorphoWeaveAtlasBuilderLogic()
@@ -201,10 +321,16 @@ class MorphoWeave:
         base.SetAndObservePolyData(MeshIO.to_polydata(atlas.mesh))
         landmarks = host.AddNewNodeByClass("vtkMRMLMarkupsFiducialNode", "atlas")
         landmarks.landmarks = atlas.landmarks
-        with tempfile.TemporaryDirectory(
-            prefix="interdeca-morphoweave-align-"
-        ) as directory:
-            folders = MorphoWeave._inputs(specimens, Path(directory))
+        scope = (
+            MorphoWeave.stage_inputs(specimens)
+            if workspace is None
+            else nullcontext(workspace)
+        )
+        with (
+            scope as staged,
+            tempfile.TemporaryDirectory(prefix="align-", dir=staged.root) as directory,
+        ):
+            folders = MorphoWeave._folders(staged, Path(directory))
             logic.runAlign(
                 base,
                 landmarks,
