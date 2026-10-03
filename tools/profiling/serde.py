@@ -16,6 +16,25 @@ class Config(Data):
     mode: Literal["baseline", "spans", "cpu", "memory"]
     inputs: Path
     output: Path
+    cache_budget_bytes: int | None = Field(default=None, ge=0)
+
+
+class CacheCapture(Data):
+    """Run-local reuse counters, with cleanup and Python overhead kept explicit."""
+
+    budget_bytes: int
+    bytes_before_close: int
+    hits: int
+    misses: int
+    bypasses: int
+    evictions: int
+    invalidations: int
+    array_bytes: int
+    peak_array_bytes: int
+    entries: int
+    peak_entries: int
+    metadata_bytes: int
+    peak_metadata_bytes: int
 
 
 class Span(Data):

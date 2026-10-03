@@ -18,6 +18,7 @@ import numpy as np
 from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtkmodules.vtkCommonDataModel import vtkPolyData
 
+from interdeca._mesh_cache import MeshCache
 from interdeca.io import LandmarkIO, MeshIO
 from interdeca.models import Mesh
 from interdeca.serde import LandmarksData, MeshData
@@ -67,8 +68,9 @@ class DataNode:
 class Host:
     """Implement the file/node calls made by runAlign, runMean, and atlas generation."""
 
-    def __init__(self, labels: tuple[str, ...]):
+    def __init__(self, labels: tuple[str, ...], cache: MeshCache | None = None):
         self.labels = labels
+        self.cache = cache
         self.nodes: set[DataNode] = set()
 
     def AddNewNodeByClass(self, kind, name):
@@ -83,7 +85,7 @@ class Host:
         self.nodes.remove(node)
 
     def loadModel(self, path):
-        mesh = MeshIO.read(path)
+        mesh = MeshIO.read(path) if self.cache is None else self.cache.read(path)
         polydata = MeshIO.to_polydata(mesh)
         # UVs belong to corners, not vertices. VTK carries this cell array through
         # the upstream alignment transform without merging texture seams.
@@ -124,9 +126,10 @@ class Host:
             uv=None if uv is None else vtk_to_numpy(uv).reshape(-1, 3, 2),
         ).to_internal()
 
-    @staticmethod
-    def saveNode(node, path):
+    def saveNode(self, node, path):
         # All staging files are private RAS OBJ/Markups files, never user scene nodes.
+        if self.cache is not None:
+            self.cache.invalidate(path)
         if node.polydata is not None:
             if Path(path).suffix != ".obj":
                 raise ValueError("MorphoWeave host model outputs must be OBJ files.")

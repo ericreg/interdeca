@@ -20,6 +20,7 @@ from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtkmodules.vtkCommonCore import vtkPoints
 from vtkmodules.vtkCommonDataModel import vtkMultiBlockDataSet, vtkPolyData
 
+from interdeca._mesh_cache import MeshCache
 from interdeca._morphoweave_host import Host, load_atlas_builder
 from interdeca.dataset import Dataset
 from interdeca.io import LandmarkIO, MeshIO
@@ -47,6 +48,7 @@ class MorphoWeaveWorkspace(NamedTuple):
 
     directory: tempfile.TemporaryDirectory
     identities: tuple[str, ...]
+    cache: MeshCache
 
     @property
     def root(self) -> Path:
@@ -60,6 +62,7 @@ class MorphoWeaveWorkspace(NamedTuple):
     def __exit__(self, *_error: object) -> None:
         # Explicit cleanup also covers failed/cancelled application runs. The
         # standard temporary-directory owner makes repeated cleanup harmless.
+        self.cache.close()
         self.directory.cleanup()
 
 
@@ -129,25 +132,31 @@ class MorphoWeave:
         return tuple(identities)
 
     @staticmethod
-    def stage_inputs(specimens: Sequence[Specimen]) -> MorphoWeaveWorkspace:
+    def stage_inputs(
+        specimens: Sequence[Specimen], *, cache_budget_bytes: int = 96 * 2**20
+    ) -> MorphoWeaveWorkspace:
         """Stage original RAS geometry once; the caller must close the returned scope.
 
         Standalone callers use ``with MorphoWeave.stage_inputs(specimens) as ...``.
         Application workflows register it as a managed task resource. Neither the
         resource nor these numerical operations import an execution manager.
+        cache_budget_bytes bounds retained parsed mesh arrays; zero disables reuse.
+        File parsing and mutable VTK copies are measured separately from this budget.
         """
         specimens = Dataset.validate_specimens(specimens)
         identities = MorphoWeave._identities(specimens)
-        workspace = MorphoWeaveWorkspace(
-            tempfile.TemporaryDirectory(prefix="interdeca-morphoweave-inputs-"),
-            identities,
-        )
+        directory = tempfile.TemporaryDirectory(prefix="interdeca-morphoweave-inputs-")
         # A producer failure occurs before a caller can enter the returned scope;
         # release partial staging explicitly rather than relying on garbage collection.
         try:
+            workspace = MorphoWeaveWorkspace(
+                directory,
+                identities,
+                MeshCache(Path(directory.name) / "originalModels", cache_budget_bytes),
+            )
             MorphoWeave._inputs(specimens, workspace.root)
         except BaseException:
-            workspace.directory.cleanup()
+            directory.cleanup()
             raise
         return workspace
 
@@ -233,6 +242,7 @@ class MorphoWeave:
             scope as staged,
             tempfile.TemporaryDirectory(prefix="mean-", dir=staged.root) as directory,
         ):
+            host.cache = staged.cache
             folders = MorphoWeave._folders(staged, Path(directory))
             # Call the actual upstream high-level workflow without constructing widgets.
             model, landmarks = upstream.MorphoWeaveAtlasBuilderWidget._generateAtlas(
@@ -330,6 +340,7 @@ class MorphoWeave:
             scope as staged,
             tempfile.TemporaryDirectory(prefix="align-", dir=staged.root) as directory,
         ):
+            host.cache = staged.cache
             folders = MorphoWeave._folders(staged, Path(directory))
             logic.runAlign(
                 base,

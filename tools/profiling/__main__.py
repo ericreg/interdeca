@@ -216,6 +216,18 @@ def main():
     )
     parser.add_argument("--interval", type=float, default=0.1)
     parser.add_argument(
+        "--backends",
+        nargs="+",
+        choices=("native", "morphoweave"),
+        default=("native", "morphoweave"),
+        help="Use both for acceptance; one backend is useful for budget experiments.",
+    )
+    parser.add_argument(
+        "--cache-budget-mib",
+        type=int,
+        help="Experimental parsed-mesh budget; omit to measure the production default.",
+    )
+    parser.add_argument(
         "--modes",
         nargs="+",
         choices=("baseline", "spans", "cpu", "memory"),
@@ -230,6 +242,10 @@ def main():
         parser.error(
             "Supply a new --output directory, positive --repeats, and interval 0.01–1 seconds."
         )
+    if args.cache_budget_mib is not None and args.cache_budget_mib < 0:
+        parser.error("Cache budget must be nonnegative.")
+    if len(set(args.backends)) != len(args.backends):
+        parser.error("Specify each backend only once.")
     root = args.output.resolve()
     root.mkdir(parents=True, exist_ok=args.resume)
     # Reuse the exact e2e fixture preparation, restricted to its three IDs. Input
@@ -319,9 +335,7 @@ def main():
     for mode in args.modes:
         for repeat in range(args.repeats if mode == "baseline" else 1):
             backends = (
-                ("native", "morphoweave")
-                if repeat % 2 == 0
-                else ("morphoweave", "native")
+                args.backends if repeat % 2 == 0 else tuple(reversed(args.backends))
             )
             for backend in backends:
                 config = Config(
@@ -329,6 +343,11 @@ def main():
                     mode=mode,
                     inputs=root / "inputs",
                     output=root / f"{backend}-{mode}-{repeat + 1}",
+                    cache_budget_bytes=(
+                        None
+                        if args.cache_budget_mib is None
+                        else args.cache_budget_mib * 2**20
+                    ),
                 )
                 if args.resume and (config.output / "run.json").exists():
                     existing = Run.model_validate_json(

@@ -542,6 +542,9 @@ def test_atlas_workflow_releases_shared_inputs_if_cleanup_fails_before_alignment
         ]
         assert len(resources) == 1
         assert not resources[0].root.exists()
+        assert resources[0].cache.closed
+        assert resources[0].cache.stats.array_bytes == 0
+        assert resources[0].cache.stats.peak_array_bytes > 0
         assert all(event.task_id != "morphoweave_aligned" for event in events)
         assert len(list(models.glob("*.obj"))) == len(specimens)
     finally:
@@ -597,8 +600,62 @@ def test_atlas_workflow_releases_staging_on_cancel_or_close(specimens, tmp_path,
                 callbacks.get(timeout=10)()
             assert events[-1].kind == "cancelled"
         assert not workspace.root.exists()
+        assert workspace.cache.closed
+        assert workspace.cache.stats.array_bytes == 0
+        assert workspace.cache.stats.peak_array_bytes > 0
         assert all(event.task_id != "morphoweave_aligned" for event in events)
     finally:
         release.set()
         manager.close()
         assert manager.join(10)
+
+
+@pytest.mark.parametrize("budget", [0, 1, 384, 8192])
+@pytest.mark.parametrize("normalize_scale", [False, True])
+def test_bounded_cache_matches_disabled_upstream_workflow(
+    specimens, budget, normalize_scale
+):
+    def run(limit):
+        with MorphoWeave.stage_inputs(specimens, cache_budget_bytes=limit) as workspace:
+            mean = MorphoWeave.build_atlas(
+                specimens, workspace=workspace, normalize_scale=normalize_scale
+            )
+            atlas = MorphoWeave.restore_input_scale(mean, specimens).atlas
+            aligned = MorphoWeave.align_specimens(
+                specimens, atlas, workspace=workspace, normalize_scale=normalize_scale
+            )
+            stats = workspace.cache.stats
+            assert stats.array_bytes <= limit
+        assert workspace.cache.closed
+        assert workspace.cache.stats.array_bytes == 0
+        return mean, aligned, stats
+
+    baseline, expected, _ = run(0)
+    mean, aligned, stats = run(budget)
+    for left, right in zip(baseline.mesh, mean.mesh, strict=True):
+        if left is None or right is None:
+            assert left is right
+        else:
+            assert left.dtype == right.dtype
+            assert left.tobytes() == right.tobytes()
+    np.testing.assert_array_equal(baseline.landmarks.points, mean.landmarks.points)
+    assert baseline.landmarks.labels == mean.landmarks.labels
+    for before, after in zip(expected, aligned, strict=True):
+        for left, right in zip(before.mesh, after.mesh, strict=True):
+            assert left.dtype == right.dtype
+            assert left.tobytes() == right.tobytes()
+        assert before.landmarks.labels == after.landmarks.labels
+        assert before.landmarks.points.tobytes() == after.landmarks.points.tobytes()
+    if budget == 8192:
+        assert stats.hits == 3
+        assert stats.entries == len(specimens)
+        assert stats.bypasses == len(specimens)
+    elif budget < 384:
+        assert stats.hits == stats.peak_array_bytes == 0
+
+
+def test_invalid_cache_budget_cleans_workspace(specimens, tmp_path, monkeypatch):
+    monkeypatch.setattr(morphoweave.tempfile, "tempdir", str(tmp_path))
+    with pytest.raises(ValueError, match="budget"):
+        MorphoWeave.stage_inputs(specimens, cache_budget_bytes=-1)
+    assert list(tmp_path.iterdir()) == []

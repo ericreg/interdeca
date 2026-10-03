@@ -1,13 +1,13 @@
 # CPU and memory optimization plan
 
-Status: Phases 0–3 accepted; Phase 4 is next. Each phase must pass its checks before
-becoming the baseline for the next phase.
+Status: Phases 0–4a accepted; Phase 4b is next. Each phase must pass its checks
+before becoming the baseline for the next phase.
 
 ## Acceptance history
 
-The last accepted **performance** baseline is **B3** at
-`~/Library/Application Support/InterDeCA/optimization/B3`. Phase 4 must compare
-against B3 and the preserved original B0 reference in the same parent directory.
+The last accepted **performance** baseline is **B4a** at
+`~/Library/Application Support/InterDeCA/optimization/B4a`. Phase 4b must compare
+against B4a and the preserved original B0 reference in the same parent directory.
 
 | Phase | Decision and evidence | Next comparison reference |
 | --- | --- | --- |
@@ -15,6 +15,7 @@ against B3 and the preserved original B0 reference in the same parent directory.
 | 1 | Accepted: 89 focused checks and both fresh Slicer/CLI cases pass (512.49 s). All 12 profiling runs succeed and match B0 outputs and metadata. Application RSS falls 36–38% and tracked peak heap falls 54%, with no investigation alerts. | B1 |
 | 2 | Accepted: 115 focused tests and both real Slicer/CLI cases pass (616.61 s). All 12 profiling captures succeed and match B1 and B0, including metadata, with no investigation alerts. Application RSS falls 58–64% and tracked peak heap falls 74% relative to B1. | B2 |
 | 3 | Accepted: 141 focused tests, both real Slicer/CLI cases (599.60 s), and all 12 profiling captures pass. Outputs and metadata match B2 and B0 with no investigation alerts. MorphoWeave session wall/CPU time falls 6.91%/6.87%; peak heap is essentially unchanged. | B3 |
+| 4a | Accepted: 165 focused tests, nine budget trials, two allocation controls, both real Slicer/CLI cases (504.93 s), and all 12 profiling captures pass. Outputs and metadata match B3/B0. MorphoWeave wall/CPU time falls 10.18%/10.38%; the confirmed 91.7 MiB cache cost is an explicit tradeoff. | B4a |
 
 Phase 0 was committed as `31fb5d9`; Phase 1 was committed as `0cf6ece`. Its captures
 used the Phase 0 revision plus the source changes
@@ -148,6 +149,80 @@ or either environment record. The
 [capture provenance](docs/profiling/optimization/phase3-capture-provenance.json)
 records the association. Complete comparisons passed again after promotion from
 `B3-candidate` to `B3`. Phase 4 now uses B3 as its immediate predecessor.
+
+Phase 4a reuses parsed originals only, with a run-local least-recently-used cache.
+Each hit still creates owned VTK buffers; disk files, source validation, upstream
+calls, and final output reads remain unchanged. File identity and conversion
+settings distinguish entries. The array budget and a 256-entry ceiling bound
+retention; Python metadata is reported separately. Failure, cancellation, and
+successful completion all release cached buffers.
+
+The [budget experiment](docs/profiling/optimization/phase4a-budget-comparison.json)
+uses three fresh processes per budget in alternating order, with all nine runs
+matching B3 and B0 outputs and metadata:
+
+| Budget | Median CLI session | Median application CPU | Maximum application RSS | Hits / loads | Peak cached arrays |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Disabled | 86.99 s | 80.68 s | 2.289 GiB | 0 / 10 | 0 MiB |
+| 64 MiB | 84.15 s | 78.05 s | 2.288 GiB | 1 / 10 | 48.09 MiB |
+| 96 MiB | 78.60 s | 72.38 s | 2.358 GiB | 4 / 10 | 91.71 MiB |
+
+The selected 96 MiB budget saves 8.39 s of median session time
+against disabled reuse, for about 0.069 GiB higher maximum sampled application RSS.
+Its three entries use approximately 3.4 KiB of reported Python metadata. All trials
+finish with zero cached array bytes. These budget-selection measurements are
+separate from the completed both-backend acceptance captures preserved at
+`~/Library/Application Support/InterDeCA/optimization/B4a`. Passing data between
+saves and loads in memory remains a separate Phase 4b change.
+
+The full profiling batch matches B3/B0 outputs and metadata. Against B3,
+MorphoWeave's median session is 10.18% shorter and application CPU is 10.38% lower.
+Its sampled application RSS is 4.16% higher, and tracked live heap is 10.85% higher,
+which triggers the plan's memory-investigation threshold. The heap increase is
+96,152,209 bytes; the cache retains 96,161,280 bytes in nine NumPy buffers, directly
+identified in the allocation stacks. Their difference is only 9,071 bytes. This
+is a bounded storage cost for reducing repeated parsing, not a memory improvement.
+An additional disabled/enabled allocation pair confirms the attribution: the
+tracked peaks are 886,250,747 and 982,403,644 bytes. Their 96,152,897-byte difference
+matches the retained arrays within 8,383 bytes; both controls match B3/B0 outputs
+and metadata exactly. Retain the 96 MiB budget for final validation as an explicit
+tradeoff: about 8.88 s saved per median session against B3 for a fixed additional
+91.7 MiB of live array storage. The earlier 64 MiB trial saved only about 2.85 s
+against disabled reuse. The extra cache storage does not grow beyond its budget
+when specimen count grows. Preserve the 10.85% alert and its explanation rather
+than changing the comparison thresholds. Both real Slicer/CLI cases pass in
+504.93 s with Slicer 5.12.4 and Blender 5.2.1; their
+[log](docs/profiling/optimization/phase4a-e2e.log) records the result. CPU captures
+also pass in 233.8 s (native) and 591.6 s (MorphoWeave); these instrumented elapsed
+times are excluded from speed claims.
+
+Accepted Phase 4a measurements against the last accepted baseline, B3:
+
+| Metric | Native B3 → B4a | MorphoWeave B3 → B4a |
+| --- | --- | --- |
+| Median session wall time | 48.84 → 48.25 s (1.20% lower) | 87.29 → 78.41 s (10.18% lower) |
+| Median application CPU | 41.38 → 41.22 s (0.38% lower) | 80.66 → 72.29 s (10.38% lower) |
+| Maximum baseline application RSS | 1.870 → 1.843 GiB (1.44% lower) | 2.275 → 2.370 GiB (4.16% higher) |
+| Tracked live heap at peak | 0.839 → 0.838 GiB (0.12% lower) | 0.825 → 0.915 GiB (10.85% higher) |
+| OBJ reads / writes | 3 / 7 → 3 / 7 | 16 / 16 → 12 / 16 |
+
+The [B3 comparison](docs/profiling/optimization/phase4a-vs-B3.json) preserves the
+memory alert, resolved by the
+[allocation investigation](docs/profiling/optimization/phase4a-memory-investigation.json).
+The [B0 comparison](docs/profiling/optimization/phase4a-vs-B0.json) reports no
+investigation alerts. All 33 checked output fingerprints per backend and all
+checked metadata match both references across the twelve captures. Native remains
+an unchanged control; its small resource changes are not attributed to the cache.
+
+The [summary](docs/profiling/optimization/phase4a-summary.json),
+[environment](docs/profiling/optimization/phase4a-environment.json),
+[focused checks](docs/profiling/optimization/phase4a-focused.log), and
+[CPU log](docs/profiling/optimization/phase4a-cpu.log) preserve the evidence. Captures
+used parent commit `4119b59` plus the source changes in this commit; all 44 recorded
+Python file hashes and the lockfile match. Large byte-identical artifacts use
+independent filesystem clones of B0 files. The archive was promoted from
+`B4a-candidate` to `B4a`, then compared again at its final location. Phase 4b must
+use B4a as its immediate predecessor, including its documented memory cost.
 
 Phase 0 preserved 606 original input/output/profile/source files outside Git and
 pytest scratch storage, with an archive SHA-256 manifest. Its evidence is in

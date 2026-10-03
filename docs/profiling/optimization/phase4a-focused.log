@@ -1,0 +1,32 @@
+........................................................................ [ 43%]
+........................................................................ [ 87%]
+.....................                                                    [100%]
+=============================== warnings summary ===============================
+tests/test_mesh_cache.py: 3 warnings
+tests/test_morphoweave.py: 212 warnings
+tests/test_correspondence.py: 1 warning
+  /Users/eric/code/interdeca/src/interdeca/io.py:269: DeprecationWarning: Call to deprecated method SetCells. (Use ImportLegacyFormat or SetData instead.) -- Deprecated since version 9.6.0.
+    cells.SetCells(len(mesh.faces), numpy_to_vtkIdTypeArray(records, deep=True))
+
+tests/test_morphoweave.py: 53 warnings
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:941: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    tf = vtk.vtkLandmarkTransform(); tpf = vtk.vtkTransformPolyDataFilter()
+
+tests/test_morphoweave.py: 27 warnings
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:822: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    f2 = vtk.vtkTransformPolyDataFilter(); f2.SetInputData(baseMesh); f2.SetTransform(t2); f2.Update()
+
+tests/test_morphoweave.py: 54 warnings
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:848: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    f1 = vtk.vtkTransformPolyDataFilter(); f1.SetInputData(mesh); f1.SetTransform(t1); f1.Update()
+
+tests/test_morphoweave.py::test_full_projection_preserves_collapsed_faces_and_uvs
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:1084: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    f = vtk.vtkTransformPolyDataFilter(); f.SetInputData(qPoly); f.SetTransform(t); f.Update()
+
+tests/test_morphoweave.py::test_full_projection_preserves_collapsed_faces_and_uvs
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:733: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    f = vtk.vtkTransformPolyDataFilter(); f.SetInputData(pd); f.SetTransform(t); f.Update()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+165 passed, 352 warnings in 4.96s

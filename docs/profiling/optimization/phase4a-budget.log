@@ -1,0 +1,27 @@
+Starting morphoweave-baseline-1
+morphoweave-baseline-1: exit=0, wall=90.2s, peak tree RSS=3040 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4a-budget-0
+Starting morphoweave-baseline-1
+morphoweave-baseline-1: exit=0, wall=87.7s, peak tree RSS=2870 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4a-budget-64
+Starting morphoweave-baseline-1
+morphoweave-baseline-1: exit=0, wall=82.5s, peak tree RSS=3242 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4a-budget-96
+Starting morphoweave-baseline-2
+morphoweave-baseline-2: exit=0, wall=81.5s, peak tree RSS=3139 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4a-budget-96
+Starting morphoweave-baseline-2
+morphoweave-baseline-2: exit=0, wall=87.1s, peak tree RSS=2912 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4a-budget-64
+Starting morphoweave-baseline-2
+morphoweave-baseline-2: exit=0, wall=89.9s, peak tree RSS=3066 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4a-budget-0
+Starting morphoweave-baseline-3
+morphoweave-baseline-3: exit=0, wall=90.1s, peak tree RSS=2744 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4a-budget-0
+Starting morphoweave-baseline-3
+morphoweave-baseline-3: exit=0, wall=86.8s, peak tree RSS=3052 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4a-budget-64
+Starting morphoweave-baseline-3
+morphoweave-baseline-3: exit=0, wall=81.6s, peak tree RSS=3098 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4a-budget-96

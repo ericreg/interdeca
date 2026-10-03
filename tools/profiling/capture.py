@@ -7,7 +7,7 @@ import resource
 import threading
 import time
 from contextlib import contextmanager, nullcontext
-from functools import wraps
+from functools import partial, wraps
 from pathlib import Path
 from typing import NamedTuple
 
@@ -17,6 +17,7 @@ import psutil
 import yappi
 
 from interdeca import morphoweave
+from interdeca._mesh_cache import MeshCache
 from interdeca._morphoweave_host import DataNode, Host
 from interdeca.blender import Blender
 from interdeca.cli import main
@@ -24,7 +25,7 @@ from interdeca.dataset import Dataset
 from interdeca.io import LandmarkIO, MeshIO, TextureIO
 from interdeca.models import Arrays, Landmarks, Mesh
 from interdeca.serial_execution import SerialExecutionManager
-from tools.profiling.serde import Config, Span
+from tools.profiling.serde import CacheCapture, Config, Span
 
 
 class Clock(NamedTuple):
@@ -166,6 +167,29 @@ class Recorder:
         )
 
     def install(self):
+        # Resource settings are experimental controls, not numerical application
+        # options. Leave the production default in place for acceptance captures.
+        if self.config.cache_budget_bytes is not None:
+            morphoweave.MorphoWeave.stage_inputs = staticmethod(
+                partial(
+                    morphoweave.MorphoWeave.stage_inputs,
+                    cache_budget_bytes=self.config.cache_budget_bytes,
+                )
+            )
+        original_close = MeshCache.close
+
+        def close(cache):
+            before = cache.stats.array_bytes
+            original_close(cache)
+            capture = CacheCapture(
+                budget_bytes=cache.budget_bytes,
+                bytes_before_close=before,
+                **cache.stats._asdict(),
+            )
+            with (self.config.output / "mesh-cache.jsonl").open("a") as stream:
+                stream.write(capture.model_dump_json() + "\n")
+
+        MeshCache.close = close
         original_emit = SerialExecutionManager._emit
         original_execute = SerialExecutionManager._execute
         recorder = self
