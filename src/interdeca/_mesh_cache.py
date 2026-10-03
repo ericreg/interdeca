@@ -1,12 +1,15 @@
 """Bounded reuse of parsed files inside one private MorphoWeave workspace."""
 
 from collections import OrderedDict
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from sys import getsizeof
 from typing import NamedTuple, Self
 
 from interdeca.io import MeshIO
 from interdeca.models import CoordinateSystem, Mesh
+from interdeca.serde import MeshData
 
 
 class FileVersion(NamedTuple):
@@ -56,6 +59,8 @@ class CacheStats(NamedTuple):
     peak_entries: int = 0
     metadata_bytes: int = 0
     peak_metadata_bytes: int = 0
+    write_admissions: int = 0
+    write_bypasses: int = 0
 
 
 class MeshCache:
@@ -63,8 +68,9 @@ class MeshCache:
 
     The byte budget bounds retained NumPy buffers, not transient file parsing or
     the caller's VTK copies. Python metadata is reported separately and bounded
-    to at most 256 entries. Only files directly in the private originals folder
-    are admitted: intermediate files read once must not evict reusable originals.
+    to at most 256 entries. Parsed files are admitted only from the originals
+    folder. Successful OBJ saves can hand their validated arrays to later readers
+    anywhere in the private workspace, sharing the same budget and eviction policy.
     Each workspace owns one instance and closes it before its run ends. This
     object is confined to the serial numerical thread, with no global cache.
     """
@@ -118,6 +124,57 @@ class MeshCache:
             )
             self._account()
 
+    @contextmanager
+    def forget_after(self, directory: Path | str) -> Iterator[None]:
+        """Forget operation-local outputs before their temporary directory closes."""
+        root = Path(directory).resolve()
+        try:
+            yield
+        finally:
+            # Deleted intermediate files cannot serve another operation. Release
+            # their entries on success and failure without disturbing originals.
+            for key in tuple(self._entries):
+                if Path(key.path).is_relative_to(root):
+                    self.invalidate(key.path)
+
+    def write_obj(
+        self, mesh: Mesh, path: Path | str, *, overwrite: bool = False
+    ) -> Path:
+        """Write the real RAS OBJ and retain an owned equivalent when it fits.
+
+        Our writer uses 17 significant decimal digits for every float64 value,
+        one UV record per corner, and unchanged integer face indices. Its reader
+        therefore recovers these exact buffers, including signed zero. Only this
+        strict OBJ writer is eligible; other formats/conversions still use disk.
+        """
+        if self.closed:
+            raise RuntimeError("Mesh cache has already closed.")
+        source = Path(path).expanduser().resolve()
+        self.invalidate(source)
+        size = sum(array.nbytes for array in mesh if array is not None)
+        eligible = (
+            self.budget_bytes > 0
+            and size <= self.budget_bytes
+            and source.suffix.lower() == ".obj"
+            and source.is_relative_to(self.originals.parent)
+        )
+        # Own the snapshot even for read-only views with writable bases. Validate
+        # through the ordinary boundary before encoding, never trust caller flags.
+        owned = MeshData.from_internal(mesh).to_internal() if eligible else mesh
+        destination = MeshIO.write_obj(owned, source, overwrite=overwrite)
+        size = sum(array.nbytes for array in owned if array is not None)
+        if eligible and size <= self.budget_bytes:
+            key = ReadKey(str(source), "RAS", False)
+            self._admit(key, FileVersion.read(source), owned, size)
+            self.stats = self.stats._replace(
+                write_admissions=self.stats.write_admissions + 1
+            )
+        else:
+            self.stats = self.stats._replace(
+                write_bypasses=self.stats.write_bypasses + 1
+            )
+        return destination
+
     def read(
         self,
         path: Path | str,
@@ -163,6 +220,12 @@ class MeshCache:
         ):
             self.stats = self.stats._replace(bypasses=self.stats.bypasses + 1)
             return mesh
+        self._admit(key, version, mesh, size)
+        return mesh
+
+    def _admit(
+        self, key: ReadKey, version: FileVersion, mesh: Mesh, size: int
+    ) -> None:
         # Eviction releases only the cache's references. A caller already using
         # a returned immutable mesh keeps valid buffers through its own reference.
         live = self.stats.array_bytes
@@ -174,7 +237,6 @@ class MeshCache:
             self.stats = self.stats._replace(evictions=self.stats.evictions + 1)
         self._entries[key] = CacheEntry(version, mesh, size)
         self._account()
-        return mesh
 
     def close(self) -> None:
         """Release buffers while retaining only small diagnostic counters."""

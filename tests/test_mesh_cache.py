@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from vtkmodules.util.numpy_support import vtk_to_numpy
+from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
 from interdeca._mesh_cache import MeshCache
 from interdeca._morphoweave_host import CORNER_UV, Host
@@ -157,7 +157,8 @@ def test_host_saves_invalidate_before_success_or_failure(files, monkeypatch):
     node = host.loadModel(paths[0])
     vtk_to_numpy(node.GetPolyData().GetPoints().GetData())[:] += 0.25
     host.saveNode(node, paths[0])
-    assert cache.stats.entries == 0
+    assert cache.stats.invalidations == 1
+    assert cache.stats.write_admissions == 1
     equal_mesh(cache.read(paths[0]), Host.mesh(node.GetPolyData()))
 
     def fail(*args, **kwargs):
@@ -166,6 +167,168 @@ def test_host_saves_invalidate_before_success_or_failure(files, monkeypatch):
     monkeypatch.setattr(MeshIO, "write_obj", fail)
     with pytest.raises(OSError, match="save failed"):
         host.saveNode(node, paths[0])
+    assert cache.stats.entries == 0
+
+
+@pytest.mark.parametrize("dtype", [np.float32, np.float64])
+@pytest.mark.parametrize("textured", [False, True])
+def test_written_mesh_matches_real_obj_roundtrip_and_owns_input(
+    files, dtype, textured, monkeypatch
+):
+    mesh, paths = files
+    vertices = mesh.vertices.astype(dtype)
+    vertices[0] = [-0.0, np.nextafter(dtype(0), dtype(1)), -0.0]
+    vertices[1, 0] = np.nextafter(dtype(2), dtype(3))
+    # Extreme finite UVs exercise decimal precision without introducing huge or
+    # collapsed geometric triangles; repeated vertices keep distinct UV corners.
+    uv = np.arange(48, dtype=dtype).reshape(4, 3, 4)[..., ::2]
+    uv[0, 0] = [-0.0, np.nextafter(dtype(0), dtype(1))]
+    uv[0, 1] = [np.finfo(dtype).max, np.finfo(dtype).tiny]
+    mesh = Mesh(vertices, mesh.faces[::-1], uv if textured else None)
+    path = paths[0].parent.parent / "aligned" / "saved.obj"
+    cache = MeshCache(paths[0].parent, 8192)
+    cache.write_obj(mesh, path)
+    expected = MeshIO.read(path)
+    assert path in tuple(path.parent.glob("*.obj"))
+    assert cache.stats.write_admissions == 1
+    # A cache result is owned even when the writer received writable arrays and
+    # strided views. The fully serialized file remains readable independently.
+    vertices[:] = 17
+    uv[:] = 19
+
+    def unexpected_parse(*args, **kwargs):
+        raise AssertionError("A saved mesh should cross this boundary in memory")
+
+    monkeypatch.setattr(MeshIO, "read", unexpected_parse)
+    equal_mesh(cache.read(path), expected)
+    for array in cache.read(path):
+        if array is not None:
+            assert not array.flags.writeable
+    first = Host((), cache).loadModel(path)
+    vtk_to_numpy(first.GetPolyData().GetPoints().GetData())[:] = 23
+    second = Host((), cache).loadModel(path)
+    equal_mesh(Host.mesh(second.GetPolyData()), expected)
+
+
+def test_saved_mesh_settings_versions_and_failed_overwrites(files, monkeypatch):
+    mesh, paths = files
+    cache = MeshCache(paths[0].parent, 8192)
+    path = paths[0].parent.parent / "aligned" / "saved.obj"
+    cache.write_obj(mesh, path)
+    equal_mesh(cache.read(path, coordinate_system="LPS"), MeshIO.read(path, coordinate_system="LPS"))
+    assert cache.stats.hits == 0
+    assert cache.stats.misses == 1
+    with pytest.raises(FileExistsError):
+        cache.write_obj(mesh, path)
+    assert cache.stats.entries == 0
+    cache.write_obj(mesh, path, overwrite=True)
+    path.write_text("v 0 0 0\nf 1 1 1\n")
+    with pytest.raises(ValueError):
+        cache.read(path)
+    assert cache.stats.entries == 0
+    cache.write_obj(mesh, path, overwrite=True)
+
+    def fail(*args, **kwargs):
+        raise OSError("partial write")
+
+    monkeypatch.setattr(MeshIO, "write_obj", fail)
+    with pytest.raises(OSError, match="partial write"):
+        cache.write_obj(mesh, path, overwrite=True)
+    assert cache.stats.entries == 0
+
+
+@pytest.mark.parametrize("budget", [0, 1, 384, 8192])
+def test_written_entries_share_budget_and_fall_back_to_disk(files, budget):
+    mesh, paths = files
+    cache = MeshCache(paths[0].parent, budget)
+    saved = tuple(paths[0].parent.parent / "aligned" / path.name for path in paths)
+    for path in (*paths, *saved):
+        cache.write_obj(mesh, path, overwrite=True)
+        assert cache.stats.array_bytes <= budget
+    for path in (*paths, *saved):
+        equal_mesh(cache.read(path), MeshIO.read(path))
+    if budget < array_bytes(mesh):
+        assert cache.stats.write_admissions == 0
+        assert cache.stats.write_bypasses == 6
+    elif budget == array_bytes(mesh):
+        assert cache.stats.evictions > 0
+    cache.close()
+    with pytest.raises(RuntimeError, match="closed"):
+        cache.write_obj(mesh, saved[0], overwrite=True)
+
+
+@pytest.mark.parametrize("fail", [False, True])
+def test_operation_entries_release_before_directory_cleanup(files, fail):
+    mesh, paths = files
+    cache = MeshCache(paths[0].parent, 8192)
+    cache.read(paths[0])
+    directory = paths[0].parent.parent / "aligned"
+    try:
+        with cache.forget_after(directory):
+            cache.write_obj(mesh, directory / "saved.obj")
+            parsed = cache.read(directory / "saved.obj")
+            references = [weakref.ref(array) for array in parsed]
+            del parsed
+            if fail:
+                raise ValueError("operation failed")
+    except ValueError:
+        assert fail
+    assert all(reference() is None for reference in references)
+    assert cache.stats.entries == 1
+    assert cache.stats.array_bytes == array_bytes(mesh)
+    assert (directory / "saved.obj").is_file()
+
+
+def test_written_readonly_alias_isolated_and_external_paths_not_retained(files, tmp_path):
+    mesh, paths = files
+    base = mesh.vertices.copy()
+    view = base.view()
+    view.setflags(write=False)
+    cache = MeshCache(paths[0].parent, 8192)
+    saved = paths[0].parent / "saved.obj"
+    cache.write_obj(mesh._replace(vertices=view), saved)
+    base[:] = -7
+    equal_mesh(cache.read(saved), mesh)
+    external = tmp_path.parent / (tmp_path.name + "-outside.obj")
+    try:
+        cache.write_obj(mesh, external)
+        equal_mesh(cache.read(external), mesh)
+        assert cache.stats.write_bypasses == 1
+        assert cache.stats.entries == 1
+    finally:
+        external.unlink(missing_ok=True)
+
+
+def test_saved_float32_vtk_scratch_reloads_as_exact_owned_float64(files):
+    mesh, paths = files
+    cache = MeshCache(paths[0].parent, 8192)
+    host = Host((), cache)
+    scratch = host.loadModel(paths[0])
+    points = mesh.vertices.astype(np.float32)
+    points[0, 0] = -0.0
+    points[1, 0] = np.nextafter(np.float32(2), np.float32(3))
+    scratch.GetPolyData().GetPoints().SetData(numpy_to_vtk(points, deep=True))
+    path = paths[0].parent.parent / "aligned" / "scratch.obj"
+    host.saveNode(scratch, path)
+    expected = MeshIO.read(path)
+    vtk_to_numpy(scratch.GetPolyData().GetPoints().GetData())[:] = 43
+    loaded = host.loadModel(path)
+    actual = Host.mesh(loaded.GetPolyData())
+    assert actual.vertices.dtype == np.float64
+    assert np.signbit(actual.vertices[0, 0])
+    equal_mesh(actual, expected)
+
+
+@pytest.mark.parametrize("field", ["vertices", "faces", "uv"])
+def test_invalid_saved_mesh_cannot_create_a_file_or_entry(files, field):
+    mesh, paths = files
+    values = getattr(mesh, field).copy()
+    values.flat[0] = len(mesh.vertices) if field == "faces" else np.nan
+    cache = MeshCache(paths[0].parent, 8192)
+    path = paths[0].parent / "invalid.obj"
+    with pytest.raises(ValueError):
+        cache.write_obj(mesh._replace(**{field: values}), path)
+    assert not path.exists()
     assert cache.stats.entries == 0
 
 

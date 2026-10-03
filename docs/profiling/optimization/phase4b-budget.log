@@ -1,0 +1,36 @@
+Starting morphoweave-baseline-1
+morphoweave-baseline-1: exit=0, wall=89.7s, peak tree RSS=2987 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4b-budget-0
+Verified 31 independent clones sharing 0.648 GiB of logical content.
+Starting morphoweave-baseline-1
+morphoweave-baseline-1: exit=0, wall=80.3s, peak tree RSS=2810 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4b-budget-96
+Verified 31 independent clones sharing 0.648 GiB of logical content.
+Starting morphoweave-baseline-1
+morphoweave-baseline-1: exit=0, wall=65.5s, peak tree RSS=3062 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4b-budget-192
+Verified 31 independent clones sharing 0.648 GiB of logical content.
+Starting morphoweave-baseline-2
+morphoweave-baseline-2: exit=0, wall=65.2s, peak tree RSS=3055 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4b-budget-192
+Verified 56 independent clones sharing 0.989 GiB of logical content.
+Starting morphoweave-baseline-2
+morphoweave-baseline-2: exit=0, wall=79.8s, peak tree RSS=2739 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4b-budget-96
+Verified 56 independent clones sharing 0.989 GiB of logical content.
+Starting morphoweave-baseline-2
+morphoweave-baseline-2: exit=0, wall=90.1s, peak tree RSS=2938 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4b-budget-0
+Verified 56 independent clones sharing 0.989 GiB of logical content.
+Starting morphoweave-baseline-3
+morphoweave-baseline-3: exit=0, wall=90.5s, peak tree RSS=2842 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4b-budget-0
+Verified 81 independent clones sharing 1.331 GiB of logical content.
+Starting morphoweave-baseline-3
+morphoweave-baseline-3: exit=0, wall=79.7s, peak tree RSS=2841 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4b-budget-96
+Verified 81 independent clones sharing 1.331 GiB of logical content.
+Starting morphoweave-baseline-3
+morphoweave-baseline-3: exit=0, wall=65.0s, peak tree RSS=3053 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/phase4b-budget-192
+Verified 81 independent clones sharing 1.331 GiB of logical content.

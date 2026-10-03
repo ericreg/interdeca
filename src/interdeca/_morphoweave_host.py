@@ -133,7 +133,8 @@ class Host:
         if node.polydata is not None:
             if Path(path).suffix != ".obj":
                 raise ValueError("MorphoWeave host model outputs must be OBJ files.")
-            MeshIO.write_obj(Host.mesh(node.polydata), path, overwrite=True)
+            writer = MeshIO.write_obj if self.cache is None else self.cache.write_obj
+            writer(Host.mesh(node.polydata), path, overwrite=True)
         else:
             LandmarkIO.write_json(node.landmarks, path, overwrite=True)
         return True

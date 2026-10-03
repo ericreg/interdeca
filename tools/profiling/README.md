@@ -26,14 +26,17 @@ missing runs; incomplete or rejected run directories must be moved aside explici
 Resume also checks the dependency lock and source hashes, including uncommitted
 code, so an experiment cannot silently combine implementations.
 
-For parsed-mesh budget experiments, use `--backends morphoweave --modes baseline
+For mesh-reuse budget experiments, use `--backends morphoweave --modes baseline
 --repeats 3 --cache-budget-mib 0` (or another nonnegative MiB budget). Use a separate
 directory for each budget. Increase `--repeats` with `--resume` to interleave fresh
 processes across budgets while keeping existing results. These experiments do not
 replace both-backend acceptance captures: omit the budget override for those, so
 they exercise the same production default as Slicer. `mesh-cache.jsonl` records
-hits, misses, evictions, array high-water bytes, bounded Python metadata estimates,
-and zero live cache bytes after cleanup. VTK copies and transient parsing buffers
+hits, misses, evictions, successful-save admissions/bypasses, array high-water
+bytes, bounded Python metadata estimates, and zero live cache bytes after cleanup.
+Parsed originals and validated saved intermediates share one budget; actual OBJ
+files remain complete and operation-local saved entries are released with their
+directory. VTK copies and transient parsing buffers
 remain covered by RSS and the separate allocation pass.
 
 Initialize the MorphoWeave submodule first on a fresh checkout, and

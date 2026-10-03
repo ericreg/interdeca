@@ -1,0 +1,25 @@
+Starting native-baseline-1
+native-baseline-1: exit=0, wall=51.2s, peak tree RSS=2750 MiB
+Starting morphoweave-baseline-1
+morphoweave-baseline-1: exit=0, wall=64.7s, peak tree RSS=3029 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/B4b-candidate
+Starting morphoweave-baseline-2
+morphoweave-baseline-2: exit=0, wall=64.2s, peak tree RSS=3054 MiB
+Starting native-baseline-2
+native-baseline-2: exit=0, wall=51.1s, peak tree RSS=2736 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/B4b-candidate
+Starting native-baseline-3
+native-baseline-3: exit=0, wall=50.7s, peak tree RSS=2740 MiB
+Starting morphoweave-baseline-3
+morphoweave-baseline-3: exit=0, wall=65.0s, peak tree RSS=3050 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/B4b-candidate
+Starting native-spans-1
+native-spans-1: exit=0, wall=52.7s, peak tree RSS=2761 MiB
+Starting morphoweave-spans-1
+morphoweave-spans-1: exit=0, wall=66.5s, peak tree RSS=3049 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/B4b-candidate
+Starting native-memory-1
+native-memory-1: exit=0, wall=68.5s, peak tree RSS=2758 MiB
+Starting morphoweave-memory-1
+morphoweave-memory-1: exit=0, wall=91.8s, peak tree RSS=3068 MiB
+All runs completed with identical outputs within each backend: /Users/eric/Library/Application Support/InterDeCA/optimization/B4b-candidate

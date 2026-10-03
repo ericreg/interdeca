@@ -133,19 +133,20 @@ class MorphoWeave:
 
     @staticmethod
     def stage_inputs(
-        specimens: Sequence[Specimen], *, cache_budget_bytes: int = 96 * 2**20
+        specimens: Sequence[Specimen], *, cache_budget_bytes: int = 192 * 2**20
     ) -> MorphoWeaveWorkspace:
         """Stage original RAS geometry once; the caller must close the returned scope.
 
         Standalone callers use ``with MorphoWeave.stage_inputs(specimens) as ...``.
         Application workflows register it as a managed task resource. Neither the
         resource nor these numerical operations import an execution manager.
-        cache_budget_bytes bounds retained parsed mesh arrays; zero disables reuse.
+        cache_budget_bytes bounds retained mesh arrays; zero disables reuse.
         File parsing and mutable VTK copies are measured separately from this budget.
         """
         specimens = Dataset.validate_specimens(specimens)
         identities = MorphoWeave._identities(specimens)
         directory = tempfile.TemporaryDirectory(prefix="interdeca-morphoweave-inputs-")
+        workspace = None
         # A producer failure occurs before a caller can enter the returned scope;
         # release partial staging explicitly rather than relying on garbage collection.
         try:
@@ -154,8 +155,11 @@ class MorphoWeave:
                 identities,
                 MeshCache(Path(directory.name) / "originalModels", cache_budget_bytes),
             )
-            MorphoWeave._inputs(specimens, workspace.root)
+            MorphoWeave._inputs(specimens, workspace)
         except BaseException:
+            # A later file can fail after earlier saves populated the cache.
+            if workspace is not None:
+                workspace.cache.close()
             directory.cleanup()
             raise
         return workspace
@@ -184,10 +188,13 @@ class MorphoWeave:
         return folders
 
     @staticmethod
-    def _inputs(specimens: Sequence[Specimen], root: Path) -> None:
+    def _inputs(
+        specimens: Sequence[Specimen], workspace: MorphoWeaveWorkspace
+    ) -> None:
         # Use the upstream directory contract in a private workspace. Source UVs
         # survive the RAS OBJ staging; input files and the user's scene are untouched.
-        models, landmarks = root / "originalModels", root / "originalLMs"
+        models = workspace.root / "originalModels"
+        landmarks = workspace.root / "originalLMs"
         models.mkdir()
         landmarks.mkdir()
         identifiers = [specimen.specimen_id.lower() for specimen in specimens]
@@ -198,7 +205,7 @@ class MorphoWeave:
         for specimen in specimens:
             if Path(specimen.specimen_id).name != specimen.specimen_id:
                 raise ValueError("A specimen ID must be a filename stem.")
-            MeshIO.write_obj(
+            workspace.cache.write_obj(
                 specimen.mesh,
                 models / f"{specimen.specimen_id}.obj",
             )
@@ -241,6 +248,7 @@ class MorphoWeave:
         with (
             scope as staged,
             tempfile.TemporaryDirectory(prefix="mean-", dir=staged.root) as directory,
+            staged.cache.forget_after(directory),
         ):
             host.cache = staged.cache
             folders = MorphoWeave._folders(staged, Path(directory))
@@ -339,6 +347,7 @@ class MorphoWeave:
         with (
             scope as staged,
             tempfile.TemporaryDirectory(prefix="align-", dir=staged.root) as directory,
+            staged.cache.forget_after(directory),
         ):
             host.cache = staged.cache
             folders = MorphoWeave._folders(staged, Path(directory))
@@ -358,7 +367,7 @@ class MorphoWeave:
             for specimen in specimens:
                 # Upstream lowercases file pairing; restore the original application ID.
                 stem = specimen.specimen_id.lower()
-                mesh = MeshIO.read(Path(folders["alignedModels"]) / f"{stem}.obj")
+                mesh = staged.cache.read(Path(folders["alignedModels"]) / f"{stem}.obj")
                 if mesh.topology_key != specimen.mesh.topology_key:
                     raise ValueError(
                         f"MorphoWeave alignment changed source topology or UVs: {specimen.specimen_id}"

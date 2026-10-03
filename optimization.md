@@ -1,13 +1,13 @@
 # CPU and memory optimization plan
 
-Status: Phases 0–4a accepted; Phase 4b is next. Each phase must pass its checks
+Status: Phases 0–4b accepted; Phase 5 is next. Each phase must pass its checks
 before becoming the baseline for the next phase.
 
 ## Acceptance history
 
-The last accepted **performance** baseline is **B4a** at
-`~/Library/Application Support/InterDeCA/optimization/B4a`. Phase 4b must compare
-against B4a and the preserved original B0 reference in the same parent directory.
+The last accepted **performance** baseline is **B4b** at
+`~/Library/Application Support/InterDeCA/optimization/B4b`. Phase 5 must compare
+against B4b and the preserved original B0 reference in the same parent directory.
 
 | Phase | Decision and evidence | Next comparison reference |
 | --- | --- | --- |
@@ -16,6 +16,7 @@ against B4a and the preserved original B0 reference in the same parent directory
 | 2 | Accepted: 115 focused tests and both real Slicer/CLI cases pass (616.61 s). All 12 profiling captures succeed and match B1 and B0, including metadata, with no investigation alerts. Application RSS falls 58–64% and tracked peak heap falls 74% relative to B1. | B2 |
 | 3 | Accepted: 141 focused tests, both real Slicer/CLI cases (599.60 s), and all 12 profiling captures pass. Outputs and metadata match B2 and B0 with no investigation alerts. MorphoWeave session wall/CPU time falls 6.91%/6.87%; peak heap is essentially unchanged. | B3 |
 | 4a | Accepted: 165 focused tests, nine budget trials, two allocation controls, both real Slicer/CLI cases (504.93 s), and all 12 profiling captures pass. Outputs and metadata match B3/B0. MorphoWeave wall/CPU time falls 10.18%/10.38%; the confirmed 91.7 MiB cache cost is an explicit tradeoff. | B4a |
+| 4b | Accepted: 182 focused tests, nine budget trials, both real Slicer/CLI cases (433.26 s), and all 12 profiling captures pass. Outputs and metadata match B4a/B0 with no investigation alerts. MorphoWeave wall/CPU time falls 21.39%/23.72%, application RSS falls 8.13%, and tracked heap falls 2.90%. | B4b |
 
 Phase 0 was committed as `31fb5d9`; Phase 1 was committed as `0cf6ece`. Its captures
 used the Phase 0 revision plus the source changes
@@ -223,6 +224,89 @@ Python file hashes and the lockfile match. Large byte-identical artifacts use
 independent filesystem clones of B0 files. The archive was promoted from
 `B4a-candidate` to `B4a`, then compared again at its final location. Phase 4b must
 use B4a as its immediate predecessor, including its documented memory cost.
+
+Phase 4a was committed as `25399c2`. Phase 4b adds a bounded in-memory
+handoff after successful OBJ saves. The candidate still writes every real file
+and keeps the upstream workflows unchanged. It retains an owned, validated
+float64 mesh matching the ordinary writer/reader round trip; readers check file
+versions and conversion settings before reuse. Originals and saved intermediates
+share one byte budget. Operation-local entries are forgotten before their
+temporary directory is removed, including on failure.
+
+The completed [budget experiment](docs/profiling/optimization/phase4b-budget-comparison.json)
+compares disabled, 96 MiB, and 192 MiB reuse in alternating order, with three
+fresh processes per budget. All nine captures have compatible environments and
+match B4a/B0 outputs and metadata exactly:
+
+| Budget | Median CLI session | Median application CPU | Maximum application RSS |
+| --- | ---: | ---: | ---: |
+| Disabled | 87.00 s | 80.62 s | 2.252 GiB |
+| 96 MiB | 76.72 s | 69.67 s | 2.375 GiB |
+| 192 MiB | 62.17 s | 55.66 s | 2.296 GiB |
+
+The 192 MiB budget was selected from these trials: against B4a's accepted medians
+of 78.41/72.29 s, the experiment reduces session/CPU time by about 21%/23%.
+It serves all 13 adapter loads from memory, with nine successful-save admissions,
+no evictions, and a peak of 192,322,560 array bytes (183.41 MiB) across six entries.
+Originals and the current operation's aligned outputs share that budget; operation
+cleanup releases aligned entries, and run cleanup leaves zero live cache bytes.
+The real files remain intact. A higher cache budget is not itself evidence of a
+higher application peak: avoiding Python OBJ parsing also removes its temporary
+lists and buffers. The allocation pass below quantifies that tradeoff.
+
+The [focused checks](docs/profiling/optimization/phase4b-focused.log) pass all 182
+tests, including float32 VTK scratch saves, float64 decimal round trips, signed
+zero and extreme finite UV values, invalid inputs, writable aliases, file-version
+changes, shared-budget eviction, and partial-staging cleanup. Both-backend
+profiling completed six baseline, two timer, two allocation, and two CPU captures.
+All twelve match B4a/B0 outputs and metadata exactly, with compatible environments
+and no investigation alerts. Accepted measurements against B4a are:
+
+| Metric | Native B4a → B4b | MorphoWeave B4a → B4b |
+| --- | --- | --- |
+| Median session wall time | 48.25 → 48.09 s (0.34% lower) | 78.41 → 61.63 s (21.39% lower) |
+| Median application CPU | 41.22 → 40.89 s (0.80% lower) | 72.29 → 55.14 s (23.72% lower) |
+| Maximum baseline application RSS | 1.843 → 1.826 GiB (0.95% lower) | 2.370 → 2.177 GiB (8.13% lower) |
+| Tracked live heap at peak | 0.838 → 0.838 GiB | 0.915 → 0.888 GiB (2.90% lower) |
+| OBJ reads / writes | 3 / 7 → 3 / 7 | 12 / 16 → 3 / 16 |
+
+MorphoWeave now reads only the three inspected input OBJs: logical read volume
+falls from 943,216,055 to 235,765,927 bytes. The timer pass records 5.67 s in OBJ
+parsing versus 22.77 s in B4a, while the 16 actual writes remain and take 24.14 s.
+Cumulative `Arrays.frozen` copy bytes are unchanged: validated saved snapshots
+replace validated parsed snapshots. Peak live heap moves from final-output OBJ
+parsing to source TIFF validation during baking, where the two largest allocations
+are 256 MiB byte-image buffers. The larger cache therefore reduces CPU without
+increasing the measured application peak for these three clams. This does not
+establish the same working-set behavior for a larger population.
+
+Both real Slicer/CLI cases passed in 433.26 s with Slicer 5.12.4 and Blender 5.2.1;
+their [log](docs/profiling/optimization/phase4b-e2e.log) records that result. Separate
+CPU attribution captures also pass in 234.1 s (native) and 370.0 s (MorphoWeave);
+these instrumented elapsed times are excluded from speed claims. Native's small
+time/RSS differences are treated as control variation; its tracked peak heap,
+OBJ traffic, and numerical-copy volume are unchanged.
+
+The [B4a comparison](docs/profiling/optimization/phase4b-vs-B4a.json),
+[B0 comparison](docs/profiling/optimization/phase4b-vs-B0.json),
+[summary](docs/profiling/optimization/phase4b-summary.json),
+[environment](docs/profiling/optimization/phase4b-environment.json),
+[profiling log](docs/profiling/optimization/phase4b-profile.log), and
+[CPU log](docs/profiling/optimization/phase4b-cpu.log) preserve the evidence.
+All 33 output fingerprints per backend and all checked metadata match both
+references across the complete batch. Captures used parent revision `25399c2`
+plus this commit's source changes; all 44 recorded Python file hashes and the
+lockfile were checked against the implementation. Baselines were captured in
+three paired rounds using `--modes baseline --repeats N`, with `--resume` for
+rounds 2 and 3; timer, allocation, and CPU modes followed with `--resume`.
+The nine budget trials use the documented `--cache-budget-mib` override; all
+twelve acceptance captures omit it and exercise the production 192 MiB default.
+
+Complete artifacts remain outside Git at
+`~/Library/Application Support/InterDeCA/optimization/B4b`. Large byte-identical
+files use independent filesystem clones, verified against B0. Final comparisons
+passed again after promotion from `B4b-candidate` to `B4b`. Phase 5 must use B4b
+as its immediate predecessor.
 
 Phase 0 preserved 606 original input/output/profile/source files outside Git and
 pytest scratch storage, with an archive SHA-256 manifest. Its evidence is in
@@ -544,6 +628,10 @@ Removing an entry from the manager is not evidence that another owner released i
 Keep this change separate from numerical operations and leave the task schedule
 serial. Release stage-local host caches and temporary files when their consumers
 finish. Avoid manual garbage-collection calls as a substitute for clear ownership.
+For managed resources, the last direct `ResultRef` alone does not prove the end
+of their lifetime: an operation can forward a resource or return a path into its
+directory. Preserve the run-wide lifetime unless the workflow explicitly declares
+an earlier boundary and its outputs are proven independent of the closed resource.
 
 **Tests:** Small deterministic task graphs exercise fan-out, reused inputs, final
 outputs, failure, cancellation, queued runs, and repeated execution. Verify both

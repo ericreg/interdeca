@@ -11,6 +11,7 @@ import numpy as np
 import pytest
 
 from interdeca import _morphoweave_host, morphoweave
+from interdeca._mesh_cache import MeshCache
 from interdeca._morphoweave_host import Host, load_atlas_builder
 from interdeca.application_models import AtlasOptions
 from interdeca.atlas import Atlas
@@ -492,6 +493,12 @@ def test_staging_cleans_up_if_writing_an_input_fails(specimens, tmp_path, monkey
     monkeypatch.setattr(morphoweave.tempfile, "tempdir", str(tmp_path))
     original = MeshIO.write_obj
     calls = []
+    closed = []
+    original_close = MeshCache.close
+
+    def close(cache):
+        original_close(cache)
+        closed.append(cache.stats)
 
     def write(mesh, path, **kwargs):
         calls.append(path)
@@ -500,9 +507,13 @@ def test_staging_cleans_up_if_writing_an_input_fails(specimens, tmp_path, monkey
         return original(mesh, path, **kwargs)
 
     monkeypatch.setattr(MeshIO, "write_obj", write)
+    monkeypatch.setattr(MeshCache, "close", close)
     with pytest.raises(OSError, match="staging write failed"):
         MorphoWeave.stage_inputs(specimens)
     assert len(calls) == 2
+    assert len(closed) == 1
+    assert closed[0].peak_array_bytes > 0
+    assert closed[0].array_bytes == closed[0].entries == 0
     assert list(tmp_path.iterdir()) == []
 
 
@@ -647,9 +658,12 @@ def test_bounded_cache_matches_disabled_upstream_workflow(
         assert before.landmarks.labels == after.landmarks.labels
         assert before.landmarks.points.tobytes() == after.landmarks.points.tobytes()
     if budget == 8192:
-        assert stats.hits == 3
+        # One template and four population reads per specimen use the same
+        # validated values as the on-disk path; operation outputs are discarded.
+        assert stats.hits == 1 + 4 * len(specimens)
         assert stats.entries == len(specimens)
-        assert stats.bypasses == len(specimens)
+        assert stats.misses == stats.bypasses == 0
+        assert stats.write_admissions == 3 * len(specimens)
     elif budget < 384:
         assert stats.hits == stats.peak_array_bytes == 0
 
@@ -659,3 +673,22 @@ def test_invalid_cache_budget_cleans_workspace(specimens, tmp_path, monkeypatch)
     with pytest.raises(ValueError, match="budget"):
         MorphoWeave.stage_inputs(specimens, cache_budget_bytes=-1)
     assert list(tmp_path.iterdir()) == []
+
+
+def test_repeated_host_operations_release_only_their_saved_entries(specimens):
+    with MorphoWeave.stage_inputs(specimens) as workspace:
+        first = MorphoWeave.build_atlas(specimens, workspace=workspace)
+        assert workspace.cache.stats.entries == len(specimens)
+        atlas = MorphoWeave.restore_input_scale(first, specimens).atlas
+        aligned = MorphoWeave.align_specimens(specimens, atlas, workspace=workspace)
+        assert workspace.cache.stats.entries == len(specimens)
+        second = MorphoWeave.build_atlas(specimens, workspace=workspace)
+        repeated = MorphoWeave.align_specimens(specimens, atlas, workspace=workspace)
+        assert workspace.cache.stats.entries == len(specimens)
+        assert workspace.cache.stats.misses == 0
+    assert first.mesh.vertices.tobytes() == second.mesh.vertices.tobytes()
+    for before, after in zip(aligned, repeated, strict=True):
+        assert before.landmarks.labels == after.landmarks.labels
+        assert before.landmarks.points.tobytes() == after.landmarks.points.tobytes()
+        for left, right in zip(before.mesh, after.mesh, strict=True):
+            assert left.tobytes() == right.tobytes()
