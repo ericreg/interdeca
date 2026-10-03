@@ -5,13 +5,52 @@ becoming the baseline for the next phase.
 
 ## Acceptance history
 
-The last accepted **performance** baseline is **B0** at
-`~/Library/Application Support/InterDeCA/optimization/B0`. Phase 0 improves the
-comparison infrastructure and leaves that numerical/performance reference intact.
+The last accepted **performance** baseline is **B1** at
+`~/Library/Application Support/InterDeCA/optimization/B1`. Phase 2 must compare
+against B1 and the preserved original B0 reference in the same parent directory.
 
 | Phase | Decision and evidence | Next comparison reference |
 | --- | --- | --- |
 | 0 | Accepted: 19 comparison tests pass; real native/MorphoWeave Slicer/CLI parity passes (2 cases, 428.65 s); all ten B0 captures compare identically, including metadata. | B0 |
+| 1 | Accepted: 89 focused checks and both fresh Slicer/CLI cases pass (512.49 s). All 12 profiling runs succeed and match B0 outputs and metadata. Application RSS falls 36–38% and tracked peak heap falls 54%, with no investigation alerts. | B1 |
+
+Phase 0 was committed as `31fb5d9`. The commit containing this acceptance record
+implements Phase 1. Its captures used that parent revision plus the source changes
+identified by all 43 Python file hashes in the
+[environment record](docs/profiling/optimization/phase1-environment.json); these
+hashes and the dependency lock were checked against the files being committed.
+The archive was renamed from `B1-candidate` to `B1` after completion, and the
+comparison passed again at its final location. Captures retain their original
+paths as provenance; the comparison command resolves archived paths locally.
+
+Each backend has three baseline repeats and separate timer, CPU, and allocation
+passes. The [summary](docs/profiling/optimization/phase1-summary.json),
+[focused-test log](docs/profiling/optimization/phase1-focused.log), and
+[Slicer/CLI log](docs/profiling/optimization/phase1-e2e.log) are retained in Git.
+Complete numerical outputs and raw profiles remain in the B1 archive outside Git.
+
+Accepted Phase 1 measurements against B0, which is also the previous accepted
+performance baseline:
+
+| Metric | Native B0 → B1 | MorphoWeave B0 → B1 |
+| --- | --- | --- |
+| Median session wall time | 55.36 → 50.53 s (8.71% lower) | 99.48 → 95.87 s (3.63% lower) |
+| Median application CPU | 45.93 → 43.21 s (5.93% lower) | 90.42 → 88.54 s (2.07% lower) |
+| Maximum baseline application RSS | 8.18 → 5.06 GiB (38.14% lower) | 8.37 → 5.38 GiB (35.77% lower) |
+| Tracked live heap at peak | 6.96 → 3.21 GiB (53.85% lower) | 6.94 → 3.19 GiB (54.00% lower) |
+
+The [B0 comparison](docs/profiling/optimization/phase1-comparison.json) reports
+compatible environments, identical outputs/metadata, and no investigation alerts
+across all completed captures. All 33 checked output hashes per backend match B0.
+Both allocation profiles show one 2 GiB float64 texture representation at peak,
+replacing the prior three. Ordinary float-array callers still receive owned,
+immutable buffers; only redundant copies inside the trusted boundary were removed.
+No mesh, texture-resolution, precision, or upstream algorithm change was made.
+
+The substantial memory reduction is the primary acceptance evidence. Session
+times above are observed medians from this machine, not promised speedups on other
+workloads. CPU-profiler elapsed times are excluded from these speed measurements;
+the CPU captures took 239.7 s (native) and 751.1 s (MorphoWeave). Phase 2 is next.
 
 Phase 0 preserved 606 original input/output/profile/source files outside Git and
 pytest scratch storage, with an archive SHA-256 manifest. Its evidence is in
@@ -87,16 +126,15 @@ by an earlier large gain.
 
 Before editing numerical or adapter code, preserve the profiling harness revision,
 input hashes, dependency lock, Blender/Slicer versions, settings, and baseline
-output hashes. The report is already in the repository, but the complete original
-outputs currently live at `/tmp/interdeca-profile.3quIrY/run`. Move or copy the
-required reference outputs and raw profiles to durable storage outside Git before
-temporary cleanup. Preserve at least one complete successful output per backend
-for diagnosing a hash mismatch. Keep reference artifacts outside pytest scratch
-directories, which pytest may delete.
+output hashes. The report is already in the repository. Phase 0 preserved the
+complete original outputs from `/tmp/interdeca-profile.3quIrY/run` in the durable
+B0 archive listed above. Preserve at least one complete successful output per
+backend for diagnosing a hash mismatch. Keep reference artifacts outside pytest
+scratch directories, which pytest may delete.
 
-The existing profiler compares runs **within its output directory**. It does not
-yet compare an optimization with B0. Phase 0 adds that explicit comparison; a
-successful profiler run by itself is insufficient to accept an optimization.
+The profiler compares runs **within its output directory**. Phase 0 added the
+separate comparison command for B0 and the last accepted phase; a successful
+profiler run by itself is insufficient to accept an optimization.
 
 ### Numerical and application checks
 
@@ -168,8 +206,8 @@ processes and has incomplete native symbols on this Mac.
 directory and a candidate directory. Validate input hashes, numerical settings,
 upstream revision, and environment identity before claiming a like-for-like
 comparison. Compare outputs and metadata under the contract above, then emit
-per-backend resource deltas. The exact command/API will be defined in this phase;
-it is not part of the current harness.
+per-backend resource deltas. The implemented comparison command is documented in
+the acceptance history above.
 
 **Tests:** Compare B0 with itself and with another successful B0 run. Deliberately
 change one array value, a face index/order, a UV corner, a texture pixel, and scale

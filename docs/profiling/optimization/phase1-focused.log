@@ -1,0 +1,45 @@
+........................................................................ [ 80%]
+.................                                                        [100%]
+=============================== warnings summary ===============================
+tests/test_correspondence.py: 1 warning
+tests/test_morphoweave.py: 32 warnings
+  /Users/eric/code/interdeca/src/interdeca/io.py:269: DeprecationWarning: Call to deprecated method SetCells. (Use ImportLegacyFormat or SetData instead.) -- Deprecated since version 9.6.0.
+    cells.SetCells(len(mesh.faces), numpy_to_vtkIdTypeArray(records, deep=True))
+
+tests/test_morphoweave.py::test_high_level_workflow_runs_without_slicer_and_preserves_source_uvs
+tests/test_morphoweave.py::test_high_level_workflow_runs_without_slicer_and_preserves_source_uvs
+tests/test_morphoweave.py::test_alignment_scale_choice_is_obeyed
+tests/test_morphoweave.py::test_alignment_scale_choice_is_obeyed
+tests/test_morphoweave.py::test_coordinate_mismatch_is_not_silently_overridden
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[False]
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[False]
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[True]
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[True]
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:941: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    tf = vtk.vtkLandmarkTransform(); tpf = vtk.vtkTransformPolyDataFilter()
+
+tests/test_morphoweave.py::test_high_level_workflow_runs_without_slicer_and_preserves_source_uvs
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[False]
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[True]
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:822: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    f2 = vtk.vtkTransformPolyDataFilter(); f2.SetInputData(baseMesh); f2.SetTransform(t2); f2.Update()
+
+tests/test_morphoweave.py::test_high_level_workflow_runs_without_slicer_and_preserves_source_uvs
+tests/test_morphoweave.py::test_high_level_workflow_runs_without_slicer_and_preserves_source_uvs
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[False]
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[False]
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[True]
+tests/test_morphoweave.py::test_restored_atlas_size_is_independent_of_specimen_alignment_mode[True]
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:848: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    f1 = vtk.vtkTransformPolyDataFilter(); f1.SetInputData(mesh); f1.SetTransform(t1); f1.Update()
+
+tests/test_morphoweave.py::test_full_projection_preserves_collapsed_faces_and_uvs
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:1084: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    f = vtk.vtkTransformPolyDataFilter(); f.SetInputData(qPoly); f.SetTransform(t); f.Update()
+
+tests/test_morphoweave.py::test_full_projection_preserves_collapsed_faces_and_uvs
+  /Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py:733: DeprecationWarning: Call to deprecated class vtkTransformPolyDataFilter. (Replaced by vtkTransformFilter.) -- Deprecated since version 9.7.0.
+    f = vtk.vtkTransformPolyDataFilter(); f.SetInputData(pd); f.SetTransform(t); f.Update()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+89 passed, 53 warnings in 4.43s

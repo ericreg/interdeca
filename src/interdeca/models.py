@@ -714,9 +714,21 @@ class TexturePixels(NamedTuple):
 
     def validated(self) -> Self:
         """Require bounded RGB/alpha with matching, nonempty image dimensions."""
+        # External arrays may have writable aliases. Own them before checking
+        # the image; trusted boundaries can reuse buffers they already own.
+        return TexturePixels(
+            Arrays.frozen(self.rgb), Arrays.frozen(self.alpha)
+        )._checked()
+
+    def _checked(self) -> Self:
+        """Check image invariants on already owned, finite float64 buffers.
+
+        Only validated() and the texture boundary call this helper. It does not
+        infer ownership from read-only flags and does not accept external arrays.
+        """
         # Require one alpha value for each RGB pixel before image interpolation
         # can safely combine color and coverage weights.
-        rgb, alpha = Arrays.frozen(self.rgb), Arrays.frozen(self.alpha)
+        rgb, alpha = self
         if (
             rgb.ndim != 3
             or rgb.shape[-1] != 3
@@ -728,7 +740,7 @@ class TexturePixels(NamedTuple):
         # before the data is used for averaging or saved as an image.
         if np.any((rgb < 0) | (rgb > 1)) or np.any((alpha < 0) | (alpha > 1)):
             raise ValueError("Texture RGB and alpha must lie in [0, 1].")
-        return TexturePixels(rgb, alpha)
+        return self
 
 
 class PopulationModelSnapshot(NamedTuple):

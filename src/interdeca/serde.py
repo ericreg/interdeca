@@ -9,7 +9,7 @@ geometry/color computation code and out of Blender's Python installation.
 
 import json
 from pathlib import Path
-from typing import Annotated, ClassVar, Generic, Literal, Self, TypeVar
+from typing import Annotated, ClassVar, Generic, Literal, NamedTuple, Self, TypeVar
 
 import numpy as np
 from pydantic import (
@@ -62,6 +62,12 @@ from interdeca.models import (
 )
 
 
+class _TextureBytes(NamedTuple):
+    """Private channel input distinguishing byte normalization from unit colors."""
+
+    pixels: np.ndarray
+
+
 class ArraySerde:
     """Narrow array conversions shared by Pydantic field annotations."""
 
@@ -76,6 +82,25 @@ class ArraySerde:
                 "Expected a numeric array, not strings, booleans, or objects."
             )
         return Arrays.frozen(array)
+
+    @staticmethod
+    def texture_channel(value: object) -> np.ndarray:
+        """Own one float64 channel buffer, optionally converting 8-bit sRGB.
+
+        Ordinary boundary inputs retain the same strict finite-number checks.
+        The byte-image factory supplies a private record so uint8 unit-range
+        inputs are never accidentally interpreted as an encoded image.
+        """
+        if not isinstance(value, _TextureBytes):
+            return ArraySerde.floating(value)
+        if value.pixels.dtype != np.uint8:
+            raise ValueError("Encoded texture channels must be uint8.")
+        # Allocate the final contiguous float buffer once. In-place division
+        # has the same float64 arithmetic as the previous RGBA / 255 operation.
+        array = np.array(value.pixels, dtype=np.float64, order="C", copy=True)
+        array /= 255.0
+        array.setflags(write=False)
+        return array
 
     @staticmethod
     def integer(value: object) -> np.ndarray:
@@ -114,6 +139,12 @@ class ArraySerde:
 FloatBuffer = Annotated[
     np.ndarray,
     PlainValidator(ArraySerde.floating),
+    PlainSerializer(ArraySerde.nested_lists, return_type=list, when_used="json"),
+    WithJsonSchema({"type": "array"}),
+]
+TextureBuffer = Annotated[
+    np.ndarray,
+    PlainValidator(ArraySerde.texture_channel),
     PlainSerializer(ArraySerde.nested_lists, return_type=list, when_used="json"),
     WithJsonSchema({"type": "array"}),
 ]
@@ -500,8 +531,33 @@ class TexturePixelsData(CoreData[TexturePixels]):
 
     # Validate color and coverage as one image so their pixel grids cannot diverge.
     record_type = TexturePixels
-    rgb: FloatBuffer
-    alpha: FloatBuffer
+    rgb: TextureBuffer
+    alpha: TextureBuffer
+
+    @model_validator(mode="after")
+    def validate_record(self) -> Self:
+        """Share boundary-owned buffers with the internal checked image."""
+        # Field validators have already taken ownership and established finite
+        # float64 values. The record checks shape/range without a second copy.
+        self._internal = TexturePixels(self.rgb, self.alpha)._checked()
+        return self
+
+    @classmethod
+    def from_rgba8(cls, pixels: np.ndarray) -> Self:
+        """Convert an 8-bit RGBA image into owned unit-range sRGB and alpha.
+
+        Each output value is float64(byte) / 255. This preserves every input
+        pixel and alpha value without a temporary full float64 RGBA image.
+        """
+        if not isinstance(pixels, np.ndarray) or pixels.dtype != np.uint8:
+            raise ValueError("Encoded textures must be uint8 arrays.")
+        if pixels.ndim != 3 or pixels.shape[-1] != 4:
+            raise ValueError("Encoded textures need shape (height, width, 4).")
+        # Both fields make owned copies; writable views of the caller's byte
+        # buffer cannot mutate accepted colors after this boundary returns.
+        return cls(
+            rgb=_TextureBytes(pixels[..., :3]), alpha=_TextureBytes(pixels[..., 3])
+        )
 
 
 class SampledColorsData(CoreData[SampledColors]):

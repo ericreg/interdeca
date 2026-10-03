@@ -399,10 +399,10 @@ class TextureIO:
                 )
             # A uniform RGBA representation gives opaque images full coverage
             # while retaining explicit transparency where the source provides it.
-            pixels = np.asarray(image.convert("RGBA"), dtype=np.float64) / 255.0
-        return TexturePixelsData(
-            rgb=pixels[..., :3], alpha=pixels[..., 3]
-        ).to_internal()
+            pixels = np.asarray(image.convert("RGBA"))
+        # The boundary converts directly into its final owned RGB/alpha buffers;
+        # an intermediate float64 RGBA image would add two GiB for an 8k texture.
+        return TexturePixelsData.from_rgba8(pixels).to_internal()
 
     @staticmethod
     def write_png(
