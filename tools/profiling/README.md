@@ -1,7 +1,7 @@
-# Small-clams CPU and memory profiling
+# CPU and memory profiling
 
 This harness measures the current `native` Atlas and `morphoweave` backends
-before optimization. It launches the real Click client, application session,
+with the production Rust extension. It launches the real Click client, application session,
 serial execution manager, numerical operations, and Blender. Instrumentation
 is installed only in disposable profiling processes; no production code or
 upstream MorphoWeave source is patched on disk.
@@ -47,13 +47,34 @@ Initialize the MorphoWeave submodule first on a fresh checkout, and
 install Blender as described in `tests/end_to_end/README.md`. The existing
 `BLENDER_EXECUTABLE` and `INTERDECA_SMALL_CLAMS` overrides apply.
 
-Only the three named small-clam specimens are used. The harness reuses the e2e
+By default the three named small-clam specimens are used. The harness reuses the e2e
 fixture conversion from LPS to RAS, outside the measurements, and leaves the
 reference package untouched. Baking uses 512 × 512 output textures; source
 textures retain their original resolution. The full action chain includes
 atlas construction, alignment, correspondence, baking, color sampling with
 1,000 faces, PCA, reconstruction, display, selection, and export. This profiles
 the shared application core through the CLI, not Slicer startup or rendering.
+
+For the complete population, reuse a prepared RAS input directory containing
+`models/`, `landmarks/`, `textures/`, and `curve.npy`. Input preparation and hashing
+stay outside the measured sessions. This runs three baselines plus a separate
+spans, CPU, and allocation capture for each backend, twelve runs in total:
+
+```sh
+just rust-build
+uv run --no-sync python -m tools.profiling \
+  --inputs /path/to/prepared-47-clams --expected-specimens 47 \
+  --output build/profiling/rust-47 --repeats 3 --timeout 14400 \
+  --omit-artifacts
+uv run --no-sync python -m tools.profiling.summarize build/profiling/rust-47
+```
+
+`--omit-artifacts` bounds disk use by hashing and then removing each successful
+capture's generated OBJ, PNG, NPY, and NPZ files, after comparison and outside
+the timer. Metadata, logs, raw profiles, and per-file hashes remain. Omit this
+option when later numerical re-analysis of the output arrays is needed.
+Resume rehashes retained files and checks the omitted hashes against the run
+record. It also checks Rust sources, Cargo lockfile, and the loaded native binary.
 
 ## Measurements and files
 
@@ -69,7 +90,8 @@ The default is ten sequential fresh-process runs:
 `--repeats` affects only the baseline. No cold filesystem-cache claim is made.
 The same backend's atlas files and presentation arrays must have identical
 SHA-256 hashes across all measured runs. Failures stop the harness and retain
-the logs. Each child has a 40-minute timeout and its own process group for cleanup.
+the logs. Each child has a configurable timeout (40 minutes by default) and its
+own process group for cleanup.
 
 Each run contains:
 

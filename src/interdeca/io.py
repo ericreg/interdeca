@@ -18,6 +18,7 @@ from vtkmodules.vtkIOGeometry import vtkSTLReader
 from vtkmodules.vtkIOPLY import vtkPLYReader
 from vtkmodules.vtkIOXML import vtkXMLPolyDataReader
 
+from interdeca import _native
 from interdeca.models import (
     CoordinateSystem,
     FloatArray,
@@ -26,6 +27,7 @@ from interdeca.models import (
     TexturePixels,
 )
 from interdeca.serde import (
+    ArraySerde,
     CorrespondenceMeshData,
     LandmarkRowData,
     LandmarksData,
@@ -33,6 +35,8 @@ from interdeca.serde import (
     MarkupsDocumentData,
     MarkupSetData,
     MeshData,
+    NativeMeshInput,
+    NativeTextureInput,
     TexturePixelsData,
 )
 
@@ -86,7 +90,13 @@ class MeshIO:
         # OBJ needs separate vertex and UV indexing to preserve seams; use the
         # format-specific VTK readers for the other supported surface formats.
         if source.suffix.lower() == ".obj":
-            mesh = MeshIO._read_obj(source, schema)
+            return Mesh(
+                *_native.read_obj(
+                    source,
+                    coordinate_system=coordinate_system,
+                    allow_degenerate=allow_degenerate,
+                )
+            )
         else:
             readers = {
                 ".ply": vtkPLYReader,
@@ -127,86 +137,6 @@ class MeshIO:
         return mesh
 
     @staticmethod
-    def _read_obj(path: Path, schema: type[MeshData] = MeshData) -> Mesh:
-        """Parse vertex and UV indices independently, including negative indices."""
-        # Keep geometry and texture indices separate because one geometric
-        # vertex may have a different texture coordinate on each side of a seam.
-        vertices, texture_vertices, faces, face_uv = [], [], [], []
-        uv_presence: set[bool] = set()
-        with path.open(encoding="utf-8-sig") as stream:
-            for line_number, line in enumerate(stream, start=1):
-                # Strip file comments before parsing so annotations cannot be
-                # mistaken for extra coordinate values or face corners.
-                fields = line.partition("#")[0].split()
-                if not fields:
-                    continue
-                try:
-                    if fields[0] == "v":
-                        if len(fields) < 4:
-                            raise ValueError("Incomplete vertex.")
-                        vertices.append([float(value) for value in fields[1:4]])
-                    elif fields[0] == "vt":
-                        if len(fields) < 3:
-                            raise ValueError("Incomplete texture coordinate.")
-                        texture_vertices.append([float(value) for value in fields[1:3]])
-                    elif fields[0] == "f":
-                        # Reject polygons rather than inventing a triangulation
-                        # that might change the surface of a concave face.
-                        if len(fields) != 4:
-                            raise ValueError(
-                                "OBJ faces must be triangles; triangulate the source first."
-                            )
-                        # Resolve every corner against its own vertex and texture
-                        # lists instead of assuming the two index sequences agree.
-                        triangle, triangle_uv = [], []
-                        for corner in fields[1:]:
-                            indices = corner.split("/")
-                            triangle.append(
-                                MeshIO._obj_index(indices[0], len(vertices))
-                            )
-                            has_uv = len(indices) > 1 and bool(indices[1])
-                            uv_presence.add(has_uv)
-                            if has_uv:
-                                triangle_uv.append(
-                                    texture_vertices[
-                                        MeshIO._obj_index(
-                                            indices[1], len(texture_vertices)
-                                        )
-                                    ]
-                                )
-                        faces.append(triangle)
-                        if triangle_uv:
-                            face_uv.append(triangle_uv)
-                except (ValueError, IndexError) as error:
-                    # Include the source line so malformed data can be corrected
-                    # without debugging the entire downstream mesh pipeline.
-                    raise ValueError(f"{path}:{line_number}: {error}") from error
-        # Partial UV coverage would leave some faces with undefined colors, so
-        # require either complete corner coordinates or an entirely untextured mesh.
-        if len(uv_presence) > 1:
-            raise ValueError(
-                f"{path}: texture coordinates are missing from some face corners."
-            )
-        # Structural parsing alone cannot detect invalid geometry; apply the
-        # boundary model's numerical checks before exposing the mesh to callers.
-        return schema(
-            vertices=np.asarray(vertices),
-            faces=np.asarray(faces, dtype=np.int64),
-            uv=np.asarray(face_uv) if face_uv else None,
-        ).to_internal()
-
-    @staticmethod
-    def _obj_index(value: str, count: int) -> int:
-        """Translate OBJ's one-based or negative-relative index into zero-based."""
-        # OBJ counts positive indices from one and negative indices backward
-        # from the current list end; zero has no defined meaning in that format.
-        index = int(value)
-        resolved = index - 1 if index > 0 else count + index
-        if index == 0 or not 0 <= resolved < count:
-            raise ValueError(f"Invalid OBJ index {index} for {count} entries.")
-        return resolved
-
-    @staticmethod
     def write_obj(
         mesh: Mesh,
         path: Path | str,
@@ -221,38 +151,19 @@ class MeshIO:
         allow_degenerate preserves collapsed triangles in correspondence outputs;
         ordinary surface exports keep strict geometric validation.
         """
-        # Check the complete record before encoding so an invalid internal mesh
-        # cannot become an apparently valid artifact for another process.
-        schema = CorrespondenceMeshData if allow_degenerate else MeshData
-        mesh = schema.from_internal(mesh).to_internal()
-        stream = io.StringIO()
-        stream.write(
-            "# InterDeCA; RAS coordinates; triangle and vertex order preserved\n"
+        # The boundary normalizes numeric dtypes without materializing Python
+        # lists or duplicate float buffers. Rust snapshots, validates, and streams.
+        data = NativeMeshInput.model_validate(mesh, from_attributes=True)
+        destination = Path(path).expanduser().resolve()
+        _native.write_obj(
+            destination,
+            data.vertices,
+            data.faces,
+            data.uv,
+            overwrite=overwrite,
+            allow_degenerate=allow_degenerate,
         )
-        # Preserve enough digits to recover double-precision coordinates when
-        # the OBJ is loaded again, without changing its vertex order.
-        for vertex in mesh.vertices:
-            stream.write(
-                "v " + " ".join(format(value, ".17g") for value in vertex) + "\n"
-            )
-        # One texture coordinate per corner preserves seams without forcing
-        # duplicate geometric vertices into the exported surface.
-        if mesh.uv is not None:
-            for uv in mesh.uv.reshape(-1, 2):
-                stream.write(
-                    "vt " + " ".join(format(value, ".17g") for value in uv) + "\n"
-                )
-        # Pair each geometric index with its exported corner UV index while
-        # converting back to OBJ's one-based numbering.
-        for face_index, face in enumerate(mesh.faces):
-            corners = [str(int(index) + 1) for index in face]
-            if mesh.uv is not None:
-                corners = [
-                    f"{vertex}/{face_index * 3 + corner + 1}"
-                    for corner, vertex in enumerate(corners)
-                ]
-            stream.write("f " + " ".join(corners) + "\n")
-        return Files.write(path, stream.getvalue().encode("utf-8"), overwrite=overwrite)
+        return destination
 
     @staticmethod
     def to_polydata(mesh: Mesh) -> vtkPolyData:
@@ -435,8 +346,8 @@ class TextureIO:
         """Quantize unit-range color and alpha to an explicitly encoded PNG file."""
         # Validate bounds before quantization so invalid numerical results are
         # rejected instead of hidden by clipping or integer overflow.
-        image = TexturePixelsData(rgb=rgb, alpha=alpha).to_internal()
-        pixels = np.rint(np.dstack((image.rgb, image.alpha)) * 255).astype(np.uint8)
+        data = NativeTextureInput(rgb=rgb, alpha=alpha)
+        pixels = _native.texture_to_rgba8(data.rgb, data.alpha)
         # Finish image encoding in memory before creating the destination file,
         # keeping encoding failures from leaving a partial PNG artifact.
         buffer = io.BytesIO()
@@ -448,14 +359,11 @@ class TextureIO:
         """Decode sRGB's transfer curve before physically meaningful averaging."""
         # Undo sRGB's nonlinear encoding so arithmetic averages represent average
         # light levels instead of averages distorted by display encoding.
-        return np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+        return _native.texture_to_linear(ArraySerde.floating_input(rgb))
 
     @staticmethod
     def from_linear(rgb: FloatArray) -> FloatArray:
         """Encode nonnegative linear-light RGB back into bounded sRGB."""
         # Limit output to representable display values before applying the sRGB
         # curve, which is undefined for negative inputs in its power-law branch.
-        bounded = np.clip(rgb, 0, 1)
-        return np.where(
-            bounded <= 0.0031308, 12.92 * bounded, 1.055 * bounded ** (1 / 2.4) - 0.055
-        )
+        return _native.texture_from_linear(ArraySerde.floating_input(rgb))

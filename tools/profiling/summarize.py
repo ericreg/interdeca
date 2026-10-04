@@ -221,10 +221,14 @@ def main():
                 )
     (root / "summary.json").write_text(summary.model_dump_json(indent=2) + "\n")
     memory_plot(root, runs)
+    environment = json.loads((root / "environment.json").read_text())
+    count = len(environment.get("specimens", [])) or 3
     sections = [
-        "<h1>Small-clams CPU and memory profile</h1>",
-        "<p>Fresh CLI processes using the shared application core; three raw specimens, 512 × 512 baking, 1,000 sampled faces, PCA and presentation actions. No Slicer UI or full dataset was run.</p>",
+        f"<h1>{count}-clam CPU and memory profile</h1>",
+        f"<p>Fresh CLI processes using the shared application core; {count} prepared specimens, 512 × 512 baking, 1,000 sampled faces, PCA and presentation actions. Slicer startup and rendering are excluded.</p>",
     ]
+    if any((run.config.output / "omitted-artifacts.json").exists() for run in runs):
+        sections.append("<p>Generated meshes, images, and arrays were hashed and removed after verification to bound disk use. Logs, profiles, metadata, and hashes are retained.</p>")
     # Keep the low-overhead comparison ahead of the instrumented tables. With
     # only two repeats these are descriptive medians, not confidence intervals.
     baseline_rows = []

@@ -1,0 +1,19 @@
+[package]
+name = "interdeca-native"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[lib]
+name = "_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+numpy = "0.29"
+pyo3 = "0.29"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+# Keep native frames attributable in allocation profiles without disabling optimization.
+debug = 1

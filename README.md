@@ -26,6 +26,15 @@ git submodule update --init --recursive
 uv sync
 ```
 
+The core now includes a required Rust extension built by Maturin. Source checkout
+development needs Rust and the platform linker (Xcode command-line tools on
+macOS, MSVC tools on Windows, or a C toolchain on Linux). `just rust-build`
+rebuilds and installs the optimized extension into `.venv` after Rust edits;
+Python-only edits remain editable. `just rust-check` runs the non-Slicer checks
+and `just rust-wheel` creates the combined Python/Rust wheel. See
+[native development and numerical contracts](rust/README.md). Installing a
+compatible prebuilt wheel does not require a Rust compiler.
+
 UMAP is a required core dependency; no extra installation flag is needed.
 Slicer still installs only the independent client, keeping UMAP and its numerical
 dependencies in the external worker environment.

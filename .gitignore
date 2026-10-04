@@ -10,3 +10,10 @@ wheels/
 .venv
 .ruff_cache
 .pytest_cache/
+
+# Compiled native extension and local Cargo build products.
+rust/target/
+src/interdeca/*.so
+src/interdeca/*.pyd
+src/interdeca/*.dylib
+experimental_perf_tests/

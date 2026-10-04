@@ -28,7 +28,10 @@ def test_decoded_pixels_match_previous_float64_path(tmp_path, rgba, mode, suffix
     np.testing.assert_array_equal(actual.alpha, expected[..., 3])
     for array in actual:
         assert array.dtype == np.float64
-        assert array.flags.c_contiguous and array.flags.owndata
+        # Rust transfers ownership through a NumPy base capsule. The contract
+        # requires independent storage, not NumPy's particular OWNDATA flag.
+        assert array.flags.c_contiguous
+        assert not np.shares_memory(array, expected)
         assert not array.flags.writeable
 
 

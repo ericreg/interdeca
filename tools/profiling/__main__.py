@@ -1,4 +1,4 @@
-"""Profile only the three small clams in fresh, sequential CLI processes."""
+"""Profile prepared clams in fresh, sequential CLI processes."""
 
 import argparse
 import hashlib
@@ -8,6 +8,7 @@ import os
 import platform
 import pstats
 import runpy
+import shutil
 import signal
 import subprocess
 import sys
@@ -16,6 +17,7 @@ from pathlib import Path
 
 import psutil
 
+from interdeca import _native
 from interdeca.blender import Blender
 from interdeca.serde import BlenderInstallationData
 from tools.profiling.capture import run_child
@@ -36,6 +38,15 @@ def fingerprint(directory: Path) -> dict[str, str]:
     Array keys follow presentation fields, so random artifact filenames cannot
     hide a changed result. Files are compared exactly, with no tolerance tuning.
     """
+    # Optional storage compaction happens only after the complete output was
+    # hashed. Resume still rehashes every retained file and checks the saved
+    # hashes of deliberately omitted artifacts against the original run record.
+    omitted_path = directory / "omitted-artifacts.json"
+    omitted = json.loads(omitted_path.read_text()) if omitted_path.exists() else {}
+
+    def digest(path):
+        return sha256(path) if path.is_file() else omitted[str(path.relative_to(directory))]
+
     events = [
         json.loads(line)
         for line in (directory / "cli/events.jsonl").read_text().splitlines()
@@ -67,11 +78,15 @@ def fingerprint(directory: Path) -> dict[str, str]:
         for path in atlas.rglob("*")
         if path.is_file() and path.name != "atlas_run.json"
     }
+    hashes.update({
+        name: value for name, value in omitted.items()
+        if name.startswith("atlas/") and not (directory / name).exists()
+    })
 
     def visit(value, key):
         if isinstance(value, dict):
             if "path" in value and "dtype" in value and "shape" in value:
-                hashes[key] = sha256(directory / "cli" / value["path"])
+                hashes[key] = digest(directory / "cli" / value["path"])
             else:
                 for name, child in value.items():
                     visit(child, key + "/" + name)
@@ -81,6 +96,24 @@ def fingerprint(directory: Path) -> dict[str, str]:
 
     visit(results, "presentations")
     return hashes
+
+
+def omit_artifacts(directory: Path):
+    """Free this successful capture's generated data after hashing, off the timer.
+
+    Inputs, other captures, metadata, logs, and profiler evidence are untouched.
+    This explicitly trades later numerical re-analysis for bounded disk use;
+    the saved hashes still verify equality between measured captures.
+    """
+    paths = [
+        path for folder in ("atlas", "cli")
+        for path in (directory / folder).rglob("*")
+        if path.is_file() and path.suffix.lower() in (".obj", ".png", ".npy", ".npz")
+    ]
+    omitted = {str(path.relative_to(directory)): sha256(path) for path in paths}
+    (directory / "omitted-artifacts.json").write_text(json.dumps(omitted, indent=2) + "\n")
+    for path in paths:
+        path.unlink()
 
 
 def snapshot(process: psutil.Process, full: bool) -> Sample:
@@ -122,16 +155,24 @@ def snapshot(process: psutil.Process, full: bool) -> Sample:
     return Sample(time=time.perf_counter(), processes=rows)
 
 
-def measure(config: Config, interval: float):
+def measure(
+    config: Config,
+    interval: float,
+    *,
+    repository: Path = REPOSITORY,
+    environment: dict[str, str] | None = None,
+    timeout: float = 2400,
+):
     config.output.mkdir()
     path = config.output / "config.json"
-    path.write_text(config.model_dump_json(indent=2) + "\n")
+    path.write_text(config.model_dump_json(indent=2, exclude_none=True) + "\n")
     started = time.perf_counter()
     samples = []
     with (config.output / "console.log").open("w") as log:
         process = subprocess.Popen(
             [sys.executable, "-m", "tools.profiling", "--child", str(path)],
-            cwd=REPOSITORY,
+            cwd=repository,
+            env=environment,
             stdout=log,
             stderr=subprocess.STDOUT,
             start_new_session=True,
@@ -140,9 +181,9 @@ def measure(config: Config, interval: float):
         try:
             with (config.output / "resources.jsonl").open("x") as stream:
                 while process.poll() is None:
-                    if time.perf_counter() - started > 2400:
+                    if time.perf_counter() - started > timeout:
                         raise TimeoutError(
-                            f"Profiling exceeded 40 minutes: {config.output}"
+                            f"Profiling exceeded {timeout / 60:g} minutes: {config.output}"
                         )
                     before = time.perf_counter()
                     sample = snapshot(monitored, full=len(samples) % 5 == 0)
@@ -203,6 +244,13 @@ def measure(config: Config, interval: float):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--inputs", type=Path, help="Existing prepared RAS input directory.")
+    parser.add_argument("--expected-specimens", type=int, help="Require this many OBJ inputs.")
+    parser.add_argument("--timeout", type=float, default=2400, help="Per-child timeout in seconds.")
+    parser.add_argument(
+        "--omit-artifacts", action="store_true",
+        help="Hash then remove generated meshes/images/arrays after each successful run.",
+    )
     parser.add_argument(
         "--resume",
         action="store_true",
@@ -244,17 +292,25 @@ def main():
         )
     if args.cache_budget_mib is not None and args.cache_budget_mib < 0:
         parser.error("Cache budget must be nonnegative.")
+    if args.timeout <= 0:
+        parser.error("Timeout must be positive.")
     if len(set(args.backends)) != len(args.backends):
         parser.error("Specify each backend only once.")
     root = args.output.resolve()
     root.mkdir(parents=True, exist_ok=args.resume)
     # Reuse the exact e2e fixture preparation, restricted to its three IDs. Input
     # conversion is outside every measurement and never changes reference files.
-    if not args.resume:
+    inputs = args.inputs.expanduser().resolve(strict=True) if args.inputs else root / "inputs"
+    if not args.resume and args.inputs is None:
         fixture = runpy.run_path(
             str(REPOSITORY / "tests/end_to_end/test_small_clams.py")
         )
         fixture["prepare_inputs"](root / "inputs")
+    specimens = sorted(path.stem for path in (inputs / "models").glob("*.obj"))
+    if not specimens or (args.expected_specimens is not None and len(specimens) != args.expected_specimens):
+        raise ValueError(f"Unexpected specimen count: {len(specimens)}")
+    if not (inputs / "curve.npy").is_file():
+        raise ValueError("Prepared inputs need curve.npy for the selection action.")
     environment = {
         "platform": platform.platform(),
         "python": sys.version,
@@ -283,14 +339,23 @@ def main():
             ["git", "status", "--short"], cwd=REPOSITORY, text=True
         ),
         "lock_sha256": sha256(REPOSITORY / "uv.lock"),
+        "inputs": str(inputs),
+        "specimens": specimens,
+        "native_sha256": sha256(Path(_native.__file__)),
+        "rust_sha256": {
+            str(path.relative_to(REPOSITORY)): sha256(path)
+            for path in [*(REPOSITORY / "rust/src").rglob("*.rs"),
+                         REPOSITORY / "rust/Cargo.toml", REPOSITORY / "rust/Cargo.lock",
+                         REPOSITORY / "pyproject.toml"]
+        },
         "source_sha256": {
             str(path.relative_to(REPOSITORY)): sha256(path)
             for folder in ("src", "client", "tools/profiling")
             for path in (REPOSITORY / folder).rglob("*.py")
         },
         "inputs_sha256": {
-            str(p.relative_to(root / "inputs")): sha256(p)
-            for p in (root / "inputs").rglob("*")
+            str(p.relative_to(inputs)): sha256(p)
+            for p in inputs.rglob("*")
             if p.is_file()
         },
         "thread_environment": {
@@ -310,6 +375,8 @@ def main():
             or previous["git_head"] != environment["git_head"]
             or previous.get("lock_sha256") != environment["lock_sha256"]
             or previous.get("source_sha256") != environment["source_sha256"]
+            or previous.get("native_sha256") != environment["native_sha256"]
+            or previous.get("rust_sha256") != environment["rust_sha256"]
         ):
             raise RuntimeError(
                 "Cannot resume with changed inputs, sources, lockfile, or repository HEAD."
@@ -341,7 +408,7 @@ def main():
                 config = Config(
                     backend=backend,
                     mode=mode,
-                    inputs=root / "inputs",
+                    inputs=inputs,
                     output=root / f"{backend}-{mode}-{repeat + 1}",
                     cache_budget_bytes=(
                         None
@@ -356,12 +423,18 @@ def main():
                     if existing.exit_code == 0 and existing.config == config:
                         continue
                 print(f"Starting {config.output.name}", flush=True)
-                result = measure(config, args.interval)
+                if shutil.disk_usage(root).free < 8 * 2**30:
+                    raise RuntimeError("At least 8 GiB free disk is required to start a capture.")
+                result = measure(config, args.interval, timeout=args.timeout)
                 if backend in expected and result.output_hashes != expected[backend]:
                     raise RuntimeError(
                         f"Instrumented outputs differ for {backend}; inspect {config.output}"
                     )
                 expected[backend] = result.output_hashes
+                if args.omit_artifacts:
+                    omit_artifacts(config.output)
+                    if fingerprint(config.output) != result.output_hashes:
+                        raise RuntimeError("Artifact omission changed the verified fingerprint.")
     print(
         f"All runs completed with identical outputs within each backend: {root}",
         flush=True,

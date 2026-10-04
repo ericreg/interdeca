@@ -16,7 +16,7 @@ import numpy as np
 import psutil
 import yappi
 
-from interdeca import morphoweave
+from interdeca import _native, morphoweave
 from interdeca._mesh_cache import MeshCache
 from interdeca._morphoweave_host import DataNode, Host
 from interdeca.blender import Blender
@@ -277,8 +277,16 @@ class Recorder:
         ):
             for name in names:
                 self.wrap(owner, name)
-        self.wrap(MeshIO, "_read_obj", file_direction="read")
-        self.wrap(MeshIO, "write_obj", file_direction="write", path_index=1)
+        # Native entry points replace the removed Python OBJ codec. Keep file
+        # traffic at these boundaries; nested wrappers otherwise double-count it.
+        self.wrap(_native, "read_obj", file_direction="read")
+        self.wrap(_native, "write_obj", file_direction="write")
+        self.wrap(MeshIO, "write_obj")
+        for name in (
+            "texture_from_rgba8", "texture_to_rgba8",
+            "texture_to_linear", "texture_from_linear",
+        ):
+            self.wrap(_native, name)
         original_load = morphoweave.load_atlas_builder
 
         def load(host):

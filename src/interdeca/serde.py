@@ -9,7 +9,7 @@ geometry/color computation code and out of Blender's Python installation.
 
 import json
 from pathlib import Path
-from typing import Annotated, ClassVar, Generic, Literal, NamedTuple, Self, TypeVar
+from typing import Annotated, ClassVar, Generic, Literal, Self, TypeVar
 
 import numpy as np
 from pydantic import (
@@ -26,6 +26,7 @@ from pydantic import (
     model_validator,
 )
 
+from interdeca import _native
 from interdeca._blender_protocol import (
     BlenderBakeRequest,
     BlenderCleanupRequest,
@@ -62,12 +63,6 @@ from interdeca.models import (
 )
 
 
-class _TextureBytes(NamedTuple):
-    """Private channel input distinguishing byte normalization from unit colors."""
-
-    pixels: np.ndarray
-
-
 class ArraySerde:
     """Narrow array conversions shared by Pydantic field annotations."""
 
@@ -84,23 +79,24 @@ class ArraySerde:
         return Arrays.frozen(array)
 
     @staticmethod
-    def texture_channel(value: object) -> np.ndarray:
-        """Own one float64 channel buffer, optionally converting 8-bit sRGB.
+    def floating_input(value: object) -> np.ndarray:
+        """Type-check a borrowed native input; Rust checks numerical invariants.
 
-        Ordinary boundary inputs retain the same strict finite-number checks.
-        The byte-image factory supplies a private record so uint8 unit-range
-        inputs are never accidentally interpreted as an encoded image.
+        Float64 arrays retain their strides and avoid a copy. The native writer
+        snapshots borrowed geometry; texture kernels hold the GIL during use.
         """
-        if not isinstance(value, _TextureBytes):
-            return ArraySerde.floating(value)
-        if value.pixels.dtype != np.uint8:
-            raise ValueError("Encoded texture channels must be uint8.")
-        # Allocate the final contiguous float buffer once. In-place division
-        # has the same float64 arithmetic as the previous RGBA / 255 operation.
-        array = np.array(value.pixels, dtype=np.float64, order="C", copy=True)
-        array /= 255.0
-        array.setflags(write=False)
-        return array
+        array = np.asarray(value)
+        if array.dtype.kind not in "iuf":
+            raise ValueError("Expected a numeric array, not strings, booleans, or objects.")
+        return array.astype(np.float64, copy=False)
+
+    @staticmethod
+    def integer_input(value: object) -> np.ndarray:
+        """Require actual integer indices before the native bounds checks."""
+        array = np.asarray(value)
+        if array.dtype.kind not in "iu":
+            raise ValueError("Index arrays require integers without rounding or coercion.")
+        return array.astype(np.int64, copy=False)
 
     @staticmethod
     def integer(value: object) -> np.ndarray:
@@ -139,12 +135,6 @@ class ArraySerde:
 FloatBuffer = Annotated[
     np.ndarray,
     PlainValidator(ArraySerde.floating),
-    PlainSerializer(ArraySerde.nested_lists, return_type=list, when_used="json"),
-    WithJsonSchema({"type": "array"}),
-]
-TextureBuffer = Annotated[
-    np.ndarray,
-    PlainValidator(ArraySerde.texture_channel),
     PlainSerializer(ArraySerde.nested_lists, return_type=list, when_used="json"),
     WithJsonSchema({"type": "array"}),
 ]
@@ -357,6 +347,33 @@ class MeshData(CoreData[Mesh]):
         return self
 
 
+class NativeMeshInput(BoundaryData):
+    """Borrowed typed arrays passed only to Rust's validating OBJ writer.
+
+    These are not validated internal meshes. Rust snapshots the arrays, checks
+    all shapes, indices, finiteness, and triangle geometry before opening a file.
+    """
+
+    vertices: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+    faces: Annotated[np.ndarray, PlainValidator(ArraySerde.integer_input)]
+    uv: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)] | None = None
+
+
+class NativeTextureInput(BoundaryData):
+    """Borrowed float channels for fused native validation and quantization."""
+
+    rgb: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+    alpha: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+
+    @model_validator(mode="after")
+    def check_dimensions(self) -> Self:
+        # Map wrong-rank inputs to the public validation error before PyO3's
+        # typed NumPy extraction; Rust checks channel counts and matching sizes.
+        if self.rgb.ndim != 3 or self.alpha.ndim != 2:
+            raise ValueError("Textures need RGB (height, width, 3) and matching alpha.")
+        return self
+
+
 class CorrespondenceMeshData(MeshData):
     """Projected mesh retaining collapsed faces and every original index and UV.
 
@@ -531,8 +548,8 @@ class TexturePixelsData(CoreData[TexturePixels]):
 
     # Validate color and coverage as one image so their pixel grids cannot diverge.
     record_type = TexturePixels
-    rgb: TextureBuffer
-    alpha: TextureBuffer
+    rgb: FloatBuffer
+    alpha: FloatBuffer
 
     @model_validator(mode="after")
     def validate_record(self) -> Self:
@@ -553,11 +570,13 @@ class TexturePixelsData(CoreData[TexturePixels]):
             raise ValueError("Encoded textures must be uint8 arrays.")
         if pixels.ndim != 3 or pixels.shape[-1] != 4:
             raise ValueError("Encoded textures need shape (height, width, 4).")
-        # Both fields make owned copies; writable views of the caller's byte
-        # buffer cannot mutate accepted colors after this boundary returns.
-        return cls(
-            rgb=_TextureBytes(pixels[..., :3]), alpha=_TextureBytes(pixels[..., 3])
-        )
+        # Rust validates the image shape and creates private, finite unit-range
+        # buffers. Construct the boundary around those already checked outputs;
+        # ordinary field validation would allocate the same image a second time.
+        rgb, alpha = _native.texture_from_rgba8(pixels)
+        result = cls.model_construct(rgb=rgb, alpha=alpha)
+        result._internal = TexturePixels(rgb, alpha)
+        return result
 
 
 class SampledColorsData(CoreData[SampledColors]):
