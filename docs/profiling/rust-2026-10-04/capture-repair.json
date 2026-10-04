@@ -1,0 +1,10 @@
+{
+  "reason": "Correct off-timer fingerprint reconstruction for omitted files under a uniquely named atlas directory.",
+  "affected_file": "tools/profiling/__main__.py",
+  "original_sha256": "14f23e0078bacd91a49593fb067b986865bb63a6aeef856fb4362cc97e6041ae",
+  "corrected_sha256": "b4ee2595d7f27b42df8b3756b3a92faf6c6e95794e48f8ea340af039ad105cba",
+  "preserved_capture": "native-baseline-1",
+  "verified_fingerprints": 253,
+  "measured_application_changed": false,
+  "native_binary_changed": false
+}

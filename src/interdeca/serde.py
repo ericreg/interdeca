@@ -82,13 +82,15 @@ class ArraySerde:
     def floating_input(value: object) -> np.ndarray:
         """Type-check a borrowed native input; Rust checks numerical invariants.
 
-        Float64 arrays retain their strides and avoid a copy. The native writer
-        snapshots borrowed geometry; texture kernels hold the GIL during use.
+        Aligned float64 arrays retain their strides and avoid a copy. The native
+        writer snapshots geometry; texture kernels hold the GIL during use.
         """
         array = np.asarray(value)
         if array.dtype.kind not in "iuf":
             raise ValueError("Expected a numeric array, not strings, booleans, or objects.")
-        return array.astype(np.float64, copy=False)
+        # Packed structured fields and offset buffers can violate Rust's scalar
+        # alignment. Copy only those layouts before borrowing native references.
+        return np.require(array, dtype=np.float64, requirements=["A"])
 
     @staticmethod
     def integer_input(value: object) -> np.ndarray:
@@ -96,7 +98,7 @@ class ArraySerde:
         array = np.asarray(value)
         if array.dtype.kind not in "iu":
             raise ValueError("Index arrays require integers without rounding or coercion.")
-        return array.astype(np.int64, copy=False)
+        return np.require(array, dtype=np.int64, requirements=["A"])
 
     @staticmethod
     def integer(value: object) -> np.ndarray:

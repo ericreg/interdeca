@@ -1,0 +1,32 @@
+{
+  "captures": 12,
+  "measured_files_verified": 56,
+  "outputs": {
+    "native": {
+      "captures": 6,
+      "consistent_hashes": 253,
+      "historical_identical": 158,
+      "historical_obj_text_changes": 95
+    },
+    "morphoweave": {
+      "captures": 6,
+      "consistent_hashes": 253,
+      "historical_identical": 158,
+      "historical_obj_text_changes": 95
+    }
+  },
+  "allocation_groups_bytes": {
+    "native": {
+      "inspect_specimen": 2467860167,
+      "other": 1030561626,
+      "resample_specimen": 1739534616,
+      "align_specimen": 1659402152
+    },
+    "morphoweave": {
+      "other": 1018180089,
+      "resample_specimen": 733918695,
+      "inspect_specimen": 2467860151,
+      "align_specimens": 2420949304
+    }
+  }
+}

@@ -79,8 +79,10 @@ def fingerprint(directory: Path) -> dict[str, str]:
         if path.is_file() and path.name != "atlas_run.json"
     }
     hashes.update({
-        name: value for name, value in omitted.items()
-        if name.startswith("atlas/") and not (directory / name).exists()
+        "atlas/" + str(Path(name).relative_to(atlas.relative_to(directory))): value
+        for name, value in omitted.items()
+        if Path(name).is_relative_to(atlas.relative_to(directory))
+        and not (directory / name).exists()
     })
 
     def visit(value, key):

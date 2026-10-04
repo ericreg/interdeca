@@ -11,7 +11,7 @@ use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 
 use numpy::ndarray::{Array2, Array3};
-use numpy::{IntoPyArray, PyArray2, PyArray3, PyReadonlyArrayDyn};
+use numpy::{IntoPyArray, PyArray2, PyArray3, PyReadonlyArrayDyn, PyUntypedArrayMethods};
 use pyo3::exceptions::{PyOSError, PyValueError};
 use pyo3::prelude::*;
 
@@ -302,8 +302,8 @@ fn snapshot(
     faces: PyReadonlyArrayDyn<'_, i64>,
     uv: Option<PyReadonlyArrayDyn<'_, f64>>,
 ) -> PyResult<MeshBuffers> {
-    let vertices = vertices.as_array();
-    let faces = faces.as_array();
+    // Inspect metadata before constructing Rust views: empty negative strides
+    // and unsupported ranks must never reach rust-numpy's view conversion.
     if vertices.ndim() != 2 || vertices.shape()[1] != 3 || vertices.shape()[0] == 0 {
         return Err(PyValueError::new_err(
             "vertices must have shape (N, 3), with N > 0.",
@@ -314,15 +314,20 @@ fn snapshot(
             "faces must have shape (M, 3), with M > 0.",
         ));
     }
+    crate::require_aligned(&vertices)?;
+    crate::require_aligned(&faces)?;
+    let vertices = vertices.as_array();
+    let faces = faces.as_array();
     let uv = match uv {
         None => None,
         Some(uv) => {
-            let uv = uv.as_array();
             if uv.shape() != [faces.shape()[0], 3, 2] {
                 return Err(PyValueError::new_err(
                     "uv must have shape (number_of_faces, 3, 2).",
                 ));
             }
+            crate::require_aligned(&uv)?;
+            let uv = uv.as_array();
             Some(uv.iter().copied().collect())
         }
     };

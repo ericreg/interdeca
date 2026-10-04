@@ -25,6 +25,11 @@ Texture operations hold it while borrowing Python arrays; callers must not
 mutate those inputs concurrently. No fast-math or parallel numerical reductions
 are enabled.
 
+Public adapters copy unaligned NumPy inputs before borrowing them; ordinary
+aligned strided views need no normalization copy. Private native entry points
+reject unaligned nonempty arrays. Transfer curves preserve empty shapes and
+accept up to 32 dimensions, matching rust-numpy's view limit.
+
 From the repository root, with Rust, a platform linker, `uv`, and `just` installed:
 
 ```sh

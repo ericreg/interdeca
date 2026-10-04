@@ -230,7 +230,7 @@ def main():
     if any((run.config.output / "omitted-artifacts.json").exists() for run in runs):
         sections.append("<p>Generated meshes, images, and arrays were hashed and removed after verification to bound disk use. Logs, profiles, metadata, and hashes are retained.</p>")
     # Keep the low-overhead comparison ahead of the instrumented tables. With
-    # only two repeats these are descriptive medians, not confidence intervals.
+    # few repeats these are descriptive medians, not confidence intervals.
     baseline_rows = []
     for backend in ("native", "morphoweave"):
         selected = [
@@ -424,10 +424,12 @@ def main():
                     f'<p><a href="{name}/cpu-01.txt">Atlas Yappi CPU report</a>; additional per-pipeline .pstats and text reports are in this run directory.</p>'
                 )
     sections.append(
-        "<h2>Interpretation limits</h2><p>Nested inclusive times must not be summed. Exclusive spans subtract only other explicitly instrumented spans; they are not pure kernel time. Yappi uses per-thread CPU clocks and exports thread totals plus combined Python-thread function tables. Task process CPU includes all application threads; waited-for child CPU is separate. Logical OBJ bytes count codec traffic, not physical storage transfers. Memray starts after module imports, tracks allocations in the application process including native libraries, and does not track Blender after exec. Its aggregated format records live allocations at peak, not total allocation churn; native symbols may be incomplete on macOS. No fifty-specimen peak memory is inferred by multiplying a three-specimen measurement.</p>"
+        "<h2>Interpretation limits</h2><p>Nested inclusive times must not be summed. Exclusive spans subtract only other explicitly instrumented spans; they are not pure kernel time. Yappi uses per-thread CPU clocks and exports thread totals plus combined Python-thread function tables. Task process CPU includes all application threads; waited-for child CPU is separate. Logical OBJ bytes count codec traffic, not physical storage transfers. Memray starts after module imports, tracks allocations in the application process including native libraries, and does not track Blender after exec. Its aggregated format records live allocations at peak, not total allocation churn; native symbols may be incomplete on macOS. Memory conclusions apply to the measured dataset and configuration.</p>"
     )
     document = (
-        '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Small-clams profile</title><style>body{font:15px system-ui;max-width:1500px;margin:32px auto;padding:0 24px;color:#17212b}table{border-collapse:collapse;width:100%;margin:16px 0;font-size:13px}th,td{border-bottom:1px solid #d7dee5;text-align:left;padding:8px;overflow-wrap:anywhere}th{background:#eef3f7}img{max-width:100%}p{line-height:1.6;max-width:1100px}h2{margin-top:40px}</style>'
+        '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width">'
+        + f'<title>{count}-clam profile</title>'
+        + '<style>body{font:15px system-ui;max-width:1500px;margin:32px auto;padding:0 24px;color:#17212b}table{border-collapse:collapse;width:100%;margin:16px 0;font-size:13px}th,td{border-bottom:1px solid #d7dee5;text-align:left;padding:8px;overflow-wrap:anywhere}th{background:#eef3f7}img{max-width:100%}p{line-height:1.6;max-width:1100px}h2{margin-top:40px}</style>'
         + "".join(sections)
         + "</html>"
     )

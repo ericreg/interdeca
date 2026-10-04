@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from PIL import Image
 
+from interdeca import _native
 from interdeca.io import MeshIO, TextureIO
 from interdeca.models import Mesh
 
@@ -74,3 +75,58 @@ def test_transfer_curves_keep_thresholds_and_clipping():
                              (TextureIO.from_linear(values), encoded)):
         np.testing.assert_allclose(actual, expected, rtol=2e-15, atol=0, equal_nan=True)
         assert np.array_equal(np.signbit(actual[expected == 0]), np.signbit(expected[expected == 0]))
+
+
+def unaligned(values):
+    """Build an ordinary NumPy buffer view that cannot back Rust references."""
+    source = np.asarray(values)
+    result = np.ndarray(source.shape, dtype=source.dtype,
+                        buffer=bytearray(source.nbytes + 1), offset=1)
+    result[...] = source
+    assert not result.flags.aligned
+    return result
+
+
+def test_unaligned_mesh_and_texture_inputs(tmp_path):
+    # Odd row strides also occur in packed records, independently of the first
+    # element's alignment. Public schemas must preserve logical element values.
+    vertices = np.ndarray((3, 3), dtype=np.float64, buffer=bytearray(80),
+                          offset=1, strides=(25, 8))
+    vertices[...] = [[0, 0, 0], [1, 0, 0], [0, 1, 0]]
+    faces = unaligned(np.array([[0, 1, 2]], dtype=np.int64))
+    uv = unaligned(np.array([[[0., 0.], [1., 0.], [0., 1.]]]))
+    mesh = Mesh(vertices, faces, uv)
+    actual = MeshIO.read(MeshIO.write_obj(mesh, tmp_path / "unaligned.obj"))
+    for expected, value in zip(mesh, actual, strict=True):
+        np.testing.assert_array_equal(value, expected)
+    rgb = unaligned(np.array([[[0., .5, 1.], [.25, .75, .125]]]))
+    alpha = unaligned(np.array([[1., .5]]))
+    for operation in (TextureIO.to_linear, TextureIO.from_linear):
+        np.testing.assert_array_equal(operation(rgb), operation(rgb.copy()))
+    path = TextureIO.write_png(rgb, alpha, tmp_path / "unaligned.png")
+    with Image.open(path) as image:
+        np.testing.assert_array_equal(np.asarray(image),
+                                      np.rint(np.dstack((rgb, alpha)) * 255).astype(np.uint8))
+    # The private extension also defends itself when called without schemas.
+    with pytest.raises(ValueError, match="aligned"):
+        _native.write_obj(tmp_path / "invalid.obj", vertices, faces, uv)
+    with pytest.raises(ValueError, match="aligned"):
+        _native.texture_to_rgba8(rgb, alpha)
+    with pytest.raises(ValueError, match="aligned"):
+        _native.texture_to_linear(rgb)
+
+
+def test_empty_and_excessive_rank_native_inputs(tmp_path):
+    empty = np.ndarray((0, 3), dtype=np.float64, buffer=bytearray(25),
+                       offset=1, strides=(-24, 8))
+    for operation in (TextureIO.to_linear, TextureIO.from_linear):
+        result = operation(empty)
+        assert result.shape == empty.shape and not result.flags.writeable
+    with pytest.raises(ValueError, match="vertices must have shape"):
+        _native.write_obj(tmp_path / "empty.obj", empty, np.array([[0, 1, 2]]))
+    with pytest.raises(ValueError, match="nonempty"):
+        _native.texture_from_rgba8(np.empty((0, 1, 4), dtype=np.uint8))
+    with pytest.raises(ValueError, match="nonempty"):
+        _native.texture_to_rgba8(np.empty((0, 1, 3)), np.empty((0, 1)))
+    with pytest.raises(ValueError, match="at most 32"):
+        _native.texture_from_linear(np.ones((1,) * 33))

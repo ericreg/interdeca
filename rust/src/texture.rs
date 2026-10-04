@@ -1,13 +1,13 @@
 //! Fused texture arithmetic over NumPy buffers, independent of image codecs.
 //!
 //! Borrowed inputs may be strided and are never modified. We keep the GIL while
-//! using Python-owned buffers; only the file parser works on detached Rust data.
+//! using Python-owned buffers; mesh parsing/writing uses detached Rust data.
 //! Each operation allocates only its final outputs, not full-image temporaries.
 
-use numpy::ndarray::{Array2, Array3, ArrayD};
+use numpy::ndarray::{Array2, Array3, ArrayD, IxDyn};
 use numpy::{
     IntoPyArray, PyArray2, PyArray3, PyArrayDyn, PyReadonlyArray2, PyReadonlyArray3,
-    PyReadonlyArrayDyn,
+    PyReadonlyArrayDyn, PyUntypedArrayMethods,
 };
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -20,13 +20,13 @@ fn texture_from_rgba8<'py>(
     py: Python<'py>,
     pixels: PyReadonlyArray3<'py, u8>,
 ) -> PyResult<Channels<'py>> {
-    let pixels = pixels.as_array();
-    let (height, width, channels) = pixels.dim();
+    let (height, width, channels) = (pixels.shape()[0], pixels.shape()[1], pixels.shape()[2]);
     if height == 0 || width == 0 || channels != 4 {
         return Err(PyValueError::new_err(
             "Encoded textures need nonempty shape (height, width, 4).",
         ));
     }
+    let pixels = pixels.as_array();
     let mut rgb = Vec::with_capacity(height * width * 3);
     let mut alpha = Vec::with_capacity(height * width);
     // Lanes preserve logical row/column order even for cropped or reversed
@@ -69,14 +69,16 @@ fn texture_to_rgba8<'py>(
     rgb: PyReadonlyArray3<'py, f64>,
     alpha: PyReadonlyArray2<'py, f64>,
 ) -> PyResult<Bound<'py, PyArray3<u8>>> {
-    let rgb = rgb.as_array();
-    let alpha = alpha.as_array();
-    let (height, width, channels) = rgb.dim();
-    if height == 0 || width == 0 || channels != 3 || alpha.dim() != (height, width) {
+    let (height, width, channels) = (rgb.shape()[0], rgb.shape()[1], rgb.shape()[2]);
+    if height == 0 || width == 0 || channels != 3 || alpha.shape() != [height, width] {
         return Err(PyValueError::new_err(
             "Textures need nonempty RGB (height, width, 3) and matching alpha.",
         ));
     }
+    crate::require_aligned(&rgb)?;
+    crate::require_aligned(&alpha)?;
+    let rgb = rgb.as_array();
+    let alpha = alpha.as_array();
     let mut pixels = Vec::with_capacity(height * width * 4);
     // Validate and quantize in one traversal. There are no copied float
     // channels, stacked float RGBA image, or intermediate scaled/rounded image.
@@ -97,12 +99,37 @@ fn texture_to_rgba8<'py>(
     Ok(pixels)
 }
 
+/// Empty inputs have no values to borrow; preserve their shape without forming
+/// a view from a possibly unaligned pointer or an empty reversed axis.
+fn prepare_transfer<'py>(
+    py: Python<'py>,
+    rgb: &PyReadonlyArrayDyn<'py, f64>,
+) -> PyResult<Option<Bound<'py, PyArrayDyn<f64>>>> {
+    if rgb.ndim() > 32 {
+        return Err(PyValueError::new_err(
+            "Texture arithmetic supports at most 32 dimensions.",
+        ));
+    }
+    if rgb.shape().contains(&0) {
+        let result = ArrayD::from_shape_vec(IxDyn(rgb.shape()), Vec::<f64>::new())
+            .map_err(|error| PyValueError::new_err(error.to_string()))?
+            .into_pyarray(py);
+        result.call_method1("setflags", (false,))?;
+        return Ok(Some(result));
+    }
+    crate::require_aligned(rgb)?;
+    Ok(None)
+}
+
 /// Decode sRGB's piecewise transfer function with one final output buffer.
 #[pyfunction]
 fn texture_to_linear<'py>(
     py: Python<'py>,
     rgb: PyReadonlyArrayDyn<'py, f64>,
 ) -> PyResult<Bound<'py, PyArrayDyn<f64>>> {
+    if let Some(empty) = prepare_transfer(py, &rgb)? {
+        return Ok(empty);
+    }
     let rgb = rgb.as_array();
     // The existing arithmetic helper does not enforce [0,1] or finiteness.
     // Preserve that behavior; finite/unit checks belong at the image boundary.
@@ -129,6 +156,9 @@ fn texture_from_linear<'py>(
     py: Python<'py>,
     rgb: PyReadonlyArrayDyn<'py, f64>,
 ) -> PyResult<Bound<'py, PyArrayDyn<f64>>> {
+    if let Some(empty) = prepare_transfer(py, &rgb)? {
+        return Ok(empty);
+    }
     let rgb = rgb.as_array();
     let values = rgb
         .iter()
