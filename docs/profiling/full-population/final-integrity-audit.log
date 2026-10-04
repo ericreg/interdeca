@@ -1,0 +1,5 @@
+PASS: 141 original input files match both the preparation manifest and reviewed reference manifest.
+PASS: B0 frozen sources, prepared inputs, Blender, dependency versions, lockfile, and runtime identity are unchanged.
+PASS: current frozen sources, prepared inputs, Blender, dependency versions, lockfile, and runtime identity are unchanged.
+PASS: all 24 requested captures exited successfully.
+PASS: production core/client/lockfile and pinned upstream source have no local modifications.

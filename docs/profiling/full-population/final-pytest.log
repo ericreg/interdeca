@@ -1,0 +1,10 @@
+........................                                                 [100%]
+=============================== warnings summary ===============================
+tests/test_population_accuracy.py::test_parallel_surfaces_have_known_distance_and_barycentric_projection
+tests/test_population_accuracy.py::test_parallel_surfaces_have_known_distance_and_barycentric_projection
+tests/test_population_accuracy.py::test_parallel_surfaces_have_known_distance_and_barycentric_projection
+  /Users/eric/code/interdeca/src/interdeca/io.py:269: DeprecationWarning: Call to deprecated method SetCells. (Use ImportLegacyFormat or SetData instead.) -- Deprecated since version 9.6.0.
+    cells.SetCells(len(mesh.faces), numpy_to_vtkIdTypeArray(records, deep=True))
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+24 passed, 3 warnings in 3.86s

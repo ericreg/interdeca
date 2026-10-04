@@ -1,0 +1,12 @@
+{
+  "B0": {
+    "interdeca": "/Users/eric/Library/Application Support/InterDeCA/full-population-2026-10-03/sources/B0/src/interdeca/__init__.py",
+    "interdeca_client": "/Users/eric/Library/Application Support/InterDeCA/full-population-2026-10-03/sources/B0/client/src/interdeca_client/__init__.py",
+    "tools.profiling": "/Users/eric/Library/Application Support/InterDeCA/full-population-2026-10-03/sources/B0/tools/profiling/__init__.py"
+  },
+  "current": {
+    "interdeca": "/Users/eric/Library/Application Support/InterDeCA/full-population-2026-10-03/sources/current/src/interdeca/__init__.py",
+    "interdeca_client": "/Users/eric/Library/Application Support/InterDeCA/full-population-2026-10-03/sources/current/client/src/interdeca_client/__init__.py",
+    "tools.profiling": "/Users/eric/Library/Application Support/InterDeCA/full-population-2026-10-03/sources/current/tools/profiling/__init__.py"
+  }
+}
