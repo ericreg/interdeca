@@ -45,6 +45,7 @@ from interdeca.models import (
     ClusterAlignment,
     ColorMoments,
     ExtractedRegion,
+    FaceAdjacency,
     FaceColors,
     Landmarks,
     Mesh,
@@ -508,6 +509,14 @@ class ResampledSpecimenData(CoreData[ResampledSpecimen]):
     projection_distances: FloatBuffer
 
 
+class FaceAdjacencyData(CoreData[FaceAdjacency]):
+    """Packed face graph, preserving row boundaries and neighbor order."""
+
+    record_type = FaceAdjacency
+    offsets: IntBuffer
+    indices: IntBuffer
+
+
 class AnalysisGeometryData(CoreData[AnalysisGeometry]):
     """Shared atlas measurements, graph adjacency, and sample coverage."""
 
@@ -517,7 +526,7 @@ class AnalysisGeometryData(CoreData[AnalysisGeometry]):
     mesh: MeshData
     face_areas: FloatBuffer
     face_centers: FloatBuffer
-    adjacency: tuple[IntBuffer, ...]
+    adjacency: FaceAdjacencyData
     sample_faces: IntBuffer
     nearest_samples: IntBuffer
     sample_areas: FloatBuffer

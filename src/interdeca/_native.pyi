@@ -41,3 +41,11 @@ def texture_to_linear(rgb: NDArray[np.float64]) -> NDArray[np.float64]:
 def texture_from_linear(rgb: NDArray[np.float64]) -> NDArray[np.float64]:
     """Clip to [0,1] and encode the sRGB transfer curve in one traversal."""
     ...
+
+def smooth_face_colors(
+    rgb: NDArray[np.float64], valid: NDArray[np.bool_], areas: NDArray[np.float64],
+    offsets: NDArray[np.int64], neighbors: NDArray[np.int64],
+    samples: NDArray[np.int64], steps: int,
+) -> NDArray[np.float64]:
+    """Return selected area-weighted face colors from contiguous input buffers."""
+    ...

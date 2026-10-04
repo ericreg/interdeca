@@ -16,6 +16,7 @@ from interdeca.models import (
     Arrays,
     AtlasModel,
     ExtractedRegion,
+    FaceAdjacency,
     FloatArray,
     Landmarks,
     Mesh,
@@ -193,8 +194,18 @@ class Geometry:
             for first, second in combinations(attached, 2):
                 neighbors[first].add(second)
                 neighbors[second].add(first)
-        # Sorting makes neighbor order reproducible rather than dependent on set order.
-        adjacency = tuple(np.asarray(sorted(row), dtype=np.int64) for row in neighbors)
+        # Pack sorted rows once for every specimen's native smoothing pass.
+        # Sorting keeps accumulation order independent of Python set iteration.
+        offsets = np.empty(count + 1, dtype=np.int64)
+        offsets[0] = 0
+        np.cumsum(np.fromiter(map(len, neighbors), dtype=np.int64), out=offsets[1:])
+        adjacency = FaceAdjacency(
+            offsets,
+            np.fromiter(
+                (neighbor for row in neighbors for neighbor in sorted(row)),
+                dtype=np.int64, count=int(offsets[-1]),
+            ),
+        )
         if requested == count:
             # When every face is measured, no shortest-path searches are necessary.
             samples = np.arange(count, dtype=np.int64)
@@ -202,8 +213,8 @@ class Geometry:
         else:
             # Weight adjacent-face connections by physical separation so sample
             # spacing reflects geometry rather than only the number of triangles.
-            rows = np.repeat(np.arange(count), [len(row) for row in adjacency])
-            columns = np.concatenate(adjacency)
+            rows = np.repeat(np.arange(count), np.diff(adjacency.offsets))
+            columns = adjacency.indices
             distances = np.linalg.norm(centers[rows] - centers[columns], axis=1)
             # A positive floor keeps coincident centroids connected in the sparse graph.
             length_scale = max(

@@ -8,6 +8,7 @@ use numpy::{Element, PyReadonlyArray, PyUntypedArrayMethods};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+mod color;
 mod mesh;
 mod texture;
 
@@ -23,6 +24,7 @@ fn require_aligned<T: Element, D: Dimension>(array: &PyReadonlyArray<'_, T, D>) 
 
 #[pymodule]
 fn _native(module: &Bound<'_, PyModule>) -> PyResult<()> {
+    color::register(module)?;
     mesh::register(module)?;
     texture::register(module)?;
     Ok(())

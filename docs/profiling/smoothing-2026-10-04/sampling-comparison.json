@@ -1,0 +1,199 @@
+{
+  "reference_revision": "584fa4f",
+  "reference_source_sha256": "76b470b49cbeb826391952d94d2432b9e710938eb37423690a22c93f5a880559",
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+  "numpy": "2.5.3",
+  "native_sha256": "f2736ed946eecb6a885cedf2691d921aa4fd6ca552eb31b2d27c748baa718442",
+  "backends": {
+    "native": {
+      "faces": 130350,
+      "samples": 1000,
+      "equivalence": [
+        {
+          "specimen": "UF_IZ_507781",
+          "steps": 0,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507782",
+          "steps": 0,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507879",
+          "steps": 0,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507781",
+          "steps": 1,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507782",
+          "steps": 1,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507879",
+          "steps": 1,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507781",
+          "steps": 3,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507782",
+          "steps": 3,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507879",
+          "steps": 3,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        }
+      ],
+      "three_specimen_timings": {
+        "python": [
+          {
+            "wall_seconds": 3.0032647921470925,
+            "cpu_seconds": 3.0030690000000035
+          },
+          {
+            "wall_seconds": 3.0326910000294447,
+            "cpu_seconds": 3.0324999999999953
+          },
+          {
+            "wall_seconds": 3.0479177930392325,
+            "cpu_seconds": 3.0477380000000025
+          }
+        ],
+        "rust": [
+          {
+            "wall_seconds": 0.08081724995281547,
+            "cpu_seconds": 0.08080900000000213
+          },
+          {
+            "wall_seconds": 0.07919408299494535,
+            "cpu_seconds": 0.07918099999999839
+          },
+          {
+            "wall_seconds": 0.07972475001588464,
+            "cpu_seconds": 0.07971299999999815
+          }
+        ]
+      },
+      "median_wall_seconds": {
+        "python": 3.0326910000294447,
+        "rust": 0.07972475001588464
+      },
+      "speedup": 38.039517206704325
+    },
+    "morphoweave": {
+      "faces": 127021,
+      "samples": 1000,
+      "equivalence": [
+        {
+          "specimen": "UF_IZ_507781",
+          "steps": 0,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507782",
+          "steps": 0,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507879",
+          "steps": 0,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507781",
+          "steps": 1,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507782",
+          "steps": 1,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507879",
+          "steps": 1,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507781",
+          "steps": 3,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507782",
+          "steps": 3,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        },
+        {
+          "specimen": "UF_IZ_507879",
+          "steps": 3,
+          "max_absolute_error": 0.0,
+          "byte_identical_rgb": true
+        }
+      ],
+      "three_specimen_timings": {
+        "python": [
+          {
+            "wall_seconds": 2.9806597910355777,
+            "cpu_seconds": 2.9804649999999953
+          },
+          {
+            "wall_seconds": 2.956971625913866,
+            "cpu_seconds": 2.9567809999999923
+          },
+          {
+            "wall_seconds": 2.9690534588880837,
+            "cpu_seconds": 2.968861000000004
+          }
+        ],
+        "rust": [
+          {
+            "wall_seconds": 0.07596275012474507,
+            "cpu_seconds": 0.07595599999999081
+          },
+          {
+            "wall_seconds": 0.07315783307421952,
+            "cpu_seconds": 0.07315099999999575
+          },
+          {
+            "wall_seconds": 0.07561966695357114,
+            "cpu_seconds": 0.07560499999999593
+          }
+        ]
+      },
+      "median_wall_seconds": {
+        "python": 2.9690534588880837,
+        "rust": 0.07561966695357114
+      },
+      "speedup": 39.262979837123844
+    }
+  }
+}

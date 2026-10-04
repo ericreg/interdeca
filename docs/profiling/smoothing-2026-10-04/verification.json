@@ -1,0 +1,50 @@
+{
+  "tests_passed": 256,
+  "warnings": 406,
+  "input_hashes": {
+    "curve.npy": "cfc451a65dd903977e9d51a224868256765073359929a1684f6deb00553cb7c7",
+    "textures/UF_IZ_507781.png": "5b113badd1bbf573c329faee93c5e56e8b3c79af2387bbe723d7e9ea3e151bc7",
+    "textures/UF_IZ_507782.tiff": "e0fa7fc71b64d923381972af24ea9b6f1b5feb6ebc88eb413140a0893efe5208",
+    "textures/UF_IZ_507879.png": "9e6ed1ca4b01cc7659978e04c92eac89570a1ff96a78f75c38d11348193539e9",
+    "models/UF_IZ_507781.obj": "c1328953378d7b904ae5f297efcdd91aae49e73f57b18bbea6f2c0f110352ced",
+    "models/UF_IZ_507782.obj": "c5683dc11d220172e1e20d3f813b0a3f95622e576e1d5785f75850de83d2a1c5",
+    "models/UF_IZ_507879.obj": "8320588ad322ddcaac5ce9274a62cecad0fce0bd05be856ac732f2f3c16a3e76",
+    "landmarks/UF_IZ_507781.mrk.json": "01b44813c8e31fd51c746123cb0b329b0e340f36aadea469e851f53a7775a4a1",
+    "landmarks/UF_IZ_507879.mrk.json": "2f702df14f335b1a34ebd07ba61dba9e9283b6366150f821e5b078d3f2b964f2",
+    "landmarks/UF_IZ_507782.mrk.json": "d305d241c67c24ae7be66879f6f3c7b311edb3bf93eb0b928591917d8e146280"
+  },
+  "source_hashes": {
+    "rust/src/mesh.rs": "8411cdb49590262e9e76b14517f85e9399caf6c8b2849ac5534605a05293ebb8",
+    "rust/src/color.rs": "63f400e7488022957b85547e1cb27f82ad00a91d9acd7a8cc6a1b127e1580eba",
+    "rust/src/lib.rs": "8cfb2c1c4a6eb3271eac8d7880614c41278f57adf84ccd8584b759f52ab3ad48",
+    "rust/src/texture.rs": "11576335c502c8887fbcf3c3c2a0e6eb99408ecbe8f414810e9fb495f681a7a4",
+    "src/interdeca/color_analysis.py": "c44dcf705a18880f3e923afaad6c62895627a2cf302a72bf01bb5e7160972f1f",
+    "src/interdeca/geometry.py": "382bf67e7d4b3c68eb16c082421e0da530deb448ffd115a7b504faeae2bb8866",
+    "src/interdeca/models.py": "4e84ab503a5251b054171b10748a72fad4d18651ee18f8ed7aabeef7f1388c3c",
+    "src/interdeca/serde.py": "63e5d61c393eec1a7f02f0c1da20390a2c9ec1740e16bde73f22df8a1fbffe16",
+    "src/interdeca/_native.pyi": "22ad30448835798b1f8b758a23edce0a1ebc6bf1df7773fc5c36c3f0b47c3fcb",
+    "/Users/eric/code/interdeca/src/interdeca/_native.cpython-313-darwin.so": "f2736ed946eecb6a885cedf2691d921aa4fd6ca552eb31b2d27c748baa718442"
+  },
+  "versions": {
+    "numpy": "2.5.3",
+    "scipy": "1.18.1",
+    "vtk": "9.7.1",
+    "memray": "1.20.0",
+    "psutil": "7.2.2",
+    "yappi": "1.7.6",
+    "interdeca": "0.1.0"
+  },
+  "thread_environment": {
+    "OMP_NUM_THREADS": null,
+    "OPENBLAS_NUM_THREADS": null,
+    "MKL_NUM_THREADS": null,
+    "VECLIB_MAXIMUM_THREADS": null
+  },
+  "reference_commit": "584fa4f243d4c38cae90306b46cfa3ee5688f209",
+  "specimens": [
+    "UF_IZ_507781",
+    "UF_IZ_507782",
+    "UF_IZ_507879"
+  ],
+  "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O"
+}

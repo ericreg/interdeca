@@ -7,6 +7,7 @@ import numpy as np
 from skimage.color import lab2rgb, rgb2lab
 from sklearn.cluster import AgglomerativeClustering, KMeans
 
+from interdeca import _native
 from interdeca.io import TextureIO
 from interdeca.models import (
     AnalysisGeometry,
@@ -92,30 +93,17 @@ class ColorAnalysis:
         # missing data; testing for black would discard real black surface colors.
         face_rgb, face_alpha = ColorAnalysis._sample_image(rgb, alpha, uv.mean(axis=1))
         valid = face_alpha >= minimum_alpha
-        face_rgb[~valid] = 0
-        # Read from the previous pass and write to a fresh array so smoothing is
-        # independent of face traversal order.
-        for _step in range(smoothing_steps):
-            smoothed = np.zeros_like(face_rgb)
-            for face_index, neighbors in enumerate(analysis.adjacency):
-                if not valid[face_index]:
-                    continue
-                # Keep the face itself in the average and exclude missing neighbors
-                # so absent texture coverage cannot pull colors toward black.
-                neighborhood = np.concatenate(([face_index], neighbors))
-                neighborhood = neighborhood[valid[neighborhood]]
-                # Weight by surface area so many tiny triangles do not outweigh
-                # a larger neighboring region merely because there are more of them.
-                weights = analysis.face_areas[neighborhood]
-                smoothed[face_index] = np.average(
-                    face_rgb[neighborhood], axis=0, weights=weights
-                )
-            face_rgb = smoothed
-        # Subsample after smoothing so even unselected neighboring faces can
-        # contribute to a selected face's local color estimate.
+        # Native smoothing keeps invalid faces excluded and reads a separate
+        # previous-pass buffer. Only the final pass can omit unselected outputs;
+        # their raw/intermediate colors still contribute to selected neighbors.
+        sampled_rgb = _native.smooth_face_colors(
+            face_rgb, valid, analysis.face_areas,
+            analysis.adjacency.offsets, analysis.adjacency.indices,
+            analysis.sample_faces, smoothing_steps,
+        )
         return SampledColors(
             texture.specimen_id,
-            face_rgb[analysis.sample_faces],
+            sampled_rgb,
             valid[analysis.sample_faces],
             analysis.sampling_key,
         ).validated()

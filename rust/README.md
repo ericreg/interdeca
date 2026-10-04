@@ -15,6 +15,16 @@ Texture kernels normalize byte images, validate and quantize unit channels, and
 evaluate sRGB transfer curves. Byte normalization and ties-to-even quantization
 preserve pixel values exactly. Scalar power implementations can differ from
 NumPy by a few rounding bits across platforms; curve checks use `rtol=2e-15`.
+Face-color smoothing uses packed adjacency rows shared across specimens. It
+accumulates each face and its valid neighbors with atlas-area weights, keeping
+invalid faces invalid and reading a separate previous-pass buffer. The final
+pass calculates only requested samples; intermediate passes cover the whole
+graph. Zero passes select raw covered colors. Neighbor and sample order remain
+unchanged; high-degree reductions may differ from NumPy by float64 rounding.
+The private smoothing entry point requires contiguous arrays and C-order RGB.
+Analysis adjacency is now stored/serialized as `offsets` and `indices`, rather
+than one array per face; previously serialized analysis records must be rebuilt.
+
 Pillow continues to handle image codecs and VTK continues to handle other mesh
 formats and polydata. Landmark schemas and small file operations remain Python.
 

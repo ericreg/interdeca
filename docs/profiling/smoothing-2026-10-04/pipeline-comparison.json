@@ -1,0 +1,106 @@
+{
+  "native": {
+    "identical_output_hashes": 33,
+    "timings": {
+      "python": {
+        "session_wall_seconds": 35.5113699589856,
+        "session_cpu_seconds": 28.207283,
+        "sample_tasks_wall_seconds": 3.5653867080109194,
+        "analysis_task_wall_seconds": 12.715660208952613
+      },
+      "rust": {
+        "session_wall_seconds": 32.35150391701609,
+        "session_cpu_seconds": 24.410379,
+        "sample_tasks_wall_seconds": 0.08041483303532004,
+        "analysis_task_wall_seconds": 12.902232249965891
+      }
+    },
+    "output_hashes": {
+      "atlas/atlas.mrk.json": "b38bc0f89af9bb26592ad194e0e65a24b81491c9b4a02deca8e962e1fa01a01c",
+      "atlas/atlas.obj": "664e28d368e5f8cb1773e866d8b3713a48a91d00c28acb7bb69215ce269747a3",
+      "atlas/textures/UF_IZ_507781.png": "1ce7b5b54afcf913e95d8ab2c308dfd486bc56a682f096c2a7ed7bb048e5f51e",
+      "atlas/textures/UF_IZ_507782.png": "06a9c4d781c344398d69ef0e85a37761f60062412bde1ee4247b1efb7457c593",
+      "atlas/textures/average_texture.png": "55d578ce41f43c384321b23fa0b6cd75f27f3ac447a01dbe4c28ff64012b6c0d",
+      "atlas/textures/UF_IZ_507879.png": "757f690cce8eb8545978db9c928b227276af21e80170aa90c99367be9dc47a64",
+      "atlas/aligned/UF_IZ_507781.mrk.json": "8e58bc824ed8b38dd4dea14d7fca45a22ab0bd636b7604be41ba0ab943d38d73",
+      "atlas/aligned/UF_IZ_507879.mrk.json": "ed951cb06ec0cd884be209e2a3ba0105e4090791e08485d8433aae3cc3afc928",
+      "atlas/aligned/UF_IZ_507781.obj": "054f2405596c91d9fccecbbfa7c38972873b2db82c79894740a9255bbd164bf2",
+      "atlas/aligned/UF_IZ_507782.obj": "c45ad150e40995d765fdb679e12141de69a1cfb4e14803e44ffdb370b3f3fbfc",
+      "atlas/aligned/UF_IZ_507782.mrk.json": "85bbc15198c70badd4d3b9edc36d54dddcde63c2a4c6181f328e705c82aa6ecf",
+      "atlas/aligned/UF_IZ_507879.obj": "a4d298a1048fccf667b4dbd0753b7de2bac5b6291732c915f87321227720b797",
+      "atlas/resampled/UF_IZ_507781.mrk.json": "8e58bc824ed8b38dd4dea14d7fca45a22ab0bd636b7604be41ba0ab943d38d73",
+      "atlas/resampled/UF_IZ_507879.mrk.json": "ed951cb06ec0cd884be209e2a3ba0105e4090791e08485d8433aae3cc3afc928",
+      "atlas/resampled/UF_IZ_507781.obj": "68a8ba9326df98d4c01bf0b60a01cbaf054daf4ee743375fa7a5c11002b3ee4d",
+      "atlas/resampled/UF_IZ_507782.obj": "4565f8dfaac079b7805ad42f61e9525a0000305f1200f2c5e7e51e4476f71e2e",
+      "atlas/resampled/UF_IZ_507782.mrk.json": "85bbc15198c70badd4d3b9edc36d54dddcde63c2a4c6181f328e705c82aa6ecf",
+      "atlas/resampled/UF_IZ_507879.obj": "44fb45c97ed638792cbf993f894ae9267ca4d77e3b6b10c16fe08d73f627bd86",
+      "presentations/atlas/mesh/vertices": "4d4e382a659aee299e8fce7fefb3a0ed335ea5d12187b60be6cb06433941c65a",
+      "presentations/atlas/mesh/faces": "fa8b2f409e76b27cd9c641b90270f238e979e5f51f7c4e62da8b6a8507d2b1cd",
+      "presentations/atlas/mesh/uv": "7d2d26e77e3270c2501ad96658443168c63714cdf5c6bea591185fc987b90d49",
+      "presentations/plot/scores": "0482564b5d935dbada9441bc4050e2595e445faaa25c1f4d686d47cd93954d29",
+      "presentations/morphospace/rgb": "448b6bd7b70e58f887291d366f977c8a34567caa31361d5b0f3db355bd2578cd",
+      "presentations/morphospace/valid": "5c631cd85a4ac22f28c7d23d54fc1167ae5872476bdcd798f2c2eba04991d582",
+      "presentations/display/rgb": "d304017c574986e635e2d24a5bea88edbd1cc646163eb978de8cdbaf52b37641",
+      "presentations/display/valid": "5c631cd85a4ac22f28c7d23d54fc1167ae5872476bdcd798f2c2eba04991d582",
+      "presentations/selection/vertices": "5683d1d3628fd080c71fdc5aad80d5fcbdf5a26e35d901303f523a68338609a2",
+      "presentations/selection/faces": "abf1ede66119dbe8d2391dda42093ab0cb386957d854c9932755ea22531f84e3",
+      "presentations/export/mesh/vertices": "dcef461c5d34ec92f93ee9bf22899b2509bab9fe734f4c7e846bb1c424bdf9af",
+      "presentations/export/mesh/faces": "c778ef02a9c985eee23f4f58da8ccca153f6843881a269315b0dd78b6ac752fb",
+      "presentations/export/mesh/uv": "91c3914352fd7c2f1a9652a451fee7e57f4c14a201fa0016dfb148017b3d349c",
+      "presentations/export/original_vertices": "99f7aa29186b48a6da9699e41a0988ced5ee16531155e3781483b0f805444cec",
+      "presentations/export/original_faces": "abf1ede66119dbe8d2391dda42093ab0cb386957d854c9932755ea22531f84e3"
+    }
+  },
+  "morphoweave": {
+    "identical_output_hashes": 33,
+    "timings": {
+      "python": {
+        "session_wall_seconds": 35.206600542063825,
+        "session_cpu_seconds": 28.581968,
+        "sample_tasks_wall_seconds": 3.6567314999410883,
+        "analysis_task_wall_seconds": 12.543314249953255
+      },
+      "rust": {
+        "session_wall_seconds": 31.1516247499967,
+        "session_cpu_seconds": 23.80252,
+        "sample_tasks_wall_seconds": 0.07803929108195007,
+        "analysis_task_wall_seconds": 12.304947040975094
+      }
+    },
+    "output_hashes": {
+      "atlas/atlas.mrk.json": "808370527818c4b6bff52ab4af4cfe35be3d07c781f2e9deabaed2460af6883d",
+      "atlas/atlas.obj": "4a493f8d82f62aad80cd02d6eb5bda51f902a8a972463eb6fa58106bd1c1ed48",
+      "atlas/textures/UF_IZ_507781.png": "088639c8625a28c865321dc1cd0f7a4fee556bc6daab7821303269a3ef4c4c34",
+      "atlas/textures/UF_IZ_507782.png": "c87dfa4b16bacfc168eb468cb37f3af5b4029d0f4f437ea566ada2bddee52228",
+      "atlas/textures/average_texture.png": "35bc6e50d3d0cac3c2a0ec5fbb634c071f99dd661139b3ee7050bd39fe49d852",
+      "atlas/textures/UF_IZ_507879.png": "4b57871667101b9ef93cb8a2d0d9ef567aedd74c8b82ad60c292ac3e5a29ecdc",
+      "atlas/aligned/UF_IZ_507781.mrk.json": "3360cc41f99fe7edeafe892534702f0ed318f68e8e30fe75e5739c34595247ac",
+      "atlas/aligned/UF_IZ_507879.mrk.json": "f2f6fc816866b44ab49543344cb0f48d5e22a28132a9a22e395241b3476b5c83",
+      "atlas/aligned/UF_IZ_507781.obj": "ec958adefd5526994dd861a658ce911e9e91d3248c919c3a50dd375f71f8e099",
+      "atlas/aligned/UF_IZ_507782.obj": "1ca7cd27a36bbe66f99442818fdc1d99705296ae829b503867140ae557fcb749",
+      "atlas/aligned/UF_IZ_507782.mrk.json": "010c017dab3ac30496c4eec58b833dcf1b3d99fac8c7093717e084f1068aff8a",
+      "atlas/aligned/UF_IZ_507879.obj": "478eebc8707f65398317768ce9ddf2550dac1904cb75a2f23ae2a6d7569239f1",
+      "atlas/resampled/UF_IZ_507781.mrk.json": "3360cc41f99fe7edeafe892534702f0ed318f68e8e30fe75e5739c34595247ac",
+      "atlas/resampled/UF_IZ_507879.mrk.json": "f2f6fc816866b44ab49543344cb0f48d5e22a28132a9a22e395241b3476b5c83",
+      "atlas/resampled/UF_IZ_507781.obj": "6950fc4d7057dfa4fe610e2630b211f221931afbee074106d97b5bf1f9fbd3bd",
+      "atlas/resampled/UF_IZ_507782.obj": "ac735fc01c26d1f4265fdcb17eb8bc70977bee9342eb6056a212de4b242b4890",
+      "atlas/resampled/UF_IZ_507782.mrk.json": "010c017dab3ac30496c4eec58b833dcf1b3d99fac8c7093717e084f1068aff8a",
+      "atlas/resampled/UF_IZ_507879.obj": "75581fd108e0cd937f179d713ef5d77af92f138ee88a8ebad491498c50b94d4f",
+      "presentations/atlas/mesh/vertices": "c6d4e175e51b321921736cfb3f3701ad6c143c9f93908dadd17e319eafac2196",
+      "presentations/atlas/mesh/faces": "12e66849889181ca87479a938230fa39b39edc8506aee8646999dcce418394bf",
+      "presentations/atlas/mesh/uv": "601304a7eb674041527df5e7d79fa4eb5309ec21f8a02d15efc0cea98b8e1b46",
+      "presentations/plot/scores": "595fdbb166c7bf126db1c1098cb3f79e750e2d88a352de0df74c719a58de05ad",
+      "presentations/morphospace/rgb": "4f13bf46b7eb0a21c603f794e9d1c7836b1a67f8c86f8437118225c159912f81",
+      "presentations/morphospace/valid": "84c08442f1f7c6ed5a44002c5e6239b5eb8d9edfdfebb472b65318e18fd101c2",
+      "presentations/display/rgb": "8681749476e4c4540824051b8ba4132b6b392f4f543f5e229beb1ca182e04671",
+      "presentations/display/valid": "84c08442f1f7c6ed5a44002c5e6239b5eb8d9edfdfebb472b65318e18fd101c2",
+      "presentations/selection/vertices": "2919694954f340fd3ba6fea6cbac75904b574caae5eb88552f9730c59f817760",
+      "presentations/selection/faces": "bd755b6c62c3caa69adaf7d75dcf35de79b17f4e1bd52b45bd4c46c161a434d9",
+      "presentations/export/mesh/vertices": "c5083cfa1db23b679763fe17aef8358fd38a6d67995f2fee04fd261657423ed0",
+      "presentations/export/mesh/faces": "3edaeeef524daa6ed36f96425c9008646ec093c3b09b1722267a542d55d26210",
+      "presentations/export/mesh/uv": "2a78d2ca7d330c948376deab76b81ef1469bb20d515e01827e59c807f72cbf67",
+      "presentations/export/original_vertices": "c8cf35bbbe441c2d7ba70204096a65a7d8bf31cad3af69866117838db7ae2ed9",
+      "presentations/export/original_faces": "bd755b6c62c3caa69adaf7d75dcf35de79b17f4e1bd52b45bd4c46c161a434d9"
+    }
+  }
+}

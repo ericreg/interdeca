@@ -391,6 +391,31 @@ class ResampledSpecimen(NamedTuple):
         return ResampledSpecimen(self.specimen_id, self.mesh, self.landmarks, distances)
 
 
+class FaceAdjacency(NamedTuple):
+    """Packed neighbor rows: face f uses indices[offsets[f]:offsets[f + 1]].
+
+    Rows preserve neighbor order and exclude no branches at nonmanifold edges.
+    Keeping two arrays avoids a Python object for every face during smoothing.
+    """
+
+    offsets: IntArray
+    indices: IntArray
+
+    def validated(self) -> Self:
+        """Own the graph buffers and check every row boundary and face index."""
+        offsets = Arrays.frozen(self.offsets, np.int64)
+        indices = Arrays.frozen(self.indices, np.int64)
+        # Endpoints and monotonicity ensure all slices stay in the flat buffer.
+        if (
+            offsets.ndim != 1 or len(offsets) < 2 or indices.ndim != 1
+            or offsets[0] != 0 or offsets[-1] != len(indices)
+            or np.any(offsets[1:] < offsets[:-1])
+            or np.any((indices < 0) | (indices >= len(offsets) - 1))
+        ):
+            raise ValueError("Adjacency requires monotone offsets and valid face indices.")
+        return FaceAdjacency(offsets, indices)
+
+
 class AnalysisGeometry(NamedTuple):
     """Shared face measurements, adjacency, and deterministic sample coverage.
 
@@ -402,7 +427,7 @@ class AnalysisGeometry(NamedTuple):
     mesh: Mesh
     face_areas: FloatArray
     face_centers: FloatArray
-    adjacency: tuple[IntArray, ...]
+    adjacency: FaceAdjacency
     # Store sample identities and their represented regions together so area
     # features can account for faces that were not sampled directly.
     sample_faces: IntArray
@@ -417,7 +442,7 @@ class AnalysisGeometry(NamedTuple):
             Arrays.frozen(self.face_areas),
             Arrays.frozen(self.face_centers),
         )
-        adjacency = tuple(Arrays.frozen(row, np.int64) for row in self.adjacency)
+        adjacency = self.adjacency.validated()
         samples = Arrays.frozen(self.sample_faces, np.int64)
         nearest = Arrays.frozen(self.nearest_samples, np.int64)
         represented = Arrays.frozen(self.sample_areas)
@@ -427,20 +452,13 @@ class AnalysisGeometry(NamedTuple):
         if (
             areas.shape != (count,)
             or centers.shape != (count, 3)
-            or len(adjacency) != count
+            or len(adjacency.offsets) != count + 1
         ):
             raise ValueError(
                 "Analysis measurements and adjacency must match the atlas face count."
             )
         if np.any(areas <= 0):
             raise ValueError("Analysis face areas must be positive.")
-        # Reject graph edges pointing outside the atlas before shortest-path or
-        # smoothing operations try to use them as array indices.
-        for row in adjacency:
-            if row.ndim != 1 or np.any((row < 0) | (row >= count)):
-                raise ValueError(
-                    "Adjacency must contain one-dimensional arrays of valid face indices."
-                )
         # Samples must identify distinct faces, and every atlas face must be
         # assigned to one of those samples for its area to be represented.
         if (
