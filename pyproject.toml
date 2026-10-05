@@ -3,6 +3,8 @@ name = "interdeca"
 version = "0.1.0"
 description = "UI-independent geometry, texture, and population analysis for InterDeCA"
 readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE", "LICENSES/*.txt", "THIRD_PARTY_NOTICES.md"]
 authors = [
     { name = "Eric Regina", email = "eregina92@gmail.com" }
 ]
@@ -31,6 +33,17 @@ python-source = "src"
 module-name = "interdeca._native"
 locked = true
 editable-profile = "release"
+include = [
+    { path = "rust/BLENDER_SOURCE.json", format = ["sdist", "wheel"] },
+    { path = "rust/OCIO_SOURCE.json", format = ["sdist", "wheel"] },
+    { path = "THIRD_PARTY_NOTICES.md", format = ["sdist", "wheel"] },
+    { path = "uv.lock", format = "sdist" },
+    { path = "justfile", format = "sdist" },
+    { path = "docs/native-surface/README.md", format = "sdist" },
+    { path = "experimental_perf_tests/native_surface/*.py", format = "sdist" },
+    { path = "client/pyproject.toml", format = "sdist" },
+    { path = "client/src/**/*.py", format = "sdist" },
+]
 # Ship the unmodified Atlas Builder and its notices in both wheels and sdists.
 # The remaining Slicer extension assets are available in the submodule checkout.
 exclude = [

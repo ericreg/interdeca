@@ -46,7 +46,7 @@ fn worker_count(count: usize) -> Result<usize, String> {
     })
 }
 
-fn pool() -> Result<&'static rayon::ThreadPool, String> {
+pub(crate) fn pool() -> Result<&'static rayon::ThreadPool, String> {
     POOL.get_or_init(|| {
         rayon::ThreadPoolBuilder::new()
             .num_threads(worker_limit()?)

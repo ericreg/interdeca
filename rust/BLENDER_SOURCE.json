@@ -1,0 +1,387 @@
+{
+  "version": "5.2.1 LTS",
+  "revision": "9e2066aef7ef7e20c142ad7bd3303138a4304c93",
+  "repository": "https://github.com/blender/blender",
+  "distribution_license": "GPL-3.0-or-later",
+  "files": [
+    {
+      "path": "source/blender/blenlib/BLI_kdtree.hh",
+      "sha256": "a014dac53ccc1af519d242d4244203a1618d9d8c14b5a11f82bd4cbdeb69be26",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "kdtree_balance",
+        "kdtree_range_search_cb",
+        "kdtree_calc_duplicates_cb"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/cleanup.rs; float3, no preselected keep vertices; owned Rust nodes and stack"
+    },
+    {
+      "path": "source/blender/bmesh/operators/bmo_removedoubles.cc",
+      "sha256": "dc8bebaace43fb5a0f8736605895443bf59ca6e92b0f84659f5f37a220d2a0b2",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "bmesh_find_doubles_by_distance_impl",
+        "bmo_weld_verts_exec",
+        "remdoubles_createface"
+      ],
+      "status": "ported",
+      "adaptation": "Triangle-only representative selection and in-place weld; exact chain and captured atlas checks pass; both actual pre-cleanup workflow atlases match exactly"
+    },
+    {
+      "path": "source/blender/editors/uvedit/uvedit_unwrap_ops.cc",
+      "sha256": "4a1c01d191bff8c63e06c4faeaadb3f3fd487dc2c08ce3e3a1dfb00d4a253fe2",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "smart_uv_project_calculate_project_normals",
+        "smart_project_exec",
+        "uvedit_pack_islands_multi",
+        "uv_map_clip_correct"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/uv.rs; single selected triangle mesh, fresh UVs, area_weight=0, aspect=1; both full captured atlases and eight analytical fixtures match all corners exactly"
+    },
+    {
+      "path": "source/blender/geometry/intern/uv_pack.cc",
+      "sha256": "a0d835e48b14099b4436c2d9c66d68e08ccc8f3213883436a6c2c1bd56b36bb8",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "pack_islands",
+        "calculate_pre_rotation_",
+        "calculate_pivot_",
+        "place_",
+        "pack_islands_alpaca_turbo",
+        "pack_island_box_pack_2d",
+        "calc_margin_from_aabb_length_sum",
+        "mul_v2_m2_add_v2v2"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/uv.rs; Smart UV defaults: AABB shape, AXIS_ALIGNED_Y, SCALED margin; no xatlas/occupancy path is executed for these settings"
+    },
+    {
+      "path": "source/blender/editors/uvedit/uvedit_islands.cc",
+      "sha256": "6e02dedf0f6ea620df31e59c0253318b73d568d515378200573e05412829585c",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "bm_mesh_calc_uv_islands",
+        "bm_loop_uv_shared_edge_check"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/uv.rs; fresh mesh has no seams, pins, hidden or unselected faces"
+    },
+    {
+      "path": "source/blender/bmesh/intern/bmesh_query.cc",
+      "sha256": "d512075c4394faf5e156f1bce8de51b3c4a674fdeb154282e0c3b8931877694f",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "BM_mesh_calc_face_groups"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/uv.rs; explicit stack and radial-cycle traversal"
+    },
+    {
+      "path": "source/blender/bmesh/intern/bmesh_structure.cc",
+      "sha256": "12da5de00eb27393103418e036346a9ebb1600a3c923fe7cfa9ed0345efd305e",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "bmesh_radial_loop_append"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/uv.rs; array indices preserve radial insertion order"
+    },
+    {
+      "path": "source/blender/bmesh/intern/bmesh_polygon.cc",
+      "sha256": "444eca79dca99c63d328d7f543504c66507b50b375370745cd61b610fd35ae72",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "BM_face_calc_area",
+        "BM_face_calc_normal"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/uv.rs; triangle-only normal and float32 Newell area"
+    },
+    {
+      "path": "source/blender/blenlib/intern/convexhull_2d.cc",
+      "sha256": "aed28033e38c22cb3aebce000240ba2378d5b19f18b3409a527e602ea8a74abd",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "BLI_convexhull_2d",
+        "BLI_convexhull_aabb_fit_points_2d",
+        "convexhull_aabb_fit_hull_2d"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/hull.rs; guarded hull construction and four-axis rotating calipers"
+    },
+    {
+      "path": "source/blender/blenlib/intern/boxpack_2d.cc",
+      "sha256": "99385d98bbfb2e3aaa8aa5aec42fc1fa0a80390ce0d01fa1fd01e72d57cf3690",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "BLI_box_pack_2d"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/boxpack.rs; sort_boxes=false; owned array indices replace box/vertex pointers"
+    },
+    {
+      "path": "source/blender/blenlib/intern/sort.cc",
+      "sha256": "a27b1fc87641afce642c4560c340dd4bc94f9f7dac6f19b79c6325c67cc36367",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "BLI_qsort_r"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/order.rs; slice swaps preserve the bundled sorting algorithm; face-area sorting still calls host qsort as upstream does"
+    },
+    {
+      "path": "source/blender/render/intern/bake.cc",
+      "sha256": "302013df8a07eda85e8c8a28d798264094468a426e1d61a24529801618601b26",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "RE_bake_pixels_populate",
+        "RE_bake_pixels_populate_from_objects",
+        "RE_bake_margin"
+      ],
+      "status": "ported",
+      "adaptation": "Pixel population, float32 ray setup, strict squared-distance cutoff, derivatives, position-to-barycentric conversion and ray-miss mask invalidation; population qualification recorded under docs/native-surface"
+    },
+    {
+      "path": "source/blender/render/intern/texture_margin.cc",
+      "sha256": "84615e611c51012ed38828e0a21ff6b8ccde47ba4c5c6e2f1e9ba83461ea746d",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "RE_generate_texturemargin_adjacentfaces"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/margin.rs; triangle/RGBA8/single-tile specialization; analytical padding fixture matches byte-for-byte"
+    },
+    {
+      "path": "source/blender/render/intern/zbuf.cc",
+      "sha256": "b8872591b10bbb6150553d7a4c73dabe1acf4a1218f8080a30c7550eca1de1fc",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "zbuf_add_to_span",
+        "zspan_scanconvert"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/raster.rs; owned span storage and callback; arithmetic and endpoint rules retained"
+    },
+    {
+      "path": "source/blender/imbuf/intern/filter.cc",
+      "sha256": "8797f697e0be64aa75cf5155b6ef6346eb0b149468c0bbe616a8c8419a8f1a45",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "IMB_filter_extend",
+        "filter_make_index",
+        "check_pixel_assigned"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/margin.rs; RGBA8 and explicit mask branch"
+    },
+    {
+      "path": "source/blender/blenlib/intern/math_interp.cc",
+      "sha256": "cf4be0e5d4c4a43fb320d6ee1a4c07e2aca813113b135c7043e8a61fe56970fe",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "bilinear_byte_impl"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/margin.rs; scalar bordered RGBA8 branch"
+    },
+    {
+      "path": "source/blender/blenlib/BLI_math_vector.hh",
+      "sha256": "4810164ef448420936b4e0976f4d78f2a56e42c4fef606f43caa92b3869514e0",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "normalize_and_get_length",
+        "normal_tri",
+        "cross_tri",
+        "dot"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/math.rs; float3 specialization used by face normals"
+    },
+    {
+      "path": "source/blender/blenkernel/intern/mesh_normals.cc",
+      "sha256": "50c001bb7e48b425fa9f5c6ed97dbddbd4f7915d9ee8fb445f0d53a7961272ec",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "face_normal_calc"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/math.rs; triangle-only branch and collapsed-face +Z fallback"
+    },
+    {
+      "path": "source/blender/blenlib/intern/math_geom.cc",
+      "sha256": "3d7559d04f8d28e71e9a3d98d519a6c020763fe7119855f6c90f1712b5fce958",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "interp_barycentric_tri_v3",
+        "isect_ray_tri_watertight_v3_precalc",
+        "isect_ray_tri_watertight_v3"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/math.rs and ray.rs; preserved float32 interpolation and triangle intersection"
+    },
+    {
+      "path": "source/blender/blenlib/intern/math_geom_inline.cc",
+      "sha256": "701ac300fd0089d163900346afe24cadba4087dd04ed0fabef34430fe3040728",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "axis_dominant_v3",
+        "axis_dominant_v3_single"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/math.rs and ray.rs; dominant-axis tie conventions retained"
+    },
+    {
+      "path": "source/blender/blenlib/intern/math_vector_inline.cc",
+      "sha256": "c1b6d85efbfe2824d7a2f330d7961f5dd1b0f32b2d00ad9d94c644f00ea239b9",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "normalize_v3",
+        "add_newell_cross_v3_v3v3"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/math.rs and uv.rs; distinguish reciprocal-based C normalization from vector-API division"
+    },
+    {
+      "path": "source/blender/blenlib/intern/math_vector.cc",
+      "sha256": "9f3c8dc57239ba1cbc11e40c57e897a83f66291550185d1af08076a433fdab38",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "ortho_basis_v3v3_v3"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/uv.rs; dominant projection basis and degenerate-axis fallback"
+    },
+    {
+      "path": "source/blender/blenkernel/intern/bvhutils.cc",
+      "sha256": "2e1a11096b5346c536484f40ba58b405b2158929803961d187625fe21f62ecb9",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "bvhtree_ray_tri_intersection",
+        "mesh_corner_tris_spherecast",
+        "bvhtree_new_common"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/ray.rs and bvh.rs; zero-radius triangle callback, float32 hit position, binary six-axis tree"
+    },
+    {
+      "path": "source/blender/blenlib/intern/BLI_kdopbvh.cc",
+      "sha256": "72da5f6309e970e95b494284fcd46e28a13194d23514fa83842863a977ebe979",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "build_implicit_tree_helper",
+        "implicit_leafs_index",
+        "non_recursive_bvh_div_nodes",
+        "partition_nth_element",
+        "fast_ray_nearest_hit",
+        "dfs_raycast",
+        "bvhtree_ray_cast_data_precalc"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/bvh.rs; tree_type=2, axis=6, zero-radius triangles; indices replace pointers, source partition and tie visitation retained"
+    },
+    {
+      "path": "intern/cycles/kernel/geom/triangle.h",
+      "sha256": "0c44e107f9df069697a73e127801eef4b9c66387893d4099014cee740752d4e8",
+      "license": "Apache-2.0",
+      "symbols": [
+        "triangle_interpolate",
+        "triangle_attribute"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/image.rs; float2 corner attribute interpolation"
+    },
+    {
+      "path": "intern/cycles/kernel/device/cpu/image.h",
+      "sha256": "caf7c614508647048608cfa9a3ed217bf6702a34d69fd8df22213e7c4f9d795d",
+      "license": "Apache-2.0",
+      "symbols": [
+        "frac",
+        "ImageInterpolator::read",
+        "ImageInterpolator::interp_linear",
+        "wrap_periodic"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/image.rs; uchar4 single image, linear REPEAT sampling and alpha association; decoded samples pass through the configured OCIO output curve"
+    },
+    {
+      "path": "intern/cycles/kernel/integrator/init_from_bake.h",
+      "sha256": "4ff547480347c50ad52cd781e7af01e83a079995eba854266b53c9c0fb603165",
+      "license": "Apache-2.0",
+      "symbols": [
+        "integrator_init_from_bake",
+        "bake_jitter_barycentric",
+        "bake_offset_towards_center"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/bake_sampling.rs; sample-zero center, vertex nudge, ten-retry hashed boundary jitter; shared-vertex fixture matches exactly"
+    },
+    {
+      "path": "intern/cycles/util/hash.h",
+      "sha256": "9177a2bab972c02e5229796b6f898d68d0957fc3005d1d2f48a5aab385174aa8",
+      "license": "Apache-2.0",
+      "symbols": [
+        "hash_uint2",
+        "hash_uint3",
+        "hash_float2_to_float2"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/bake_sampling.rs; wrapping uint32 arithmetic and float-bit input"
+    },
+    {
+      "path": "intern/cycles/util/image.h",
+      "sha256": "c541d710ab0b0bf5d5229fe085f0e09b5722dd352dc8e6655cd470c617246ac2",
+      "license": "Apache-2.0",
+      "symbols": [
+        "util_image_multiply_native",
+        "util_image_cast_from_float"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/image.rs; uchar4 RGB times alpha divided by 255, truncating byte storage"
+    },
+    {
+      "path": "intern/cycles/util/image_metadata.cpp",
+      "sha256": "96ae48b0d0245816370d9e92115441a72bef0c163dc735d8ea89ee2eeae4908b",
+      "license": "Apache-2.0",
+      "symbols": [
+        "ImageMetaData::finalize",
+        "conform_pixels_to_metadata_type",
+        "ImageMetaData::conform_pixels"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/image.rs; supported RGB/RGBA8 sRGB input is associated once before linear filtering; source alpha is not connected to a shader"
+    },
+    {
+      "path": "source/blender/blenlib/intern/math_base_inline.cc",
+      "sha256": "35127b713bf4d998906669022333e1850ed7e7ce17d39e14eb74b9eadf316992",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "unit_float_to_uchar_clamp"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/color.rs; bake-specific half-up byte conversion; ordinary TextureIO retains NumPy-compatible ties-to-even"
+    },
+    {
+      "path": "source/blender/editors/object/object_bake_api.cc",
+      "sha256": "1ead1bd83d6731fe6f1cb4bc627f64afe6ffd4e3dd3d3bbede98fecd662783ae",
+      "license": "GPL-2.0-or-later",
+      "symbols": [
+        "write_internal_bake_pixels"
+      ],
+      "status": "ported",
+      "adaptation": "RGBA8 image output and byte conversion translated; source-derived OCIO sRGB output curve; numerical equivalence rather than byte equality is the public contract"
+    },
+    {
+      "path": "intern/cycles/util/color.h",
+      "sha256": "303a8d336b9cc14d7833c0c9be8bf78c07155086b5842b978cc0cabc2b974471",
+      "license": "Apache-2.0",
+      "symbols": [
+        "color_srgb_to_linear"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/image.rs; scalar CPU decode after encoded-byte filtering; cross-platform SIMD qualification pending"
+    }
+  ]
+}

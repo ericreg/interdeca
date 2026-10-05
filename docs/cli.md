@@ -3,7 +3,7 @@
 Run `uv sync`, then `uv run interdeca --help`. UMAP is installed by default;
 no optional dependency flag is needed. This Click CLI hosts the application
 inside the uv Python process. It uses no WebSocket and starts no application worker
-subprocess. Atlas operations still invoke Blender when needed.
+subprocess. Atlas cleanup, UV mapping, and texture baking run in the native extension.
 
 Both the CLI and Slicer's WebSocket worker use `application.ApplicationSession`:
 the same command validation, controller, application state, pipeline definitions,
@@ -71,7 +71,7 @@ first error and reports the source line; an interactive shell lets you correct i
 | Worker estimator capabilities | `capabilities` |
 | ATLAS construction and texture transfer | `atlas` |
 | Atlas mesh/landmark override | `atlas --atlas-model ... --atlas-landmarks ...` |
-| Cleanup, UV, and bake controls | `--merge-distance`, `--uv-angle`, `--island-margin`, `--bake-size`, `--extrusion`, `--bake-margin`, `--blender` |
+| Cleanup, UV, and bake controls | `--merge-distance`, `--uv-angle`, `--island-margin`, `--bake-size`, `--extrusion`, `--bake-margin` |
 | Sampling-only processing | `colors --sample-only` |
 | Clustering, consolidation, normalization | `colors --cluster --initial-clusters 24 --clusters 8 --normalize` |
 | Sampling and neighbor averaging | `--samples N`, `--all-faces`, `--neighbor-average` |
@@ -150,7 +150,7 @@ fit --method pca --components 2
 
 Top-level invocation completion and normal shell exit wait for submitted work.
 Use `cancel` before exiting to stop further tasks. Cancellation is cooperative:
-an active native call or Blender operation finishes before cancellation completes.
+an active native call finishes before cancellation completes.
 Ctrl-C during a foreground wait requests cancellation, drains the current operation,
 and exits with status 130; the interactive shell instead returns to its prompt.
 Partial atlas files remain available. Application failures produce a nonzero exit
@@ -203,3 +203,6 @@ large clams dataset was not run. With UMAP installed by default, an eight-specim
 synthetic CLI check also verified finite two-dimensional scores and reconstruction;
 the WebSocket worker advertised UMAP while its client remained independent of core
 imports. These checks do not replace a comprehensive numerical suite.
+
+The deprecated `--blender` option is accepted for transition compatibility and
+ignored. Normal atlas workflows require no Blender installation.

@@ -44,8 +44,8 @@ The worker reports PCA, ICA, and UMAP as its estimator capabilities. UMAP is
 installed by default in the worker environment; its dependency constraints do not
 involve Slicer's binary stack. Startup errors show the retained diagnostic directory,
 including subprocess stdout/stderr even when the WebSocket never connects.
-Blender remains separately installed and is discovered through the configured
-path, `BLENDER_EXECUTABLE`, PATH, or conventional application locations.
+Atlas cleanup, UV projection, and texture transfer run in the worker's Rust
+extension. No Blender installation or executable setting is required.
 
 Do not add the worker environment's `site-packages` to Slicer's Python path.
 Communication uses one local WebSocket, versioned JSON, and managed numerical
@@ -128,7 +128,7 @@ cancellation was acknowledged before the operation finished, followed by a
 correlated cancelled event without a result. Unauthenticated connections were
 rejected. Syntax/import checks and independent client/worker wheel builds passed.
 The end-to-end test now provides a repeatable check of the Slicer UI and full
-atlas/Blender workflow; consult its README for prerequisites and current limitations.
+atlas/texture workflow; consult its README for prerequisites and current limitations.
 
 Exhaustive numerical parity, large datasets, cross-platform Slicer/Blender support,
 extension-SDK builds, persistent project restoration, and a standalone Qt view

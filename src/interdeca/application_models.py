@@ -27,6 +27,8 @@ class AtlasOptions(NamedTuple):
     textures: Path | None = None
     atlas_model: Path | None = None
     atlas_landmarks: Path | None = None
+    # Retain serialized requests from the transition release; native operations
+    # do not discover or invoke this executable.
     blender: str | None = None
     merge_distance: float = 0.0001
     uv_angle: float = 66.0

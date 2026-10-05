@@ -21,7 +21,7 @@ not a claim about the resolution needed for scientific analysis.
 
 There are two starting points. **Route A** reuses the previous atlas and baked
 textures to get straight to the interactive controls. **Route B** also tests the
-new atlas construction and Blender pipeline. Both lead into the same color,
+new atlas construction and native texture pipeline. Both lead into the same color,
 population, morphospace, and selection checks below.
 
 ## Before starting
@@ -34,8 +34,8 @@ population, morphospace, and selection checks below.
    three-specimen fixture is not a UMAP test.
 3. Save any scene you want to retain, then work in a fresh scene so old models
    and plots do not obscure the results.
-4. For Route B, use the installed Blender executable:
-   `/opt/homebrew/bin/blender`. It currently resolves to Blender 5.2.1 LTS.
+4. Route B runs cleanup, UV projection, and baking in the native worker;
+   no Blender installation is required.
 
 See [Slicer setup](../slicer.md) if the module or required packages are missing.
 Keep original input files and earlier baselines unchanged. This tutorial puts
@@ -44,7 +44,7 @@ new inputs and outputs under `/Users/eric/interdeca-runs/small_clams/`.
 ## Route A: start from the earlier small-clams atlas
 
 This checks the new interactive analysis using already-baked data. It does not
-test the new atlas construction or Blender baking stages.
+test the new atlas construction or native baking stages.
 
 Open Slicer's **Python Console** and paste:
 
@@ -159,7 +159,6 @@ In **ATLAS**, enter:
 | Textures | `/Users/eric/interdeca-runs/small_clams/inputs_ras/textures` |
 | Output directory | `/Users/eric/interdeca-runs/small_clams/runs` |
 | Atlas Model / Atlas Landmarks override | Leave both empty |
-| Blender executable | `/opt/homebrew/bin/blender` |
 | Merge by distance | `0.0001` |
 | Smart UV angle (deg) | `66` |
 | Island margin (UV) | `0.002` |
@@ -167,7 +166,7 @@ In **ATLAS**, enter:
 | Bake extrusion | `0.001` |
 | Bake margin (px) | `2` |
 
-Expand **Blender (cleanup, UV, bake)** to see the numerical settings. They match
+Expand **Surface processing (cleanup, UV, bake)** to see the numerical settings. They match
 the earlier workflow defaults except for the smaller first-pass bake. After a
 successful check, use `2048` for a higher-resolution visual comparison.
 

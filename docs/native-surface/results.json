@@ -1,0 +1,352 @@
+{
+  "status": "experimental; production replacement blocked",
+  "scope": "Baker comparisons use preserved Blender UVs; not whole-workflow qualification.",
+  "results": [
+    {
+      "backend": "native",
+      "resolution": 512,
+      "repetitions": 3,
+      "specimens_per_repetition": 47,
+      "primary_passes": [
+        34,
+        34,
+        34
+      ],
+      "analysis_passes": [
+        36,
+        36,
+        36
+      ],
+      "combined_passes": [
+        34,
+        34,
+        34
+      ],
+      "deterministic_pixels": true,
+      "native_kernel_total_seconds": [
+        13.966495001339354,
+        14.024105954915285,
+        14.026548042776994
+      ],
+      "whole_process_seconds": [
+        59.30094679200556,
+        59.491273541003466,
+        58.90158341592178
+      ],
+      "peak_rss_bytes": [
+        4570791936,
+        4601495552,
+        4596842496
+      ],
+      "maximum_mean_rgb": 0.004644165348464973,
+      "maximum_p95_channel": 0.029031535046998378,
+      "maximum_coverage_loss_pp": 0.11199999999999999,
+      "passed": false,
+      "implementation_sha256": [
+        "2b39a4cc6e16cac23ef613c5e440cd2b67f0b8ed69bd286068964ec1fdb3a71c"
+      ],
+      "extension_sha256": [
+        "df90eba7fff70bd476730114a486b5bd5981c0b0044e5c8ce6349d4a5829d1b1"
+      ]
+    },
+    {
+      "backend": "native",
+      "resolution": 2048,
+      "repetitions": 3,
+      "specimens_per_repetition": 47,
+      "primary_passes": [
+        47,
+        47,
+        47
+      ],
+      "analysis_passes": [
+        47,
+        47,
+        47
+      ],
+      "combined_passes": [
+        47,
+        47,
+        47
+      ],
+      "deterministic_pixels": true,
+      "native_kernel_total_seconds": [
+        21.7628669134574,
+        21.842199254431762,
+        21.764562291209586
+      ],
+      "whole_process_seconds": [
+        77.15974024997558,
+        77.64807820797432,
+        77.19145587494131
+      ],
+      "peak_rss_bytes": [
+        4746215424,
+        4737712128,
+        4740218880
+      ],
+      "maximum_mean_rgb": 0.001730573506889961,
+      "maximum_p95_channel": 0.005618622233667799,
+      "maximum_coverage_loss_pp": 0.019,
+      "passed": true,
+      "implementation_sha256": [
+        "2b39a4cc6e16cac23ef613c5e440cd2b67f0b8ed69bd286068964ec1fdb3a71c"
+      ],
+      "extension_sha256": [
+        "df90eba7fff70bd476730114a486b5bd5981c0b0044e5c8ce6349d4a5829d1b1"
+      ]
+    },
+    {
+      "backend": "morphoweave",
+      "resolution": 512,
+      "repetitions": 3,
+      "specimens_per_repetition": 47,
+      "primary_passes": [
+        0,
+        0,
+        0
+      ],
+      "analysis_passes": [
+        44,
+        44,
+        44
+      ],
+      "combined_passes": [
+        0,
+        0,
+        0
+      ],
+      "deterministic_pixels": true,
+      "native_kernel_total_seconds": [
+        13.109417585190386,
+        13.037375083658844,
+        13.028472580946982
+      ],
+      "whole_process_seconds": [
+        56.19427866698243,
+        55.993297292036004,
+        55.942712165997364
+      ],
+      "peak_rss_bytes": [
+        4624711680,
+        4663885824,
+        4664573952
+      ],
+      "maximum_mean_rgb": 0.0040371892597920065,
+      "maximum_p95_channel": 0.022596818569764178,
+      "maximum_coverage_loss_pp": 0.212,
+      "passed": false,
+      "implementation_sha256": [
+        "2b39a4cc6e16cac23ef613c5e440cd2b67f0b8ed69bd286068964ec1fdb3a71c"
+      ],
+      "extension_sha256": [
+        "df90eba7fff70bd476730114a486b5bd5981c0b0044e5c8ce6349d4a5829d1b1"
+      ]
+    },
+    {
+      "backend": "morphoweave",
+      "resolution": 2048,
+      "repetitions": 3,
+      "specimens_per_repetition": 47,
+      "primary_passes": [
+        47,
+        47,
+        47
+      ],
+      "analysis_passes": [
+        47,
+        47,
+        47
+      ],
+      "combined_passes": [
+        47,
+        47,
+        47
+      ],
+      "deterministic_pixels": true,
+      "native_kernel_total_seconds": [
+        21.416123794857413,
+        21.370848537422717,
+        21.341623085085303
+      ],
+      "whole_process_seconds": [
+        74.73988358303905,
+        75.09871195803862,
+        75.06268004199956
+      ],
+      "peak_rss_bytes": [
+        4804952064,
+        4706402304,
+        4752982016
+      ],
+      "maximum_mean_rgb": 0.001104389779714005,
+      "maximum_p95_channel": 0.003714794976822957,
+      "maximum_coverage_loss_pp": 0.008,
+      "passed": true,
+      "implementation_sha256": [
+        "2b39a4cc6e16cac23ef613c5e440cd2b67f0b8ed69bd286068964ec1fdb3a71c"
+      ],
+      "extension_sha256": [
+        "df90eba7fff70bd476730114a486b5bd5981c0b0044e5c8ce6349d4a5829d1b1"
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "backend": "morphoweave",
+      "resolution": 512,
+      "vertices": 87082,
+      "triangles": 177665,
+      "charts": 1742,
+      "cleanup_seconds": 0.052309541031718254,
+      "uv_seconds": 1.995522249955684,
+      "occupied_fraction": 0.20171456160510498,
+      "blender_occupied_fraction": 0.39902794577046047,
+      "subpixel_triangles": 175252,
+      "cleanup_same_connectivity": false,
+      "cleanup_max_distance": 0.00009996596981697481,
+      "cleanup_coordinate_tolerance": 5.7625754469188606e-8,
+      "cleanup_passed": false
+    },
+    {
+      "backend": "native",
+      "resolution": 512,
+      "vertices": 112979,
+      "triangles": 231597,
+      "charts": 3174,
+      "cleanup_seconds": 0.068864458007738,
+      "uv_seconds": 4.322286874987185,
+      "occupied_fraction": 0.11387490990771595,
+      "blender_occupied_fraction": 0.29224844080896595,
+      "subpixel_triangles": 231329,
+      "cleanup_same_connectivity": false,
+      "cleanup_max_distance": 0.00009998752647871973,
+      "cleanup_coordinate_tolerance": 5.686557538787354e-8,
+      "cleanup_passed": false
+    }
+  ],
+  "custom_layout_pilots": [
+    {
+      "specimen": "UF_IZ_180660",
+      "backend": "native",
+      "resolution": 512,
+      "rust_seconds": 0.39208891696762294,
+      "blender_seconds": null,
+      "agreement": {
+        "samples": 100000,
+        "joint_samples": 96259,
+        "mean_rgb": 0.03140448277778149,
+        "p95_max_channel": 0.1725533365339985,
+        "coverage_loss_pp": 1.452,
+        "coverage_gain_pp": 2.0869999999999997,
+        "passed": false
+      },
+      "analysis_agreement": {
+        "samples": 100000,
+        "joint_samples": 95988,
+        "mean_rgb": 0.031155674918565038,
+        "p95_max_channel": 0.17154299525390634,
+        "coverage_loss_pp": 1.521,
+        "coverage_gain_pp": 2.278,
+        "passed": false
+      },
+      "input_sha256": "1a71b2fa4197d5e1afad0f7f3daec31e0da77536c94fd8b56f65385658561ba5",
+      "reference_sha256": "c6f82fa2d68016f881ba9f5e91acac6f54801b8c3c213a9bbe072401521a1ae5",
+      "output_sha256": "039a7625d34137623e36b7b0923fc20b0f515e6b2d41466f52714e804fef1e30",
+      "repeat": 0
+    },
+    {
+      "specimen": "UF_IZ_268940",
+      "backend": "native",
+      "resolution": 512,
+      "rust_seconds": 0.2470305000897497,
+      "blender_seconds": null,
+      "agreement": {
+        "samples": 100000,
+        "joint_samples": 96604,
+        "mean_rgb": 0.01637247409701093,
+        "p95_max_channel": 0.08865927144872711,
+        "coverage_loss_pp": 1.513,
+        "coverage_gain_pp": 1.744,
+        "passed": false
+      },
+      "analysis_agreement": {
+        "samples": 100000,
+        "joint_samples": 96355,
+        "mean_rgb": 0.01598231665733596,
+        "p95_max_channel": 0.086634319804833,
+        "coverage_loss_pp": 1.6209999999999998,
+        "coverage_gain_pp": 1.876,
+        "passed": false
+      },
+      "input_sha256": "756deb5a289381654291830ae2781f9fc8cc06d355d70836f6526b65dbf18639",
+      "reference_sha256": "82113e3e4a77413c9c6ddfcec27b905d4e1a10f02ffa7e372dfaf8c470a4a332",
+      "output_sha256": "2498e8e952eafe8cd1f65158bbf8c171ac8a8319017db4bbd955eb634ac00a64",
+      "repeat": 0
+    },
+    {
+      "specimen": "UF_IZ_180660",
+      "backend": "morphoweave",
+      "resolution": 512,
+      "rust_seconds": 0.3646421660669148,
+      "blender_seconds": null,
+      "agreement": {
+        "samples": 100000,
+        "joint_samples": 97901,
+        "mean_rgb": 0.031710160841304846,
+        "p95_max_channel": 0.18138857445678636,
+        "coverage_loss_pp": 0.781,
+        "coverage_gain_pp": 1.247,
+        "passed": false
+      },
+      "analysis_agreement": {
+        "samples": 100000,
+        "joint_samples": 97623,
+        "mean_rgb": 0.031374608151708804,
+        "p95_max_channel": 0.179473517728697,
+        "coverage_loss_pp": 0.8009999999999999,
+        "coverage_gain_pp": 1.494,
+        "passed": false
+      },
+      "input_sha256": "a443ba3772ba653a0c6c768970901eff171c46274851c573241c669465549a6d",
+      "reference_sha256": "c9f83c24f3ad1f2f7254d40e4f5e318cbd52056b65a1efaaef66ccf5d32e4130",
+      "output_sha256": "8cacf2afde7d4293d42614292733e4e9cb594e7217d453e586137412d55a5641",
+      "repeat": 0
+    },
+    {
+      "specimen": "UF_IZ_268940",
+      "backend": "morphoweave",
+      "resolution": 512,
+      "rust_seconds": 0.21488300000783056,
+      "blender_seconds": null,
+      "agreement": {
+        "samples": 100000,
+        "joint_samples": 98504,
+        "mean_rgb": 0.012320966452279498,
+        "p95_max_channel": 0.059972342814694005,
+        "coverage_loss_pp": 0.599,
+        "coverage_gain_pp": 0.8410000000000001,
+        "passed": false
+      },
+      "analysis_agreement": {
+        "samples": 100000,
+        "joint_samples": 98312,
+        "mean_rgb": 0.011951754588604745,
+        "p95_max_channel": 0.05891865256853571,
+        "coverage_loss_pp": 0.622,
+        "coverage_gain_pp": 1.001,
+        "passed": false
+      },
+      "input_sha256": "d94830d569ba9d8b775751660a5bbf42f7615e266d539705f2ac48fc40eb3cb5",
+      "reference_sha256": "d0529acbd942c265004b60fa639c2b6285a79acfca656501f99a0baa705240d6",
+      "output_sha256": "afc30a2c9cc031e0a3ca8b43f4e9c8d2e288b772910da92932bf7aaa5179fcab",
+      "repeat": 0
+    }
+  ],
+  "blockers": [
+    "512 baker color/coverage gates do not pass for every specimen.",
+    "Custom UV layouts fail surface-color agreement; baker-only results reuse Blender UVs.",
+    "Cleanup representative selection differs from Blender; pre-cleanup workflows remain unqualified.",
+    "Downstream features/PCA, complete workflow runtime, and relative peak-memory gates remain unqualified."
+  ]
+}

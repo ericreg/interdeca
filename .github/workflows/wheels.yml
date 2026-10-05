@@ -1,0 +1,79 @@
+name: Binary wheels
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'rust/**'
+      - 'src/**'
+      - 'client/**'
+      - 'tests/test_native_surface.py'
+      - 'tests/fixtures/**'
+      - 'pyproject.toml'
+      - 'LICENSE*'
+      - 'THIRD_PARTY_NOTICES.md'
+      - '.github/workflows/wheels.yml'
+
+# This workflow verifies and retains artifacts; publishing is a separate action.
+permissions:
+  contents: read
+
+jobs:
+  wheels:
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.13', '3.14']
+        platform:
+          - { runner: ubuntu-22.04, target: x86_64, manylinux: '2_28' }
+          - { runner: ubuntu-24.04-arm, target: aarch64, manylinux: '2_28' }
+          - { runner: macos-15-intel, target: x86_64, manylinux: 'off' }
+          - { runner: macos-15, target: aarch64, manylinux: 'off' }
+          - { runner: windows-2022, target: x86_64, manylinux: 'off' }
+    runs-on: ${{ matrix.platform.runner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      # Linux builds run in manylinux containers; the Python version selects
+      # their matching CPython. Other platforms use the runner interpreter.
+      - uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: '1.15.0'
+          target: ${{ matrix.platform.target }}
+          manylinux: ${{ matrix.platform.manylinux }}
+          args: --release --locked --manifest-path rust/Cargo.toml --out dist --interpreter ${{ runner.os == 'Linux' && format('python{0}', matrix.python) || 'python' }}
+      - name: Install the built wheel and client without building Rust
+        shell: bash
+        run: |
+          python -m pip install ./client pytest
+          python -m pip install --only-binary=:all: dist/interdeca-*.whl
+      - name: Verify surface operations from the installed wheel
+        shell: bash
+        run: python -m pytest tests/test_native_surface.py -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.platform.runner }}-${{ matrix.python }}
+          path: dist/*.whl
+
+  source:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: '1.15.0'
+          command: sdist
+          args: --manifest-path rust/Cargo.toml --out dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: corresponding-source
+          path: dist/*.tar.gz

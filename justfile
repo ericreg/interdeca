@@ -21,3 +21,7 @@ rust-check: rust-build
 # Build a wheel containing Python and the native extension for this platform.
 rust-wheel:
     uv build --wheel
+
+# Include corresponding Rust/Python source, provenance, licenses and build files.
+rust-sdist:
+    uv build --sdist

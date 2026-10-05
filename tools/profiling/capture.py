@@ -26,6 +26,7 @@ from interdeca.io import LandmarkIO, MeshIO, TextureIO
 from interdeca.models import Arrays, Landmarks, Mesh
 from interdeca.serial_execution import SerialExecutionManager
 from interdeca.spatial import Spatial
+from interdeca.surface import MeshProcessing, TextureBaking
 from tools.profiling.serde import CacheCapture, Config, Span
 
 
@@ -274,6 +275,8 @@ class Recorder:
             (Host, ("loadModel", "saveNode", "mesh")),
             (DataNode, ("SetAndObservePolyData",)),
             (Blender, ("_run", "_save_mesh")),
+            (MeshProcessing, ("clean_atlas", "prepare_atlas_uv")),
+            (TextureBaking, ("bake_specimen_texture",)),
             (morphoweave.MorphoWeave, ("_inputs",)),
         ):
             for name in names:

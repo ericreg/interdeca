@@ -1,0 +1,41 @@
+{
+  "blender": "5.2.1 LTS",
+  "source_commit": "9e2066aef7ef7e20c142ad7bd3303138a4304c93",
+  "command": "experimental_perf_tests/native_surface/uvcheck.py --margin .002",
+  "angle_limit_degrees": 66,
+  "island_margin": 0.002,
+  "cases": [
+    {
+      "case": "degenerate",
+      "sha256": "e1b62700f7467b9c0065eca298d4f2b0b411a334367837f095faf85cf6f1877c"
+    },
+    {
+      "case": "disconnected",
+      "sha256": "d31d0c9373b667bc49acbf1543aeb81d55003d584c67506ee380c16b3747567a"
+    },
+    {
+      "case": "nonmanifold",
+      "sha256": "8dc3bf405e19a933d58643c4fb237f6b8eae69eefd9d79c9aa7118e4e566a6f0"
+    },
+    {
+      "case": "square",
+      "sha256": "5b0cb9ef7ce9eab3e3a876b8e200cf0e99a1273b7fa947b7db864358d69b0f25"
+    },
+    {
+      "case": "strip",
+      "sha256": "f0c060ad3fd2250f3048bed8e445afa67156f15370a281b43b5ffb925790c27c"
+    },
+    {
+      "case": "tetrahedron",
+      "sha256": "2ffb8738f5f59540e0e256cb35266a6b2abb4b6e0779c907fa6877321edc00ed"
+    },
+    {
+      "case": "translated_strip",
+      "sha256": "e3e404e82e4dcd350868a0245ca6d2ffd223d41c00440785e8c23afff1e6137a"
+    },
+    {
+      "case": "triangle",
+      "sha256": "c0215f7fd2fd891340d00e7ef1f69c089f86ef66518c20a3e32bcb9826738d0b"
+    }
+  ]
+}

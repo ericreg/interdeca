@@ -8,10 +8,14 @@ use numpy::{Element, PyReadonlyArray, PyUntypedArrayMethods};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
+mod bake;
+mod blender;
 mod color;
 mod mesh;
 mod spatial;
+mod surface;
 mod texture;
+mod uv;
 
 /// Check the native reference invariant even when callers bypass Python schemas.
 fn require_aligned<T: Element, D: Dimension>(array: &PyReadonlyArray<'_, T, D>) -> PyResult<()> {
@@ -28,6 +32,9 @@ fn _native(module: &Bound<'_, PyModule>) -> PyResult<()> {
     color::register(module)?;
     mesh::register(module)?;
     spatial::register(module)?;
+    surface::register(module)?;
+    uv::register(module)?;
+    bake::register(module)?;
     texture::register(module)?;
     Ok(())
 }

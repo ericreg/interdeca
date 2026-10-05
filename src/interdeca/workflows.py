@@ -20,7 +20,6 @@ from interdeca.application_models import (
     PopulationResult,
 )
 from interdeca.atlas import Atlas
-from interdeca.blender import Blender
 from interdeca.color_analysis import ColorAnalysis
 from interdeca.dataset import Dataset
 from interdeca.execution import Pipeline, ResultRef, Task
@@ -36,6 +35,7 @@ from interdeca.models import (
 )
 from interdeca.morphoweave import MorphoWeave
 from interdeca.population import Population
+from interdeca.surface import MeshProcessing, TextureBaking
 from interdeca.serde import AtlasRequest, AtlasRunData, AtlasScaleConversionData
 
 
@@ -80,7 +80,6 @@ class Operations:
         functions = {
             "inspect": Dataset.inspect_specimen,
             "validate": Dataset.validate_specimens,
-            "blender": Blender.check_available,
             "reference": Atlas.compute_reference,
             "contribute": Atlas.prepare_contribution,
             "mean": Atlas.assemble_mean,
@@ -90,11 +89,11 @@ class Operations:
             "morphoweave_align": MorphoWeave.align_specimens,
             "morphoweave_resample": MorphoWeave.resample_specimen,
             "load_atlas": Operations.load_atlas,
-            "clean": Blender.clean_atlas,
-            "uv": Blender.prepare_atlas_uv,
+            "clean": MeshProcessing.clean_atlas,
+            "uv": MeshProcessing.prepare_atlas_uv,
             "align": Atlas.align_specimen,
             "resample": Geometry.resample_specimen,
-            "bake": Blender.bake_specimen_texture,
+            "bake": TextureBaking.bake_specimen_texture,
             "save_atlas": Operations.save_atlas,
             "save_specimen": Operations.save_specimen,
             "average": Operations.average,
@@ -336,9 +335,10 @@ class Workflows:
         stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
         output = options.output / f"interdeca_{stamp}_{uuid4().hex[:8]}"
         task, ref = Workflows.task, ResultRef
+        # Surface processing runs in the native extension; legacy Blender
+        # configuration remains accepted without discovering an executable.
         stages = [
-            [task("blender", "blender", options.blender)]
-            + [
+            [
                 task(f"inspect_{i}", "inspect", *item)
                 for i, item in enumerate(manifest)
             ]
@@ -442,7 +442,6 @@ class Workflows:
                     "clean",
                     "clean",
                     atlas_source,
-                    ref("blender"),
                     merge_distance=options.merge_distance,
                 )
             ]
@@ -453,7 +452,6 @@ class Workflows:
                     "uv",
                     "uv",
                     ref("clean"),
-                    ref("blender"),
                     angle_limit_degrees=options.uv_angle,
                     island_margin=options.island_margin,
                 )
@@ -543,7 +541,6 @@ class Workflows:
                         "bake",
                         ref(f"aligned_{i}"),
                         ref(f"resampled_{i}"),
-                        ref("blender"),
                         output / "textures" / f"{item.specimen_id}.png",
                         resolution=(options.bake_size, options.bake_size),
                         cage_extrusion=options.extrusion,

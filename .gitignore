@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+.DS_Store
 
 # Virtual environments
 .venv
@@ -19,3 +20,6 @@ src/interdeca/*.dylib
 experimental_perf_tests/*
 !experimental_perf_tests/parry_spatial/
 experimental_perf_tests/parry_spatial/target/
+
+# Keep the surface qualification and source provenance harness reproducible.
+!experimental_perf_tests/native_surface/

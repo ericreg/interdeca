@@ -1,0 +1,42 @@
+{
+  "version": "2.5.0",
+  "revision": "592a122b37467c3376f2387fbbdbe7b571fad39f",
+  "repository": "https://github.com/AcademySoftwareFoundation/OpenColorIO",
+  "distribution_license": "GPL-3.0-or-later",
+  "files": [
+    {
+      "path": "src/OpenColorIO/SSE.h",
+      "sha256": "f228bda3509f2d098ba5ce78857c0fc4c208f78448a2d45a39d2e0ce2ee324e2",
+      "license": "BSD-3-Clause",
+      "symbols": [
+        "sseLog2",
+        "sseExp2",
+        "ssePower"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/ocio.rs; independent scalar float lanes retain SIMD arithmetic, bit extraction and polynomial order"
+    },
+    {
+      "path": "src/OpenColorIO/ops/gamma/GammaOpUtils.cpp",
+      "sha256": "3e6d1e75acebe9638fed8a27af5bf517023e8457b68f2a31ac1dd2b131756595",
+      "license": "BSD-3-Clause",
+      "symbols": [
+        "ComputeParamsRev",
+        "monCurveBreakRev",
+        "monCurveSlopeRev"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/ocio.rs; gamma=2.4, offset=.055, double parameters converted to float32"
+    },
+    {
+      "path": "src/OpenColorIO/ops/gamma/GammaOpCPU.cpp",
+      "sha256": "aa603205abcfd168fa3bc6cd64e1404e55fe589299dbdc508564bb74910e199a",
+      "license": "BSD-3-Clause",
+      "symbols": [
+        "GammaMoncurveOpCPURevSSE::apply"
+      ],
+      "status": "ported",
+      "adaptation": "rust/src/blender/ocio.rs; configured inverse sRGB ExponentWithLinear output, no C++ runtime dependency"
+    }
+  ]
+}

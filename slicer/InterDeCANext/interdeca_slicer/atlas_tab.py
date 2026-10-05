@@ -32,15 +32,14 @@ class AtlasTab:
         override = Widgets.section(layout, "Atlas Override (Optional)", True)
         self.atlas_model = Widgets.path(override, "Atlas Model:", True)
         self.atlas_landmarks = Widgets.path(override, "Atlas Landmarks:", True)
-        blender = Widgets.section(layout, "Blender (cleanup, UV, bake)", True)
-        self.blender = Widgets.path(blender, "Blender executable:", True)
-        self.merge = Widgets.spin(blender, "Merge by distance:", 0, 1000, 0.0001, 6)
+        surface = Widgets.section(layout, "Surface processing (cleanup, UV, bake)", True)
+        self.merge = Widgets.spin(surface, "Merge by distance:", 0, 1000, 0.0001, 6)
         self.merge.toolTip = "Merge atlas vertices before final UV mapping and correspondence. Zero disables cleanup."
-        self.angle = Widgets.spin(blender, "Smart UV angle (deg):", 1, 89, 66, 1)
-        self.margin = Widgets.spin(blender, "Island margin (UV):", 0, 0.05, 0.002, 4)
-        self.size = Widgets.spin(blender, "Bake size (px):", 128, 8192, 2048)
-        self.extrusion = Widgets.spin(blender, "Bake extrusion:", 0, 10, 0.001, 6)
-        self.bake_margin = Widgets.spin(blender, "Bake margin (px):", 0, 64, 2)
+        self.angle = Widgets.spin(surface, "Smart UV angle (deg):", 1, 89, 66, 1)
+        self.margin = Widgets.spin(surface, "Island margin (UV):", 0, 0.05, 0.002, 4)
+        self.size = Widgets.spin(surface, "Bake size (px):", 128, 8192, 2048)
+        self.extrusion = Widgets.spin(surface, "Bake extrusion:", 0, 10, 0.001, 6)
+        self.bake_margin = Widgets.spin(surface, "Bake margin (px):", 0, 64, 2)
         self.run = Widgets.button(
             layout, "Run ATLAS and Texture Transfer", lambda: app.guard(self.execute)
         )
@@ -51,7 +50,6 @@ class AtlasTab:
             self.output,
             self.atlas_model,
             self.atlas_landmarks,
-            self.blender,
         )
         self.settings_keys = (
             "models",
@@ -60,7 +58,6 @@ class AtlasTab:
             "output",
             "atlas_model",
             "atlas_landmarks",
-            "blender",
         )
         for key, widget in zip(self.settings_keys, self.paths):
             saved = app.settings.value("atlas/" + key, "")
@@ -115,7 +112,6 @@ class AtlasTab:
             textures=optional(self.textures),
             atlas_model=optional(self.atlas_model),
             atlas_landmarks=optional(self.atlas_landmarks),
-            blender=self.blender.currentPath or None,
             merge_distance=float(self.merge.value),
             uv_angle=float(self.angle.value),
             island_margin=float(self.margin.value),

@@ -18,8 +18,6 @@ from pathlib import Path
 import psutil
 
 from interdeca import Spatial, _native
-from interdeca.blender import Blender
-from interdeca.serde import BlenderInstallationData
 from tools.profiling.capture import run_child
 from tools.profiling.serde import Config, ProcessSample, Run, Sample
 from tools.profiling.storage import archive_meshes
@@ -331,9 +329,9 @@ def main():
         "logical_cpus": psutil.cpu_count(),
         "physical_cpus": psutil.cpu_count(logical=False),
         "ram_bytes": psutil.virtual_memory().total,
-        "blender": BlenderInstallationData.from_internal(
-            Blender.check_available()
-        ).model_dump(mode="json"),
+        # Keep the historical environment key without requiring an optional
+        # reference executable for native production measurements.
+        "blender": None,
         "versions": {
             name: importlib.metadata.version(name)
             for name in (

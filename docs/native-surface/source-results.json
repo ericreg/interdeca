@@ -1,0 +1,263 @@
+{
+  "status": "experimental; production replacement blocked",
+  "scope": "Source-derived UV layouts equal archived Blender layouts; complete workflow qualification pending.",
+  "results": [
+    {
+      "backend": "native",
+      "resolution": 512,
+      "repetitions": 3,
+      "specimens_per_repetition": 47,
+      "primary_passes": [
+        47,
+        47,
+        47
+      ],
+      "analysis_passes": [
+        47,
+        47,
+        47
+      ],
+      "combined_passes": [
+        47,
+        47,
+        47
+      ],
+      "deterministic_pixels": true,
+      "native_kernel_total_seconds": [
+        10.921174332965165,
+        11.158449876238592,
+        11.277378328610212
+      ],
+      "whole_process_seconds": [
+        55.392696458962746,
+        56.04401554202195,
+        56.45593066699803
+      ],
+      "peak_rss_bytes": [
+        4034412544,
+        4133715968,
+        4134518784
+      ],
+      "maximum_mean_rgb": 1.9731215136314925e-6,
+      "maximum_p95_channel": 0.0,
+      "maximum_coverage_loss_pp": 0.0,
+      "passed": true,
+      "implementation_sha256": [
+        "afbddb3f65d76123574ffbdb7b73176a55934c889818790cce67021a1813c125"
+      ],
+      "extension_sha256": [
+        "a15eabab2f7d02607223e14559e138fb33a45c0b76508997e0b8b760e54b8602"
+      ]
+    },
+    {
+      "backend": "native",
+      "resolution": 2048,
+      "repetitions": 3,
+      "specimens_per_repetition": 47,
+      "primary_passes": [
+        47,
+        47,
+        47
+      ],
+      "analysis_passes": [
+        47,
+        47,
+        47
+      ],
+      "combined_passes": [
+        47,
+        47,
+        47
+      ],
+      "deterministic_pixels": true,
+      "native_kernel_total_seconds": [
+        22.175100415479392,
+        22.134767626295798,
+        21.866595837986097
+      ],
+      "whole_process_seconds": [
+        76.91958958294708,
+        77.27595200005453,
+        76.66105708305258
+      ],
+      "peak_rss_bytes": [
+        4106190848,
+        4209704960,
+        4107091968
+      ],
+      "maximum_mean_rgb": 1.6473498908910514e-6,
+      "maximum_p95_channel": 0.0,
+      "maximum_coverage_loss_pp": 0.0,
+      "passed": true,
+      "implementation_sha256": [
+        "afbddb3f65d76123574ffbdb7b73176a55934c889818790cce67021a1813c125"
+      ],
+      "extension_sha256": [
+        "a15eabab2f7d02607223e14559e138fb33a45c0b76508997e0b8b760e54b8602"
+      ]
+    },
+    {
+      "backend": "morphoweave",
+      "resolution": 512,
+      "repetitions": 3,
+      "specimens_per_repetition": 47,
+      "primary_passes": [
+        47,
+        47,
+        47
+      ],
+      "analysis_passes": [
+        47,
+        47,
+        47
+      ],
+      "combined_passes": [
+        47,
+        47,
+        47
+      ],
+      "deterministic_pixels": true,
+      "native_kernel_total_seconds": [
+        11.240603752201423,
+        11.294065044610761,
+        11.148890461423434
+      ],
+      "whole_process_seconds": [
+        54.31806704204064,
+        54.755256542004645,
+        54.118479916942306
+      ],
+      "peak_rss_bytes": [
+        4252073984,
+        4252041216,
+        4251795456
+      ],
+      "maximum_mean_rgb": 1.763032653225588e-6,
+      "maximum_p95_channel": 0.0,
+      "maximum_coverage_loss_pp": 0.0,
+      "passed": true,
+      "implementation_sha256": [
+        "afbddb3f65d76123574ffbdb7b73176a55934c889818790cce67021a1813c125"
+      ],
+      "extension_sha256": [
+        "a15eabab2f7d02607223e14559e138fb33a45c0b76508997e0b8b760e54b8602"
+      ]
+    },
+    {
+      "backend": "morphoweave",
+      "resolution": 2048,
+      "repetitions": 3,
+      "specimens_per_repetition": 47,
+      "primary_passes": [
+        47,
+        47,
+        47
+      ],
+      "analysis_passes": [
+        47,
+        47,
+        47
+      ],
+      "combined_passes": [
+        47,
+        47,
+        47
+      ],
+      "deterministic_pixels": true,
+      "native_kernel_total_seconds": [
+        22.192078288993798,
+        22.14261262305081,
+        22.083216084516607
+      ],
+      "whole_process_seconds": [
+        76.06500762503128,
+        75.7798069169512,
+        75.86092720797751
+      ],
+      "peak_rss_bytes": [
+        4120870912,
+        4217683968,
+        4292722688
+      ],
+      "maximum_mean_rgb": 1.5477618488682155e-6,
+      "maximum_p95_channel": 0.0,
+      "maximum_coverage_loss_pp": 0.0,
+      "passed": true,
+      "implementation_sha256": [
+        "afbddb3f65d76123574ffbdb7b73176a55934c889818790cce67021a1813c125"
+      ],
+      "extension_sha256": [
+        "a15eabab2f7d02607223e14559e138fb33a45c0b76508997e0b8b760e54b8602"
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "backend": "morphoweave",
+      "resolution": 512,
+      "vertices": 87082,
+      "triangles": 177665,
+      "charts": 5169,
+      "cleanup_seconds": 0.06008366693276912,
+      "uv_seconds": 0.11687516700476408,
+      "occupied_fraction": 0.39902794577046047,
+      "blender_occupied_fraction": 0.39902794577046047,
+      "subpixel_triangles": 159008,
+      "cleanup_same_connectivity": true,
+      "cleanup_max_distance": 0.0,
+      "cleanup_coordinate_tolerance": 5.7625754469188606e-8,
+      "cleanup_passed": true
+    },
+    {
+      "backend": "native",
+      "resolution": 512,
+      "vertices": 112979,
+      "triangles": 231597,
+      "charts": 7327,
+      "cleanup_seconds": 0.08816604095045477,
+      "uv_seconds": 0.1530474580358714,
+      "occupied_fraction": 0.29224844080896595,
+      "blender_occupied_fraction": 0.29224844080896595,
+      "subpixel_triangles": 229901,
+      "cleanup_same_connectivity": true,
+      "cleanup_max_distance": 0.0,
+      "cleanup_coordinate_tolerance": 5.686557538787354e-8,
+      "cleanup_passed": true
+    }
+  ],
+  "custom_layout_pilots": [],
+  "blockers": [
+    "Actual pre-cleanup workflow geometry, downstream colors/features/PCA and full workflow runtime/memory still require qualification.",
+    "Production CLI/Slicer integration and platform wheel qualification remain pending."
+  ],
+  "uv_comparisons": [
+    {
+      "case": "native",
+      "faces": 231597,
+      "charts": 7327,
+      "margin": 0.002,
+      "native_seconds": 0.1436475410591811,
+      "blender_seconds": 1.1575440840097144,
+      "maximum_uv_error": 0.0,
+      "exact_corners": 694791,
+      "total_corners": 694791,
+      "input_sha256": "9ed9d3a8e0bc6c89d4dc52c9ae5dfc39877da83e3028f270a897245255d8c74d",
+      "native_sha256": "7d6eaa51a1f7e7981cc3bc48dc8ea53f010176f1f931f42b7074cb9956d2bcf2",
+      "reference_sha256": "188a84f537ff4ecc6a6d5afc7ec3dedcdb347bbf6bcdfd8bccdcaee7707cd65d"
+    },
+    {
+      "case": "morphoweave",
+      "faces": 177665,
+      "charts": 5169,
+      "margin": 0.002,
+      "native_seconds": 0.1207512499531731,
+      "blender_seconds": 0.939868374960497,
+      "maximum_uv_error": 0.0,
+      "exact_corners": 532995,
+      "total_corners": 532995,
+      "input_sha256": "c84e80ebaf3ffc032455ad5466344da99f78192c232dfee631b12423756ad9db",
+      "native_sha256": "91bd86222429fe2082ca2b8b89363e31d9d3cbdb7c427aedb0217e99537cba2d",
+      "reference_sha256": "0bae410654a6ae12e67b1e18418bab3e1a29cd785d65aae219650daa1359bd2a"
+    }
+  ]
+}

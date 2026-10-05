@@ -1,0 +1,30 @@
+{
+  "blender": "5.2.1 LTS",
+  "source_commit": "9e2066aef7ef7e20c142ad7bd3303138a4304c93",
+  "cases": [
+    {
+      "case": "partial_source",
+      "sha256": "55040b557a04a0cc1e7b9ed605b109ff6cb045a61f8d1edb7a9d8defaa1c10be",
+      "resolution": [
+        16,
+        16
+      ],
+      "cage_extrusion": 0.01,
+      "max_ray_distance": 0.0,
+      "margin_pixels": 2,
+      "command": "PYTHONPATH=. .venv/bin/python experimental_perf_tests/native_surface/fixtures.py --case partial_source --output build/native-surface/source-complete-fixtures"
+    },
+    {
+      "case": "vertex_sample",
+      "sha256": "1d5b0b8d4004d0118c9cf56fbca913177611c1edd7a230e36f32110338b45118",
+      "resolution": [
+        16,
+        16
+      ],
+      "cage_extrusion": 0.01,
+      "max_ray_distance": 0.0,
+      "margin_pixels": 0,
+      "command": "PYTHONPATH=. .venv/bin/python experimental_perf_tests/native_surface/fixtures.py --case vertex_sample --output build/native-surface/source-vertex-fixture"
+    }
+  ]
+}

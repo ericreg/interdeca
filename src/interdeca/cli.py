@@ -307,7 +307,9 @@ def capabilities(app):
     help="Allow scale changes during specimen alignment. Generated MorphoWeave atlases are restored to mean input size in either mode.",
 )
 @click.option(
-    "--blender", type=str, help="Blender executable; otherwise use normal discovery."
+    "--blender",
+    type=str,
+    help="Deprecated compatibility option; ignored by native surface processing.",
 )
 @click.option(
     "--merge-distance", type=click.FloatRange(min=0), default=0.0001, show_default=True

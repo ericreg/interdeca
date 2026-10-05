@@ -1,7 +1,7 @@
 # InterDeCA core
 
 An independent Python package for landmark-guided surface correspondence,
-Blender texture transfer, color analysis, and population models.
+native texture transfer, color analysis, and population models.
 
 The numerical core does not import Slicer, Qt, or the old
 `3d_color_package` repository. A separate application worker owns the MVC controller,
@@ -35,15 +35,20 @@ and `just rust-wheel` creates the combined Python/Rust wheel. See
 [native development and numerical contracts](rust/README.md). Installing a
 compatible prebuilt wheel does not require a Rust compiler.
 
+The package and native extension are GPL-3.0-or-later. The Blender source-derived
+cleanup, UV and bake implementation runs in the native extension. Blender is
+not required by production workflows. See [port status and qualification](docs/native-surface/README.md)
+and [third-party notices](THIRD_PARTY_NOTICES.md).
+
 UMAP is a required core dependency; no extra installation flag is needed.
 Slicer still installs only the independent client, keeping UMAP and its numerical
 dependencies in the external worker environment.
 
-Blender is an external application, not a Python dependency. The worker targets
-Blender 3.6 and newer; supported-version integration testing remains to be done.
-Pass its executable to `Blender.check_available()`, set `BLENDER_EXECUTABLE`, or
-let discovery search PATH and conventional installation locations. Core operations
-do not install dependencies automatically.
+Atlas cleanup, Smart UV projection, and texture baking run in process through
+Rust. The `Blender` API remains available for explicit reference comparisons;
+only those calls require an external Blender installation. The deprecated
+`--blender` option and serialized `blender` setting are accepted and ignored by
+production workflows during the transition release.
 The `interdeca` CLI and `interdeca-worker` host entry points are separate from
 those stateless numerical operations.
 
@@ -82,14 +87,14 @@ Both backends retain source triangle order and per-corner UVs during alignment.
 MorphoWeave's TPS projection is requested for **every** atlas vertex; the adapter
 attaches the shared atlas faces and UVs unchanged, including collapsed specimen
 faces. This differs from upstream's default 2,000-point landmark export.
-Blender cleanup, UV generation, baking, color analysis, PCA/UMAP, and presentation
+Native cleanup, UV generation, baking, color analysis, PCA/UMAP, and presentation
 remain shared. Existing-atlas overrides work with either correspondence backend.
 
 This is a comparison phase, not a declaration of numerical equivalence. The
 `--normalize-scale` flag controls specimen alignment (default: preserve scale).
 MorphoWeave's reference/mean Procrustes calls still normalize scale internally.
 After mean construction, the application scales its mesh and landmarks together
-to the arithmetic mean **input landmark centroid size**, before Blender cleanup.
+to the arithmetic mean **input landmark centroid size**, before native cleanup.
 Centroid size is the square root of the sum of squared landmark distances from
 their centroid; it is measured separately for each original specimen, giving each
 specimen equal weight. The conversion uses the actual upstream atlas centroid
@@ -146,9 +151,10 @@ immediately; it does not create a scheduled task.
 | Module | Namespace | Operations |
 | --- | --- | --- |
 | `dataset.py` | `Dataset` | `inspect_specimen`, `validate_specimens` |
-| `blender.py` | `Blender` | `check_available`, `clean_atlas`, `prepare_atlas_uv`, `bake_specimen_texture` |
+| `blender.py` (reference only) | `Blender` | `check_available`, `clean_atlas`, `prepare_atlas_uv`, `bake_specimen_texture` |
 | `atlas.py` | `Atlas` | `compute_reference`, `prepare_contribution`, `assemble_mean`, `align_specimen` |
 | `morphoweave.py` | `MorphoWeave` | `build_atlas`, `restore_input_scale`, `align_specimens`, `resample_specimen` |
+| `surface.py` | `MeshProcessing`, `TextureBaking` | `clean`, `clean_atlas`, `uv_layout`, `prepare_atlas_uv`, `bake_pixels`, `bake_specimen_texture` |
 | `spatial.py` | `Spatial` | `index`, `project`, `workers_for` |
 | `geometry.py` | `Geometry` | `prepare_analysis`, `resample_specimen`, `select_region`, `extract_region` |
 | `color_analysis.py` | `ColorAnalysis` | `sample_specimen_colors`, `compute_normalization_stats`, `process_specimen_colors`, `average_textures`, `expand_face_colors` |
@@ -176,7 +182,7 @@ paths, or fitted estimators. No operation knows about a UI or task graph.
 - **Coordinates:** all in-memory positions use RAS axes. Mesh readers accept an
   explicit RAS/LPS convention; landmark readers honor file metadata unless
   overridden. Length units are the caller's responsibility and must agree
-  across specimens, landmarks, and Blender ray settings.
+  across specimens, landmarks, and bake ray settings.
 - **Landmarks:** exact, unique labels identify homologous points. Validation
   reorders each specimen to the first specimen's label order. Rigid alignment
   needs three noncollinear landmarks; the 3-D spline needs at least four
@@ -192,7 +198,7 @@ paths, or fitted estimators. No operation knows about a UI or task graph.
   estimators as read-only during concurrent work.
 - **Files:** output paths are explicit. Existing outputs raise `FileExistsError`
   unless replacement is requested. Atlas workflows allocate a distinct run
-  directory; temporary Blender files are private per call.
+  directory; outputs are published atomically after successful processing.
 
 Mesh input supports triangular OBJ and triangulated PLY, STL, and VTP. OBJ
 polygons must be triangulated before loading; OBJ materials are not read.
@@ -256,7 +262,8 @@ for a particular dataset; each must be supported by the available variation.
 ```python
 from pathlib import Path
 
-from interdeca import Atlas, Blender, ColorAnalysis, Dataset, Geometry, Population
+from interdeca import Atlas, ColorAnalysis, Dataset, Geometry, Population
+from interdeca import MeshProcessing, TextureBaking
 from interdeca import LandmarkIO, MeshIO
 
 inputs = [
@@ -269,15 +276,14 @@ specimens = Dataset.validate_specimens(
     [Dataset.inspect_specimen(*paths) for paths in inputs],
     require_textures=True,
 )
-blender = Blender.check_available()
 
 # Each specimen contributes the same vertex/face ordering to the mean atlas.
 reference = Atlas.compute_reference(specimens)
 contributions = [Atlas.prepare_contribution(item, reference) for item in specimens]
 atlas = Atlas.assemble_mean(contributions)
 # Clean before creating final UVs and resampling; choose distance in model units.
-atlas = Blender.clean_atlas(atlas, blender, merge_distance=0.0001)
-atlas = Blender.prepare_atlas_uv(atlas, blender)
+atlas = MeshProcessing.clean_atlas(atlas, merge_distance=0.0001)
+atlas = MeshProcessing.prepare_atlas_uv(atlas)
 MeshIO.write_obj(atlas.mesh, output / "atlas.obj")
 LandmarkIO.write_json(atlas.landmarks, output / "atlas.mrk.json")
 
@@ -289,10 +295,9 @@ resampled = [
     for item in aligned
 ]
 textures = [
-    Blender.bake_specimen_texture(
+    TextureBaking.bake_specimen_texture(
         source,
         target,
-        blender,
         output / f"{source.specimen_id}.png",
         resolution=(2048, 2048),
         cage_extrusion=0.01,  # Choose this for the physical scale of your meshes.
@@ -344,8 +349,8 @@ After projection, barycentric coordinates pull points back onto the original
 specimen triangles. This avoids treating a separately fitted reverse spline as
 an exact inverse.
 
-Blender Smart UV projection changes only UV coordinates. Diffuse color baking
-uses CPU Cycles with illumination disabled. Ray misses, folds, and occlusion
+The source-derived Smart UV projection changes only UV coordinates. Native
+color-only baking uses CPU rays and repeated bilinear texture sampling. Ray misses, folds, and occlusion
 still require inspection; alpha represents image coverage, not correspondence
 confidence or source material opacity. No mesh cleanup or topology change is
 performed during baking.
@@ -425,7 +430,7 @@ still need separate validation.
 
 The [profiling harness](tools/profiling/README.md) measures both atlas backends
 on the same three small clams, using separate baseline, CPU, and allocation
-runs. It records the application and Blender process memory, retained arrays,
+runs. It records application process-tree memory, retained arrays,
 file conversion costs, and output fingerprints. Profiling dependencies are
 installed only with `uv sync --group profiling`.
 The [initial profile report](docs/profiling/2026-10-02/index.html) records measured

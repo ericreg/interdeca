@@ -240,7 +240,9 @@ class AtlasRequest(CoreData[AtlasOptions]):
     textures: Path | None = None
     atlas_model: Path | None = None
     atlas_landmarks: Path | None = None
-    blender: str | None = None
+    blender: str | None = Field(
+        default=None, description="Deprecated; ignored by native surface processing."
+    )
     merge_distance: float = Field(default=0.0001, ge=0, allow_inf_nan=False)
     uv_angle: float = Field(default=66, gt=0, le=89, allow_inf_nan=False)
     island_margin: float = Field(default=0.002, ge=0, lt=1, allow_inf_nan=False)
@@ -1119,3 +1121,27 @@ class RawTexturePresentation(BoundaryData):
     type: Literal["raw_texture"] = "raw_texture"
     mesh: MeshArtifacts
     texture: Path
+
+
+class NativeCleanupOptions(BoundaryData):
+    """Settings for topology-changing preparation before correspondence exists."""
+
+    merge_distance: NonnegativeFloat = 0.0001
+
+
+class NativeUVOptions(BoundaryData):
+    """Smart UV settings; image dimensions do not change Blender's UV layout."""
+
+    angle_limit_degrees: Annotated[FiniteFloat, Field(gt=0, le=89)] = 66
+    island_margin: Annotated[FiniteFloat, Field(ge=0, lt=1)] = 0.002
+    resolution: tuple[Annotated[StrictInt, Field(ge=1, le=8192)], Annotated[StrictInt, Field(ge=1, le=8192)]] = (2048, 2048)
+    margin_pixels: Annotated[StrictInt, Field(ge=0, le=64)] = 2
+
+
+class NativeBakeOptions(BoundaryData):
+    """Finite ray distances and bounded image dimensions for the native baker."""
+
+    resolution: tuple[Annotated[StrictInt, Field(ge=1, le=8192)], Annotated[StrictInt, Field(ge=1, le=8192)]] = (2048, 2048)
+    cage_extrusion: NonnegativeFloat = 0.001
+    max_ray_distance: NonnegativeFloat = 0
+    margin_pixels: Annotated[StrictInt, Field(ge=0, le=64)] = 2
