@@ -1,0 +1,1638 @@
+{
+  "spans": {
+    "native": {
+      "Arrays.frozen": {
+        "calls": 3844,
+        "wall_seconds": 0.7513749232748523,
+        "process_cpu_seconds": 0.7553970000002392,
+        "thread_cpu_seconds": 0.7399573949999481,
+        "exclusive_wall_seconds": 0.7513749232748523,
+        "exclusive_thread_cpu_seconds": 0.7399573949999481
+      },
+      "Blender._run": {
+        "calls": 49,
+        "wall_seconds": 85.98686891794205,
+        "process_cpu_seconds": 0.31331000000003684,
+        "thread_cpu_seconds": 0.28796453999995464,
+        "exclusive_wall_seconds": 85.98686891794205,
+        "exclusive_thread_cpu_seconds": 0.28796453999995464
+      },
+      "Blender._save_mesh": {
+        "calls": 96,
+        "wall_seconds": 4.200870333821513,
+        "process_cpu_seconds": 3.386950999999989,
+        "thread_cpu_seconds": 3.386323952000012,
+        "exclusive_wall_seconds": 2.0804436720209196,
+        "exclusive_thread_cpu_seconds": 1.270148828000309
+      },
+      "Dataset.validate_specimens": {
+        "calls": 49,
+        "wall_seconds": 0.02053787640761584,
+        "process_cpu_seconds": 0.020664000000002236,
+        "thread_cpu_seconds": 0.020271582999997206,
+        "exclusive_wall_seconds": 0.016624953947030008,
+        "exclusive_thread_cpu_seconds": 0.01636537099998181
+      },
+      "LandmarkIO.read": {
+        "calls": 47,
+        "wall_seconds": 0.047569918795488775,
+        "process_cpu_seconds": 0.02016400000000429,
+        "thread_cpu_seconds": 0.020156504000010067,
+        "exclusive_wall_seconds": 0.04509333975147456,
+        "exclusive_thread_cpu_seconds": 0.017701923000016856
+      },
+      "LandmarkIO.write_json": {
+        "calls": 95,
+        "wall_seconds": 0.04492908553220332,
+        "process_cpu_seconds": 0.04202599999995016,
+        "thread_cpu_seconds": 0.04203021300000387,
+        "exclusive_wall_seconds": 0.04026838717982173,
+        "exclusive_thread_cpu_seconds": 0.0373710449999578
+      },
+      "Landmarks.validated": {
+        "calls": 944,
+        "wall_seconds": 0.04363317461684346,
+        "process_cpu_seconds": 0.045038999999929,
+        "thread_cpu_seconds": 0.0307801570000234,
+        "exclusive_wall_seconds": 0.036948515800759196,
+        "exclusive_thread_cpu_seconds": 0.024079361999951032
+      },
+      "Mesh.validated": {
+        "calls": 389,
+        "wall_seconds": 8.568556015728973,
+        "process_cpu_seconds": 8.535978999999877,
+        "thread_cpu_seconds": 8.534276790999908,
+        "exclusive_wall_seconds": 8.153119449620135,
+        "exclusive_thread_cpu_seconds": 8.125584158000025
+      },
+      "MeshIO.read": {
+        "calls": 47,
+        "wall_seconds": 9.664742496446706,
+        "process_cpu_seconds": 9.122952000000007,
+        "thread_cpu_seconds": 9.11070845799999,
+        "exclusive_wall_seconds": 0.012497459189034998,
+        "exclusive_thread_cpu_seconds": 0.005980129999997558
+      },
+      "MeshIO.write_obj": {
+        "calls": 95,
+        "wall_seconds": 15.73482633405365,
+        "process_cpu_seconds": 14.719220999999997,
+        "thread_cpu_seconds": 14.697108296000025,
+        "exclusive_wall_seconds": 0.02874825184699148,
+        "exclusive_thread_cpu_seconds": 0.012560793000012893
+      },
+      "Spatial.index": {
+        "calls": 94,
+        "wall_seconds": 8.988521956605837,
+        "process_cpu_seconds": 8.981720000000038,
+        "thread_cpu_seconds": 8.979478958000009,
+        "exclusive_wall_seconds": 8.988521956605837,
+        "exclusive_thread_cpu_seconds": 8.979478958000009
+      },
+      "Spatial.project": {
+        "calls": 94,
+        "wall_seconds": 5.818167289136909,
+        "process_cpu_seconds": 34.222776999999944,
+        "thread_cpu_seconds": 0.06609737500004798,
+        "exclusive_wall_seconds": 5.818167289136909,
+        "exclusive_thread_cpu_seconds": 0.06609737500004798
+      },
+      "TextureIO.read": {
+        "calls": 188,
+        "wall_seconds": 0.7762699531158432,
+        "process_cpu_seconds": 0.7483449999999721,
+        "thread_cpu_seconds": 0.7415884149999528,
+        "exclusive_wall_seconds": 0.6642549118259922,
+        "exclusive_thread_cpu_seconds": 0.6297323340000318
+      },
+      "TextureIO.validate_file": {
+        "calls": 94,
+        "wall_seconds": 32.758813747088425,
+        "process_cpu_seconds": 31.13068999999997,
+        "thread_cpu_seconds": 31.126346248000036,
+        "exclusive_wall_seconds": 32.758813747088425,
+        "exclusive_thread_cpu_seconds": 31.126346248000036
+      },
+      "TextureIO.write_png": {
+        "calls": 1,
+        "wall_seconds": 0.022692791069857776,
+        "process_cpu_seconds": 0.019657999999992626,
+        "thread_cpu_seconds": 0.019640417000005073,
+        "exclusive_wall_seconds": 0.021765250014141202,
+        "exclusive_thread_cpu_seconds": 0.018712875000005624
+      },
+      "interdeca._native.read_obj": {
+        "calls": 47,
+        "wall_seconds": 9.652245037257671,
+        "process_cpu_seconds": 9.108464000000003,
+        "thread_cpu_seconds": 9.104728327999993,
+        "exclusive_wall_seconds": 9.652245037257671,
+        "exclusive_thread_cpu_seconds": 9.104728327999993
+      },
+      "interdeca._native.texture_from_linear": {
+        "calls": 1,
+        "wall_seconds": 0.0036302499938756227,
+        "process_cpu_seconds": 0.0036300000000011323,
+        "thread_cpu_seconds": 0.0036300000000011323,
+        "exclusive_wall_seconds": 0.0036302499938756227,
+        "exclusive_thread_cpu_seconds": 0.0036300000000011323
+      },
+      "interdeca._native.texture_from_rgba8": {
+        "calls": 188,
+        "wall_seconds": 0.11201504128985107,
+        "process_cpu_seconds": 0.1119989999998694,
+        "thread_cpu_seconds": 0.11185608099992095,
+        "exclusive_wall_seconds": 0.11201504128985107,
+        "exclusive_thread_cpu_seconds": 0.11185608099992095
+      },
+      "interdeca._native.texture_to_linear": {
+        "calls": 47,
+        "wall_seconds": 0.16701742121949792,
+        "process_cpu_seconds": 0.16703600000001018,
+        "thread_cpu_seconds": 0.16702004600001885,
+        "exclusive_wall_seconds": 0.16701742121949792,
+        "exclusive_thread_cpu_seconds": 0.16702004600001885
+      },
+      "interdeca._native.texture_to_rgba8": {
+        "calls": 1,
+        "wall_seconds": 0.0009275410557165742,
+        "process_cpu_seconds": 0.0009269999999901302,
+        "thread_cpu_seconds": 0.0009275419999994483,
+        "exclusive_wall_seconds": 0.0009275410557165742,
+        "exclusive_thread_cpu_seconds": 0.0009275419999994483
+      },
+      "interdeca._native.write_obj": {
+        "calls": 95,
+        "wall_seconds": 15.706078082206659,
+        "process_cpu_seconds": 14.68995200000004,
+        "thread_cpu_seconds": 14.684547503000012,
+        "exclusive_wall_seconds": 15.706078082206659,
+        "exclusive_thread_cpu_seconds": 14.684547503000012
+      }
+    },
+    "morphoweave": {
+      "Arrays.frozen": {
+        "calls": 4865,
+        "wall_seconds": 0.9750300804153085,
+        "process_cpu_seconds": 0.9741050000004301,
+        "thread_cpu_seconds": 0.9729911790001875,
+        "exclusive_wall_seconds": 0.9750300804153085,
+        "exclusive_thread_cpu_seconds": 0.9729911790001875
+      },
+      "Blender._run": {
+        "calls": 49,
+        "wall_seconds": 84.63165766815655,
+        "process_cpu_seconds": 0.4063469999998688,
+        "thread_cpu_seconds": 0.38079462499989347,
+        "exclusive_wall_seconds": 84.63165766815655,
+        "exclusive_thread_cpu_seconds": 0.38079462499989347
+      },
+      "Blender._save_mesh": {
+        "calls": 96,
+        "wall_seconds": 3.377428251551464,
+        "process_cpu_seconds": 2.9662860000000393,
+        "thread_cpu_seconds": 2.9658948730001384,
+        "exclusive_wall_seconds": 1.3694700606865808,
+        "exclusive_thread_cpu_seconds": 0.9637753280001249
+      },
+      "DataNode.SetAndObservePolyData": {
+        "calls": 238,
+        "wall_seconds": 0.3256837148219347,
+        "process_cpu_seconds": 0.3201519999999505,
+        "thread_cpu_seconds": 0.3201544559999192,
+        "exclusive_wall_seconds": 0.3256837148219347,
+        "exclusive_thread_cpu_seconds": 0.3201544559999192
+      },
+      "Dataset.validate_specimens": {
+        "calls": 52,
+        "wall_seconds": 0.04174724838230759,
+        "process_cpu_seconds": 0.03726100000000132,
+        "thread_cpu_seconds": 0.03561978899999507,
+        "exclusive_wall_seconds": 0.03454561938997358,
+        "exclusive_thread_cpu_seconds": 0.028771045000030915
+      },
+      "Host.loadModel": {
+        "calls": 142,
+        "wall_seconds": 30.45328815979883,
+        "process_cpu_seconds": 29.050891000000078,
+        "thread_cpu_seconds": 29.043651161999954,
+        "exclusive_wall_seconds": 0.14320228260476142,
+        "exclusive_thread_cpu_seconds": 0.1354884619999055
+      },
+      "Host.mesh": {
+        "calls": 95,
+        "wall_seconds": 3.3388886702014133,
+        "process_cpu_seconds": 3.3385129999999705,
+        "thread_cpu_seconds": 3.3376545829999955,
+        "exclusive_wall_seconds": 0.02773022069595754,
+        "exclusive_thread_cpu_seconds": 0.02679824599999847
+      },
+      "Host.saveNode": {
+        "calls": 188,
+        "wall_seconds": 30.325368121964857,
+        "process_cpu_seconds": 27.076694000000018,
+        "thread_cpu_seconds": 27.070437210000094,
+        "exclusive_wall_seconds": 0.047184031805954874,
+        "exclusive_thread_cpu_seconds": 0.04561537400005733
+      },
+      "LandmarkIO.read": {
+        "calls": 283,
+        "wall_seconds": 0.20351050468161702,
+        "process_cpu_seconds": 0.09428600000008247,
+        "thread_cpu_seconds": 0.09347480299992533,
+        "exclusive_wall_seconds": 0.19079712475650012,
+        "exclusive_thread_cpu_seconds": 0.08226130499996478
+      },
+      "LandmarkIO.write_json": {
+        "calls": 236,
+        "wall_seconds": 0.10219908400904387,
+        "process_cpu_seconds": 0.09231000000003675,
+        "thread_cpu_seconds": 0.09233966099999691,
+        "exclusive_wall_seconds": 0.09287532279267907,
+        "exclusive_thread_cpu_seconds": 0.08324350200009789
+      },
+      "Landmarks.validated": {
+        "calls": 1275,
+        "wall_seconds": 0.04063921526540071,
+        "process_cpu_seconds": 0.040946000000223304,
+        "thread_cpu_seconds": 0.03245452999951662,
+        "exclusive_wall_seconds": 0.03305279870983213,
+        "exclusive_thread_cpu_seconds": 0.024869329999392314
+      },
+      "Mesh.validated": {
+        "calls": 433,
+        "wall_seconds": 9.18967746256385,
+        "process_cpu_seconds": 9.182475999999689,
+        "thread_cpu_seconds": 9.180371790000054,
+        "exclusive_wall_seconds": 8.68922086560633,
+        "exclusive_thread_cpu_seconds": 8.680679079999813
+      },
+      "MeshIO.read": {
+        "calls": 228,
+        "wall_seconds": 47.91419303778093,
+        "process_cpu_seconds": 45.61814899999978,
+        "thread_cpu_seconds": 45.597463705999935,
+        "exclusive_wall_seconds": 0.03494925645645708,
+        "exclusive_thread_cpu_seconds": 0.022661570000008652
+      },
+      "MeshIO.to_polydata": {
+        "calls": 237,
+        "wall_seconds": 1.7222522837109864,
+        "process_cpu_seconds": 1.7150129999998924,
+        "thread_cpu_seconds": 1.7146323740001321,
+        "exclusive_wall_seconds": 1.7222522837109864,
+        "exclusive_thread_cpu_seconds": 1.7146323740001321
+      },
+      "MeshIO.write_obj": {
+        "calls": 236,
+        "wall_seconds": 48.641358253662474,
+        "process_cpu_seconds": 43.55254199999986,
+        "thread_cpu_seconds": 43.52375840599966,
+        "exclusive_wall_seconds": 0.055638921447098255,
+        "exclusive_thread_cpu_seconds": 0.03133578999976194
+      },
+      "MorphoWeave._inputs": {
+        "calls": 1,
+        "wall_seconds": 10.938889499986544,
+        "process_cpu_seconds": 10.537347999999998,
+        "thread_cpu_seconds": 10.535144665999997,
+        "exclusive_wall_seconds": 0.022541538812220097,
+        "exclusive_thread_cpu_seconds": 0.022468293000006412
+      },
+      "MorphoWeaveAtlasBuilderLogic._coord_check_ratio": {
+        "calls": 94,
+        "wall_seconds": 12.22668320487719,
+        "process_cpu_seconds": 12.222671000000048,
+        "thread_cpu_seconds": 12.219463993000069,
+        "exclusive_wall_seconds": 0.06894645397551358,
+        "exclusive_thread_cpu_seconds": 0.06415273500007856
+      },
+      "MorphoWeaveAtlasBuilderLogic._corr_pair_kdtree": {
+        "calls": 47,
+        "wall_seconds": 3.938637833343819,
+        "process_cpu_seconds": 10.681643000000008,
+        "thread_cpu_seconds": 2.94644712799996,
+        "exclusive_wall_seconds": 3.938637833343819,
+        "exclusive_thread_cpu_seconds": 2.94644712799996
+      },
+      "MorphoWeaveAtlasBuilderLogic._mesh_density_score": {
+        "calls": 28,
+        "wall_seconds": 3.3961322099203244,
+        "process_cpu_seconds": 3.396314999999994,
+        "thread_cpu_seconds": 3.395624499000043,
+        "exclusive_wall_seconds": 3.3961322099203244,
+        "exclusive_thread_cpu_seconds": 3.395624499000043
+      },
+      "MorphoWeaveAtlasBuilderLogic._warp_polydata_tps": {
+        "calls": 94,
+        "wall_seconds": 1.0032852540025488,
+        "process_cpu_seconds": 1.0008989999999756,
+        "thread_cpu_seconds": 1.0008171749999804,
+        "exclusive_wall_seconds": 1.0032852540025488,
+        "exclusive_thread_cpu_seconds": 1.0008171749999804
+      },
+      "MorphoWeaveAtlasBuilderLogic.cleanPolyData": {
+        "calls": 142,
+        "wall_seconds": 4.915633789496496,
+        "process_cpu_seconds": 4.903661000000163,
+        "thread_cpu_seconds": 4.902641173999946,
+        "exclusive_wall_seconds": 4.915633789496496,
+        "exclusive_thread_cpu_seconds": 4.902641173999946
+      },
+      "MorphoWeaveAtlasBuilderLogic.computeAverageModelFromGroup": {
+        "calls": 1,
+        "wall_seconds": 0.008033375022932887,
+        "process_cpu_seconds": 0.0080340000000092,
+        "thread_cpu_seconds": 0.008035166999988519,
+        "exclusive_wall_seconds": 0.008033375022932887,
+        "exclusive_thread_cpu_seconds": 0.008035166999988519
+      },
+      "MorphoWeaveAtlasBuilderLogic.denseCorrespondence": {
+        "calls": 1,
+        "wall_seconds": 3.9580760409589857,
+        "process_cpu_seconds": 10.700860999999989,
+        "thread_cpu_seconds": 2.9656005420000042,
+        "exclusive_wall_seconds": 0.018772623501718044,
+        "exclusive_thread_cpu_seconds": 0.018487747000037302
+      },
+      "MorphoWeaveAtlasBuilderLogic.importPaired": {
+        "calls": 1,
+        "wall_seconds": 11.749120500055142,
+        "process_cpu_seconds": 11.266710000000003,
+        "thread_cpu_seconds": 11.263423875,
+        "exclusive_wall_seconds": 0.054799459991045296,
+        "exclusive_thread_cpu_seconds": 0.05396067200015864
+      },
+      "MorphoWeaveAtlasBuilderLogic.procrustesImposition": {
+        "calls": 2,
+        "wall_seconds": 0.00132966716773808,
+        "process_cpu_seconds": 0.0013299999999958345,
+        "thread_cpu_seconds": 0.0013324170000075242,
+        "exclusive_wall_seconds": 0.00132966716773808,
+        "exclusive_thread_cpu_seconds": 0.0013324170000075242
+      },
+      "MorphoWeaveAtlasBuilderLogic.runAlign": {
+        "calls": 2,
+        "wall_seconds": 66.65859383309726,
+        "process_cpu_seconds": 62.421746000000006,
+        "thread_cpu_seconds": 62.404916459000006,
+        "exclusive_wall_seconds": 0.17330792103894055,
+        "exclusive_thread_cpu_seconds": 0.16484111699995907
+      },
+      "MorphoWeaveAtlasBuilderLogic.runMean": {
+        "calls": 1,
+        "wall_seconds": 15.792953583062626,
+        "process_cpu_seconds": 22.05308199999999,
+        "thread_cpu_seconds": 14.314457208000007,
+        "exclusive_wall_seconds": 0.07591954211238772,
+        "exclusive_thread_cpu_seconds": 0.07588916600001028
+      },
+      "MorphoWeaveAtlasBuilderLogic.sparseCorrespondenceBaseMesh": {
+        "calls": 47,
+        "wall_seconds": 6.766301581053995,
+        "process_cpu_seconds": 14.316988000000038,
+        "thread_cpu_seconds": 5.109742842000173,
+        "exclusive_wall_seconds": 0.051153370877727866,
+        "exclusive_thread_cpu_seconds": 0.048437085000387015
+      },
+      "MorphoWeaveAtlasBuilderWidget._generateAtlas": {
+        "calls": 1,
+        "wall_seconds": 49.90227550000418,
+        "process_cpu_seconds": 53.460908,
+        "thread_cpu_seconds": 45.714487416000004,
+        "exclusive_wall_seconds": 0.005800208658911288,
+        "exclusive_thread_cpu_seconds": 0.005618745000020908
+      },
+      "Spatial.index": {
+        "calls": 141,
+        "wall_seconds": 13.466736374539323,
+        "process_cpu_seconds": 13.46826500000013,
+        "thread_cpu_seconds": 13.465469126999999,
+        "exclusive_wall_seconds": 13.466736374539323,
+        "exclusive_thread_cpu_seconds": 13.465469126999999
+      },
+      "Spatial.project": {
+        "calls": 141,
+        "wall_seconds": 1.6915733319474384,
+        "process_cpu_seconds": 9.246776999999987,
+        "thread_cpu_seconds": 0.04041637999994663,
+        "exclusive_wall_seconds": 1.6915733319474384,
+        "exclusive_thread_cpu_seconds": 0.04041637999994663
+      },
+      "TextureIO.read": {
+        "calls": 188,
+        "wall_seconds": 0.8629452484892681,
+        "process_cpu_seconds": 0.8458379999999011,
+        "thread_cpu_seconds": 0.8394679219999546,
+        "exclusive_wall_seconds": 0.7523525441065431,
+        "exclusive_thread_cpu_seconds": 0.7290870990001395
+      },
+      "TextureIO.validate_file": {
+        "calls": 94,
+        "wall_seconds": 33.12798933137674,
+        "process_cpu_seconds": 31.55735299999989,
+        "thread_cpu_seconds": 31.55352567200002,
+        "exclusive_wall_seconds": 33.12798933137674,
+        "exclusive_thread_cpu_seconds": 31.55352567200002
+      },
+      "TextureIO.write_png": {
+        "calls": 1,
+        "wall_seconds": 0.11241420800797641,
+        "process_cpu_seconds": 0.03926500000000033,
+        "thread_cpu_seconds": 0.039239415999986704,
+        "exclusive_wall_seconds": 0.11147691600490361,
+        "exclusive_thread_cpu_seconds": 0.038302124999972875
+      },
+      "interdeca._native.read_obj": {
+        "calls": 228,
+        "wall_seconds": 47.879243781324476,
+        "process_cpu_seconds": 45.58689200000002,
+        "thread_cpu_seconds": 45.57480213599993,
+        "exclusive_wall_seconds": 47.879243781324476,
+        "exclusive_thread_cpu_seconds": 45.57480213599993
+      },
+      "interdeca._native.texture_from_linear": {
+        "calls": 1,
+        "wall_seconds": 0.004034583922475576,
+        "process_cpu_seconds": 0.004036000000013473,
+        "thread_cpu_seconds": 0.004033958999997367,
+        "exclusive_wall_seconds": 0.004034583922475576,
+        "exclusive_thread_cpu_seconds": 0.004033958999997367
+      },
+      "interdeca._native.texture_from_rgba8": {
+        "calls": 188,
+        "wall_seconds": 0.11059270438272506,
+        "process_cpu_seconds": 0.11057599999998047,
+        "thread_cpu_seconds": 0.11038082299981511,
+        "exclusive_wall_seconds": 0.11059270438272506,
+        "exclusive_thread_cpu_seconds": 0.11038082299981511
+      },
+      "interdeca._native.texture_to_linear": {
+        "calls": 47,
+        "wall_seconds": 0.18537799769546837,
+        "process_cpu_seconds": 0.18539200000000733,
+        "thread_cpu_seconds": 0.1853847050000752,
+        "exclusive_wall_seconds": 0.18537799769546837,
+        "exclusive_thread_cpu_seconds": 0.1853847050000752
+      },
+      "interdeca._native.texture_to_rgba8": {
+        "calls": 1,
+        "wall_seconds": 0.0009372920030727983,
+        "process_cpu_seconds": 0.0009369999999933043,
+        "thread_cpu_seconds": 0.000937291000013829,
+        "exclusive_wall_seconds": 0.0009372920030727983,
+        "exclusive_thread_cpu_seconds": 0.000937291000013829
+      },
+      "interdeca._native.write_obj": {
+        "calls": 236,
+        "wall_seconds": 48.585719332215376,
+        "process_cpu_seconds": 43.50374700000004,
+        "thread_cpu_seconds": 43.4924226159999,
+        "exclusive_wall_seconds": 48.585719332215376,
+        "exclusive_thread_cpu_seconds": 43.4924226159999
+      }
+    }
+  },
+  "cpu_top_self": {
+    "native": [
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'decode' of 'ImagingDecoder' objects>",
+        "calls": 27234,
+        "self_cpu_seconds": 31.109247,
+        "inclusive_cpu_seconds": 31.109247
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/geometry.py",
+        "line": 134,
+        "function": "prepare_analysis",
+        "calls": 1,
+        "self_cpu_seconds": 25.277389,
+        "inclusive_cpu_seconds": 30.222680999999998
+      },
+      {
+        "file": "interdeca._native",
+        "line": 0,
+        "function": "write_obj",
+        "calls": 95,
+        "self_cpu_seconds": 14.678904999999999,
+        "inclusive_cpu_seconds": 14.682509999999999
+      },
+      {
+        "file": "interdeca._native",
+        "line": 0,
+        "function": "read_obj",
+        "calls": 47,
+        "self_cpu_seconds": 9.043305,
+        "inclusive_cpu_seconds": 9.044321
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/spatial.py",
+        "line": 26,
+        "function": "index",
+        "calls": 94,
+        "self_cpu_seconds": 8.976175,
+        "inclusive_cpu_seconds": 8.979861
+      },
+      {
+        "file": "scipy.interpolate._rbfinterp_pythran",
+        "line": 0,
+        "function": "_build_evaluation_coefficients",
+        "calls": 3410,
+        "self_cpu_seconds": 5.1118429999999995,
+        "inclusive_cpu_seconds": 5.1118429999999995
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/models.py",
+        "line": 82,
+        "function": "Mesh.validated",
+        "calls": 384,
+        "self_cpu_seconds": 3.61132,
+        "inclusive_cpu_seconds": 8.534813999999999
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'reduce' of 'numpy.ufunc' objects>",
+        "calls": 14417,
+        "self_cpu_seconds": 2.415019,
+        "inclusive_cpu_seconds": 2.415019
+      },
+      {
+        "file": "/Users/eric/code/interdeca/tools/profiling/capture.py",
+        "line": 63,
+        "function": "visit",
+        "calls": 488,
+        "self_cpu_seconds": 1.6223450000000001,
+        "inclusive_cpu_seconds": 2.6994360000000004
+      },
+      {
+        "file": "/Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/numpy/linalg/_linalg.py",
+        "line": 2598,
+        "function": "norm",
+        "calls": 929,
+        "self_cpu_seconds": 1.4476,
+        "inclusive_cpu_seconds": 2.9764899999999996
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/geometry.py",
+        "line": 262,
+        "function": "resample_specimen",
+        "calls": 94,
+        "self_cpu_seconds": 1.377039,
+        "inclusive_cpu_seconds": 20.383563
+      },
+      {
+        "file": "scipy.sparse._sparsetools",
+        "line": 0,
+        "function": "csr_tocsc",
+        "calls": 1001,
+        "self_cpu_seconds": 1.328711,
+        "inclusive_cpu_seconds": 1.328711
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'update' of '_hashlib.HASH' objects>",
+        "calls": 662,
+        "self_cpu_seconds": 1.249842,
+        "inclusive_cpu_seconds": 1.249842
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/color_analysis.py",
+        "line": 357,
+        "function": "_sample_image",
+        "calls": 47,
+        "self_cpu_seconds": 1.1094469999999998,
+        "inclusive_cpu_seconds": 1.139743
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'write' of '_io.BufferedRandom' objects>",
+        "calls": 2518,
+        "self_cpu_seconds": 1.078853,
+        "inclusive_cpu_seconds": 1.078853
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'astype' of 'numpy.ndarray' objects>",
+        "calls": 10217,
+        "self_cpu_seconds": 0.760227,
+        "inclusive_cpu_seconds": 0.760227
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "sorted",
+        "calls": 928116,
+        "self_cpu_seconds": 0.627051,
+        "inclusive_cpu_seconds": 0.627054
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'add' of 'set' objects>",
+        "calls": 983206,
+        "self_cpu_seconds": 0.6245959999999999,
+        "inclusive_cpu_seconds": 0.6245959999999999
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "isinstance",
+        "calls": 922503,
+        "self_cpu_seconds": 0.5977439999999999,
+        "inclusive_cpu_seconds": 0.6133149999999998
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/geometry.py",
+        "line": 202,
+        "function": "<genexpr>",
+        "calls": 717287,
+        "self_cpu_seconds": 0.5742849999999999,
+        "inclusive_cpu_seconds": 0.742674
+      },
+      {
+        "file": "/Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/numpy/_core/numeric.py",
+        "line": 1563,
+        "function": "cross",
+        "calls": 244,
+        "self_cpu_seconds": 0.570257,
+        "inclusive_cpu_seconds": 1.34763
+      },
+      {
+        "file": "numpy",
+        "line": 0,
+        "function": "array",
+        "calls": 10925,
+        "self_cpu_seconds": 0.534792,
+        "inclusive_cpu_seconds": 0.535245
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'copy' of 'ImagingCore' objects>",
+        "calls": 282,
+        "self_cpu_seconds": 0.501541,
+        "inclusive_cpu_seconds": 0.501541
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'setdefault' of 'dict' objects>",
+        "calls": 694802,
+        "self_cpu_seconds": 0.48267699999999997,
+        "inclusive_cpu_seconds": 0.48267699999999997
+      },
+      {
+        "file": "posix",
+        "line": 0,
+        "function": "unlink",
+        "calls": 195,
+        "self_cpu_seconds": 0.47560399999999997,
+        "inclusive_cpu_seconds": 0.47560399999999997
+      },
+      {
+        "file": "numpy",
+        "line": 0,
+        "function": "fromiter",
+        "calls": 2,
+        "self_cpu_seconds": 0.45888399999999996,
+        "inclusive_cpu_seconds": 1.201557
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'append' of 'list' objects>",
+        "calls": 729519,
+        "self_cpu_seconds": 0.45721999999999996,
+        "inclusive_cpu_seconds": 0.45721999999999996
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "id",
+        "calls": 729800,
+        "self_cpu_seconds": 0.455168,
+        "inclusive_cpu_seconds": 0.455168
+      },
+      {
+        "file": "PIL._imaging",
+        "line": 0,
+        "function": "new",
+        "calls": 282,
+        "self_cpu_seconds": 0.350388,
+        "inclusive_cpu_seconds": 0.350388
+      },
+      {
+        "file": "/Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/scipy/interpolate/_rbfinterp_np.py",
+        "line": 91,
+        "function": "compute_interpolation",
+        "calls": 3410,
+        "self_cpu_seconds": 0.265391,
+        "inclusive_cpu_seconds": 5.3829649999999996
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'read' of '_io.BufferedReader' objects>",
+        "calls": 89694,
+        "self_cpu_seconds": 0.221887,
+        "inclusive_cpu_seconds": 0.221887
+      },
+      {
+        "file": "_posixsubprocess",
+        "line": 0,
+        "function": "fork_exec",
+        "calls": 50,
+        "self_cpu_seconds": 0.21240699999999998,
+        "inclusive_cpu_seconds": 0.213776
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/models.py",
+        "line": 302,
+        "function": "SpatialTransform.apply",
+        "calls": 424,
+        "self_cpu_seconds": 0.180966,
+        "inclusive_cpu_seconds": 0.24289999999999998
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/models.py",
+        "line": 32,
+        "function": "frozen",
+        "calls": 3818,
+        "self_cpu_seconds": 0.17065299999999994,
+        "inclusive_cpu_seconds": 0.7762459999999998
+      },
+      {
+        "file": "interdeca._native",
+        "line": 0,
+        "function": "texture_to_linear",
+        "calls": 47,
+        "self_cpu_seconds": 0.16569299999999998,
+        "inclusive_cpu_seconds": 0.16569299999999998
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/geometry.py",
+        "line": 371,
+        "function": "_warp",
+        "calls": 188,
+        "self_cpu_seconds": 0.15661899999999998,
+        "inclusive_cpu_seconds": 5.9127019999999995
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'tobytes' of 'numpy.ndarray' objects>",
+        "calls": 892,
+        "self_cpu_seconds": 0.152479,
+        "inclusive_cpu_seconds": 0.152479
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'argmax' of 'numpy.ndarray' objects>",
+        "calls": 1001,
+        "self_cpu_seconds": 0.12821899999999997,
+        "inclusive_cpu_seconds": 0.12821899999999997
+      },
+      {
+        "file": "numpy._core._multiarray_umath",
+        "line": 0,
+        "function": "c_einsum",
+        "calls": 94,
+        "self_cpu_seconds": 0.12296499999999999,
+        "inclusive_cpu_seconds": 0.12296499999999999
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'flush' of '_io.TextIOWrapper' objects>",
+        "calls": 9897,
+        "self_cpu_seconds": 0.113509,
+        "inclusive_cpu_seconds": 0.113509
+      }
+    ],
+    "morphoweave": [
+      {
+        "file": "interdeca._native",
+        "line": 0,
+        "function": "read_obj",
+        "calls": 228,
+        "self_cpu_seconds": 45.747983,
+        "inclusive_cpu_seconds": 45.750701
+      },
+      {
+        "file": "interdeca._native",
+        "line": 0,
+        "function": "write_obj",
+        "calls": 236,
+        "self_cpu_seconds": 43.250634,
+        "inclusive_cpu_seconds": 43.258727
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'decode' of 'ImagingDecoder' objects>",
+        "calls": 28966,
+        "self_cpu_seconds": 30.824621,
+        "inclusive_cpu_seconds": 30.824621
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py",
+        "line": 639,
+        "function": "MorphoWeaveAtlasBuilderLogic._mesh_density_score",
+        "calls": 28,
+        "self_cpu_seconds": 26.985542,
+        "inclusive_cpu_seconds": 50.569715
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/geometry.py",
+        "line": 134,
+        "function": "prepare_analysis",
+        "calls": 1,
+        "self_cpu_seconds": 18.623305,
+        "inclusive_cpu_seconds": 22.458924
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'GetId' of 'vtkmodules.vtkCommonCore.vtkIdList' objects>",
+        "calls": 27726480,
+        "self_cpu_seconds": 17.26274,
+        "inclusive_cpu_seconds": 17.26274
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/spatial.py",
+        "line": 26,
+        "function": "index",
+        "calls": 141,
+        "self_cpu_seconds": 13.487153,
+        "inclusive_cpu_seconds": 13.492341
+      },
+      {
+        "file": "/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py",
+        "line": 984,
+        "function": "Thread.run",
+        "calls": 658,
+        "self_cpu_seconds": 7.252600999999998,
+        "inclusive_cpu_seconds": 7.252600999999998
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'Update' of 'vtkmodules.vtkCommonExecutionModel.vtkAlgorithm' objects>",
+        "calls": 554,
+        "self_cpu_seconds": 6.880236999999999,
+        "inclusive_cpu_seconds": 6.880236999999999
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'GetCellAtId' of 'vtkmodules.vtkCommonDataModel.vtkCellArray' objects>",
+        "calls": 9242160,
+        "self_cpu_seconds": 6.203596,
+        "inclusive_cpu_seconds": 6.203596
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/models.py",
+        "line": 82,
+        "function": "Mesh.validated",
+        "calls": 428,
+        "self_cpu_seconds": 3.8750109999999998,
+        "inclusive_cpu_seconds": 9.317285
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'update' of '_hashlib.HASH' objects>",
+        "calls": 16313,
+        "self_cpu_seconds": 3.2662619999999998,
+        "inclusive_cpu_seconds": 3.2662619999999998
+      },
+      {
+        "file": "/Users/eric/code/interdeca/tools/profiling/capture.py",
+        "line": 63,
+        "function": "visit",
+        "calls": 396,
+        "self_cpu_seconds": 2.401144,
+        "inclusive_cpu_seconds": 3.589095
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'reduce' of 'numpy.ufunc' objects>",
+        "calls": 13626,
+        "self_cpu_seconds": 2.3526809999999996,
+        "inclusive_cpu_seconds": 2.3526809999999996
+      },
+      {
+        "file": "posix",
+        "line": 0,
+        "function": "unlink",
+        "calls": 477,
+        "self_cpu_seconds": 2.313652,
+        "inclusive_cpu_seconds": 2.313652
+      },
+      {
+        "file": "/Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/numpy/linalg/_linalg.py",
+        "line": 2598,
+        "function": "norm",
+        "calls": 1169,
+        "self_cpu_seconds": 1.5893039999999998,
+        "inclusive_cpu_seconds": 3.366529
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/_vendor/morphoweave/MorphoWeaveAtlasBuilder/MorphoWeaveAtlasBuilder.py",
+        "line": 843,
+        "function": "MorphoWeaveAtlasBuilderLogic._corr_pair_kdtree",
+        "calls": 47,
+        "self_cpu_seconds": 1.5813249999999999,
+        "inclusive_cpu_seconds": 3.1126329999999998
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'SetCells' of 'vtkmodules.vtkCommonDataModel.vtkCellArray' objects>",
+        "calls": 237,
+        "self_cpu_seconds": 1.107406,
+        "inclusive_cpu_seconds": 1.107406
+      },
+      {
+        "file": "scipy.sparse._sparsetools",
+        "line": 0,
+        "function": "csr_tocsc",
+        "calls": 1001,
+        "self_cpu_seconds": 0.9998619999999999,
+        "inclusive_cpu_seconds": 0.9998619999999999
+      },
+      {
+        "file": "_imp",
+        "line": 0,
+        "function": "create_dynamic",
+        "calls": 138,
+        "self_cpu_seconds": 0.823523,
+        "inclusive_cpu_seconds": 0.823523
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'astype' of 'numpy.ndarray' objects>",
+        "calls": 9025,
+        "self_cpu_seconds": 0.813973,
+        "inclusive_cpu_seconds": 0.813973
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/color_analysis.py",
+        "line": 357,
+        "function": "_sample_image",
+        "calls": 47,
+        "self_cpu_seconds": 0.7828879999999999,
+        "inclusive_cpu_seconds": 0.80585
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'write' of '_io.BufferedRandom' objects>",
+        "calls": 2518,
+        "self_cpu_seconds": 0.7128329999999999,
+        "inclusive_cpu_seconds": 0.7128329999999999
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "id",
+        "calls": 1132496,
+        "self_cpu_seconds": 0.708429,
+        "inclusive_cpu_seconds": 0.708429
+      },
+      {
+        "file": "numpy",
+        "line": 0,
+        "function": "array",
+        "calls": 12465,
+        "self_cpu_seconds": 0.6484490000000002,
+        "inclusive_cpu_seconds": 0.6484620000000001
+      },
+      {
+        "file": "/Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/numpy/_core/numeric.py",
+        "line": 1563,
+        "function": "cross",
+        "calls": 288,
+        "self_cpu_seconds": 0.6181669999999999,
+        "inclusive_cpu_seconds": 1.448149
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'DeepCopy' of 'vtkmodules.vtkCommonDataModel.vtkPolyData' objects>",
+        "calls": 615,
+        "self_cpu_seconds": 0.5726519999999999,
+        "inclusive_cpu_seconds": 0.5726519999999999
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "isinstance",
+        "calls": 857915,
+        "self_cpu_seconds": 0.550438,
+        "inclusive_cpu_seconds": 0.564965
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "sorted",
+        "calls": 712712,
+        "self_cpu_seconds": 0.48034299999999996,
+        "inclusive_cpu_seconds": 0.48034399999999994
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'add' of 'set' objects>",
+        "calls": 747935,
+        "self_cpu_seconds": 0.4735009999999999,
+        "inclusive_cpu_seconds": 0.4735009999999999
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'copy' of 'ImagingCore' objects>",
+        "calls": 282,
+        "self_cpu_seconds": 0.47269,
+        "inclusive_cpu_seconds": 0.47269
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/geometry.py",
+        "line": 202,
+        "function": "<genexpr>",
+        "calls": 543431,
+        "self_cpu_seconds": 0.437963,
+        "inclusive_cpu_seconds": 0.564762
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'append' of 'list' objects>",
+        "calls": 624100,
+        "self_cpu_seconds": 0.392168,
+        "inclusive_cpu_seconds": 0.392168
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "<method 'setdefault' of 'dict' objects>",
+        "calls": 533007,
+        "self_cpu_seconds": 0.37088899999999997,
+        "inclusive_cpu_seconds": 0.37088899999999997
+      },
+      {
+        "file": "PIL._imaging",
+        "line": 0,
+        "function": "new",
+        "calls": 282,
+        "self_cpu_seconds": 0.369909,
+        "inclusive_cpu_seconds": 0.369909
+      },
+      {
+        "file": "/Users/eric/code/interdeca/.venv/lib/python3.13/site-packages/numpy/lib/_shape_base_impl.py",
+        "line": 607,
+        "function": "column_stack",
+        "calls": 237,
+        "self_cpu_seconds": 0.357915,
+        "inclusive_cpu_seconds": 0.35900099999999996
+      },
+      {
+        "file": "numpy",
+        "line": 0,
+        "function": "fromiter",
+        "calls": 2,
+        "self_cpu_seconds": 0.346512,
+        "inclusive_cpu_seconds": 0.911272
+      },
+      {
+        "file": "_posixsubprocess",
+        "line": 0,
+        "function": "fork_exec",
+        "calls": 50,
+        "self_cpu_seconds": 0.300017,
+        "inclusive_cpu_seconds": 0.301506
+      },
+      {
+        "file": "/Users/eric/code/interdeca/src/interdeca/models.py",
+        "line": 32,
+        "function": "frozen",
+        "calls": 4839,
+        "self_cpu_seconds": 0.29353399999999996,
+        "inclusive_cpu_seconds": 1.040757
+      },
+      {
+        "file": "builtins",
+        "line": 0,
+        "function": "compile",
+        "calls": 65,
+        "self_cpu_seconds": 0.28657699999999997,
+        "inclusive_cpu_seconds": 0.28657699999999997
+      }
+    ]
+  },
+  "vtk_scalar_surface_calls": {
+    "native": 0,
+    "morphoweave": 0
+  },
+  "tracked_heap_peaks_bytes": {
+    "native": 7027311049,
+    "morphoweave": 6801650436
+  },
+  "allocation_groups_bytes": {
+    "native": {
+      "inspect_specimen": 2467860247,
+      "other": 66454902,
+      "align_specimen": 1659402152,
+      "spatial_index_or_query": 1109026420,
+      "resample_specimen": 1724567328
+    },
+    "morphoweave": {
+      "resample_specimen": 753494186,
+      "other": 50320451,
+      "inspect_specimen": 2467860231,
+      "align_specimens": 2420949496,
+      "spatial_index_or_query": 1109026072
+    }
+  },
+  "spatial_peak_allocations": {
+    "native": [
+      {
+        "bytes": 385737728,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/geometry.py:312)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::finish_grow::hc7d1fa1e539681e2 (<unknown>:0)",
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::reserve::do_reserve_and_handle::h03290875505e7c38 (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::rebuild_bvh::hc46dbcc61d4220cc (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::with_flags::h43a74a687b5325ac (<unknown>:0)",
+          "pyo3::marker::Python::detach::he49456bcb5228896 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 385737600,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/geometry.py:312)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::finish_grow::hc7d1fa1e539681e2 (<unknown>:0)",
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::reserve::do_reserve_and_handle::h03290875505e7c38 (<unknown>:0)",
+          "parry3d_f64::partitioning::bvh::bvh_refit::_$LT$impl$u20$parry3d_f64..partitioning..bvh..bvh_tree..Bvh$GT$::refit::h0f738216b66d2072 (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::rebuild_bvh::hc46dbcc61d4220cc (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::with_flags::h43a74a687b5325ac (<unknown>:0)",
+          "pyo3::marker::Python::detach::he49456bcb5228896 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 192868864,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/geometry.py:312)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::finish_grow::hc7d1fa1e539681e2 (<unknown>:0)",
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::reserve::do_reserve_and_handle::h03290875505e7c38 (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::rebuild_bvh::hc46dbcc61d4220cc (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::with_flags::h43a74a687b5325ac (<unknown>:0)",
+          "pyo3::marker::Python::detach::he49456bcb5228896 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 48217216,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/geometry.py:312)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::finish_grow::hc7d1fa1e539681e2 (<unknown>:0)",
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::reserve::do_reserve_and_handle::h03290875505e7c38 (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::rebuild_bvh::hc46dbcc61d4220cc (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::with_flags::h43a74a687b5325ac (<unknown>:0)",
+          "pyo3::marker::Python::detach::he49456bcb5228896 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 36162912,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/geometry.py:312)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "_$LT$alloc..vec..Vec$LT$T$GT$$u20$as$u20$alloc..vec..spec_from_iter_nested..SpecFromIterNested$LT$T$C$I$GT$$GT$::from_iter::h0ed74cbdcd5c2b65 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 36162912,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/geometry.py:312)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "_native::spatial::vectors::h6355707576323d24 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      }
+    ],
+    "morphoweave": [
+      {
+        "bytes": 385737728,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "index (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:30)",
+          "correspondence (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:88)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/morphoweave.py:417)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::finish_grow::hc7d1fa1e539681e2 (<unknown>:0)",
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::reserve::do_reserve_and_handle::h03290875505e7c38 (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::rebuild_bvh::hc46dbcc61d4220cc (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::with_flags::h43a74a687b5325ac (<unknown>:0)",
+          "pyo3::marker::Python::detach::he49456bcb5228896 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 385737600,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "index (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:30)",
+          "correspondence (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:88)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/morphoweave.py:417)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::finish_grow::hc7d1fa1e539681e2 (<unknown>:0)",
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::reserve::do_reserve_and_handle::h03290875505e7c38 (<unknown>:0)",
+          "parry3d_f64::partitioning::bvh::bvh_refit::_$LT$impl$u20$parry3d_f64..partitioning..bvh..bvh_tree..Bvh$GT$::refit::h0f738216b66d2072 (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::rebuild_bvh::hc46dbcc61d4220cc (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::with_flags::h43a74a687b5325ac (<unknown>:0)",
+          "pyo3::marker::Python::detach::he49456bcb5228896 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 192868864,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "index (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:30)",
+          "correspondence (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:88)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/morphoweave.py:417)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::finish_grow::hc7d1fa1e539681e2 (<unknown>:0)",
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::reserve::do_reserve_and_handle::h03290875505e7c38 (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::rebuild_bvh::hc46dbcc61d4220cc (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::with_flags::h43a74a687b5325ac (<unknown>:0)",
+          "pyo3::marker::Python::detach::he49456bcb5228896 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 48217216,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "index (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:30)",
+          "correspondence (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:88)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/morphoweave.py:417)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::finish_grow::hc7d1fa1e539681e2 (<unknown>:0)",
+          "alloc::raw_vec::RawVecInner$LT$A$GT$::reserve::do_reserve_and_handle::h03290875505e7c38 (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::rebuild_bvh::hc46dbcc61d4220cc (<unknown>:0)",
+          "parry3d_f64::shape::trimesh::TriMesh::with_flags::h43a74a687b5325ac (<unknown>:0)",
+          "pyo3::marker::Python::detach::he49456bcb5228896 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 36162912,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "index (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:30)",
+          "correspondence (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:88)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/morphoweave.py:417)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "_$LT$alloc..vec..Vec$LT$T$GT$$u20$as$u20$alloc..vec..spec_from_iter_nested..SpecFromIterNested$LT$T$C$I$GT$$GT$::from_iter::h0ed74cbdcd5c2b65 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      },
+      {
+        "bytes": 36162912,
+        "allocations": 1,
+        "python_stack": [
+          "index (/Users/eric/code/interdeca/src/interdeca/spatial.py:36)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "index (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:30)",
+          "correspondence (/Users/eric/code/interdeca/src/interdeca/_morphoweave_spatial.py:88)",
+          "observed (/Users/eric/code/interdeca/tools/profiling/capture.py:148)",
+          "resample_specimen (/Users/eric/code/interdeca/src/interdeca/morphoweave.py:417)",
+          "invoke (/Users/eric/code/interdeca/src/interdeca/workflows.py:72)",
+          "_execute (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:181)",
+          "execute (/Users/eric/code/interdeca/tools/profiling/capture.py:240)",
+          "_work (/Users/eric/code/interdeca/src/interdeca/serial_execution.py:103)",
+          "run (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:995)",
+          "_bootstrap_inner (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1044)",
+          "_bootstrap (/Users/eric/.local/share/uv/python/cpython-3.13.12-macos-aarch64-none/lib/python3.13/threading.py:1015)"
+        ],
+        "native_stack": [
+          "_native::spatial::vectors::h6355707576323d24 (<unknown>:0)",
+          "pyo3::impl_::trampoline::newfunc::hd8f12ff0bc9c3021 (<unknown>:0)",
+          "type_call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "PyObject_Call (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "partial_vectorcall (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "_PyEval_EvalFrameDefault (<unknown>:0)",
+          "method_vectorcall.llvm.10121415201946512237 (<unknown>:0)",
+          "thread_run (<unknown>:0)",
+          "pythread_wrapper.llvm.3874327566083636068 (<unknown>:0)",
+          "<unknown> (<unknown>:0)",
+          "<unknown> (<unknown>:0)"
+        ]
+      }
+    ]
+  }
+}

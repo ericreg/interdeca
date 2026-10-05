@@ -1,0 +1,74 @@
+{
+  "samples_per_surface": 10000,
+  "seed": 413,
+  "backends": {
+    "native": {
+      "metrics": {
+        "vertex_to_input": {
+          "previous_median_specimen_rms": 5.377339417971601e-19,
+          "current_median_specimen_rms": 5.370540590389969e-19,
+          "largest_absolute_specimen_rms_change": 2.17115380919748e-20
+        },
+        "interiors_to_input": {
+          "previous_median_specimen_rms": 8.633063835973556e-05,
+          "current_median_specimen_rms": 8.633063835973555e-05,
+          "largest_absolute_specimen_rms_change": 5.421010862427522e-20
+        },
+        "input_to_resampled": {
+          "previous_median_specimen_rms": 0.0004359567731676881,
+          "current_median_specimen_rms": 0.0004359567731676881,
+          "largest_absolute_specimen_rms_change": 2.168404344971009e-19
+        },
+        "transferred_landmarks_error_over_centroid_size": {
+          "previous_median_specimen_rms": 0.0024686355154407967,
+          "current_median_specimen_rms": 0.0024686355154407967,
+          "largest_absolute_specimen_rms_change": 3.577867169202165e-18
+        },
+        "baked_to_source_mean_absolute_channel_0_255": {
+          "previous_median_specimen_error": 17.71040442454292,
+          "current_median_specimen_error": 17.71040442454292,
+          "largest_absolute_specimen_error_change": 0.0003538490839680719
+        }
+      },
+      "previous_collapsed_triangles": 35629,
+      "current_collapsed_triangles": 35557,
+      "previous_jointly_covered_samples": 459128,
+      "current_jointly_covered_samples": 459128,
+      "all_specimen_diagnostics_identical": false
+    },
+    "morphoweave": {
+      "metrics": {
+        "vertex_to_input": {
+          "previous_median_specimen_rms": 1.667578415424006e-10,
+          "current_median_specimen_rms": 1.667578415424006e-10,
+          "largest_absolute_specimen_rms_change": 0.0
+        },
+        "interiors_to_input": {
+          "previous_median_specimen_rms": 9.261823690375706e-05,
+          "current_median_specimen_rms": 9.261823690375706e-05,
+          "largest_absolute_specimen_rms_change": 0.0
+        },
+        "input_to_resampled": {
+          "previous_median_specimen_rms": 0.00044634869781403366,
+          "current_median_specimen_rms": 0.00044634869781403366,
+          "largest_absolute_specimen_rms_change": 0.0
+        },
+        "transferred_landmarks_error_over_centroid_size": {
+          "previous_median_specimen_rms": 0.00103687289427895,
+          "current_median_specimen_rms": 0.00103687289427895,
+          "largest_absolute_specimen_rms_change": 0.0
+        },
+        "baked_to_source_mean_absolute_channel_0_255": {
+          "previous_median_specimen_error": 19.36326253068475,
+          "current_median_specimen_error": 19.36326253068475,
+          "largest_absolute_specimen_error_change": 0.0
+        }
+      },
+      "previous_collapsed_triangles": 24261,
+      "current_collapsed_triangles": 24261,
+      "previous_jointly_covered_samples": 464159,
+      "current_jointly_covered_samples": 464159,
+      "all_specimen_diagnostics_identical": true
+    }
+  }
+}

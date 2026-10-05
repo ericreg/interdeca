@@ -1,0 +1,8 @@
+{
+  "coverage": "Starts during morphoweave-baseline-2; earlier captures are not covered. Whole-host values are not attributable solely to InterDeCA.",
+  "samples": 1249,
+  "minimum_available_gib": 4.577728271484375,
+  "swap_used_start_gib": 10.7520751953125,
+  "swap_used_end_gib": 10.4942626953125,
+  "minimum_free_disk_gib": 0.8480949401855469
+}

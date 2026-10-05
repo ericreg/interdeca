@@ -1,0 +1,19 @@
+{
+  "RESULTS.md": "e375dde9dbf00792d9ca834263f9afb6c40b3e89e54d97619ea2a8426c71087b",
+  "accuracy-comparison.json": "9b8b512c7af294ac672c0e93935626ab09cf9d216bfb6888e0734bded22f43ed",
+  "accuracy.json": "e312a0c855c7747e5d418d03a13506dd17dcd6762969b6eeaf906431765cf177",
+  "baseline-overview.json": "8242c5b857eb8254865c2c35a8a93e52580a6be88b669c80c9a2ce750de9827a",
+  "dataset.json": "c7020dddaeab3dc9e1a2a00af1faedd73e59e70f8d2d3b8c9b2fe13c1ebfd592",
+  "environment.json": "3da7c406af060cb19c1027018b8e1eb1a56d48f45c9bcbbca0140915ee43c89b",
+  "geometry-delta.json": "906438a8258b049746d7df93d863b390d63209bd548ac471cd6f6937c789a294",
+  "geometry_audit.py": "69cf971fe76fc170f73876662e787ca6dab9f9e44b5907af0888173cd741cb23",
+  "host-context.json": "5195846f2dbf358dbc556082e0f3c465745bbd79fdb6fc527ee06a3df664ff4b",
+  "memory.png": "f0af6524fa2b7d0595eaae0d50dfa01ba78d942b928b0aac8318e0a5460ee5c9",
+  "memory.svg": "966e606333be8d461ce888742b68aca5ea6721cb01de533418351ed2a14578da",
+  "performance.png": "8a4dc3c9096f98dc17c071efedc7785a3cc5e21eb2c3995abb578c31ef13a583",
+  "performance.svg": "eba6039dde2e17d9c40f33a4a69c5bd0ae244b37900e5e3d6079ec9ed1b0257a",
+  "plot.py": "a963d966c9da38e523eac3958b14f2161766b332611ba43db8fd9b32c853efab",
+  "profile-evidence.json": "b054a607a9109ee6adac472385b7041d1b8375b02a274b84d573ef325f5fd028",
+  "summary.json": "f88afa824d869e435069475202b43debb1290c9fe6dd5df171ccd9fd36e74f72",
+  "verification.json": "7e94451ef48c0b7f20ded311a97d20748ec5b90e8b101e9220059299ec212c0a"
+}
