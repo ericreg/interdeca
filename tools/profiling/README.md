@@ -121,6 +121,21 @@ remain available for questions not anticipated by the summary.
 
 ## Reading the evidence correctly
 
+For a full-population capture with limited disk space, use
+`--archive-first-baseline`. After each backend's first baseline finishes timing,
+the harness compresses its OBJ bytes into `mesh-archive/`, verifies the restored
+SHA-256, and removes the uncompressed copies. Images, arrays, and metadata stay
+available. Later captures retain their verified fingerprints and profiler evidence
+while omitting generated artifacts. `tools.profiling.accuracy` reads these archives
+one mesh at a time and rechecks hashes. No input or timed I/O is compressed.
+At least one complete run's uncompressed outputs must still fit while it executes.
+
+Spatial spans record `Spatial.index` and `Spatial.project`. The environment also
+records the Rust source/binary hashes, `INTERDECA_SPATIAL_THREADS`, and effective
+worker limit. Yappi's Python-thread CPU excludes Rust pool workers; use OS process
+CPU and baseline wall time to assess parallel search. VTK remains in the offline
+accuracy diagnostic as an independent closest-surface implementation.
+
 Use the baseline repeats for runtime and resident-memory comparisons. Detailed
 profilers add overhead and have separate runs. Baselines still include lightweight
 task timers and a read-only walk of retained result buffers.

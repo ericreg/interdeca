@@ -1,0 +1,14 @@
+[build-system]
+requires = ["maturin==1.15.0"]
+build-backend = "maturin"
+
+[project]
+name = "interdeca-parry-spatial"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["numpy>=2,<3"]
+
+[tool.maturin]
+module-name = "interdeca_parry_spatial"
+locked = true
+

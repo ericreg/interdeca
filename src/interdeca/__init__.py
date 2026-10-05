@@ -40,6 +40,7 @@ from interdeca.models import (
     TexturePixels,
 )
 from interdeca.population import Population
+from interdeca.spatial import Spatial, SurfaceProjection
 
 # Keep the public surface explicit so internal helpers and serialization details
 # do not become accidental API commitments through wildcard imports.
@@ -77,6 +78,8 @@ __all__ = [
     "ResultRef",
     "SampledColors",
     "SpatialTransform",
+    "Spatial",
+    "SurfaceProjection",
     "Specimen",
     "SpecimenColorMoments",
     "Task",

@@ -377,6 +377,38 @@ class NativeTextureInput(BoundaryData):
         return self
 
 
+class SpatialMeshInput(BoundaryData):
+    """Typed, aligned, contiguous geometry for Rust's owned triangle index.
+
+    Rust checks shapes, finite coordinates, and index bounds before building.
+    UVs are irrelevant to distance queries and stay with the original mesh.
+    """
+
+    vertices: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+    faces: Annotated[np.ndarray, PlainValidator(ArraySerde.integer_input)]
+
+    @model_validator(mode="after")
+    def contiguous(self) -> Self:
+        if self.vertices.ndim != 2 or self.faces.ndim != 2:
+            raise ValueError("Spatial vertices and faces must be matrices.")
+        object.__setattr__(self, "vertices", np.ascontiguousarray(self.vertices))
+        object.__setattr__(self, "faces", np.ascontiguousarray(self.faces))
+        return self
+
+
+class SpatialQueryInput(BoundaryData):
+    """Normalize query layout without silently accepting text or boolean points."""
+
+    points: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+
+    @model_validator(mode="after")
+    def contiguous(self) -> Self:
+        if self.points.ndim != 2:
+            raise ValueError("Spatial query points must be a matrix.")
+        object.__setattr__(self, "points", np.ascontiguousarray(self.points))
+        return self
+
+
 class CorrespondenceMeshData(MeshData):
     """Projected mesh retaining collapsed faces and every original index and UV.
 

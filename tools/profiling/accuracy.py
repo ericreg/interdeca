@@ -31,6 +31,7 @@ from tools.profiling.serde import (
     SpecimenAccuracy,
     SurfaceDifference,
 )
+from tools.profiling.storage import read_mesh
 
 
 class Transform(NamedTuple):
@@ -314,7 +315,7 @@ def atlas_directory(run: Path) -> Path:
     return run / Path(atlas["directory"]).relative_to(original)
 
 
-def measure_accuracy(root: Path, count: int, seed: int) -> PopulationAccuracy:
+def measure_accuracy(root: Path, count: int, seed: int, capture: str = "current") -> PopulationAccuracy:
     """Measure each backend against its supplied inputs and then against the other.
 
     Proper landmark fits remove pose for cross-backend comparisons. Scale is
@@ -329,12 +330,12 @@ def measure_accuracy(root: Path, count: int, seed: int) -> PopulationAccuracy:
     # Complete per-backend results stay in distinct coordinate systems. Match
     # labeled landmarks only for cross-backend comparisons, never by vertex index.
     runs = {
-        name: root / "current" / f"{name}-baseline-1"
+        name: root / capture / f"{name}-baseline-1"
         for name in ("native", "morphoweave")
     }
     directories = {name: atlas_directory(run) for name, run in runs.items()}
     atlases = {
-        name: MeshIO.read(path / "atlas.obj") for name, path in directories.items()
+        name: read_mesh(path / "atlas.obj") for name, path in directories.items()
     }
     landmarks = {
         name: LandmarkIO.read(path / "atlas.mrk.json")
@@ -437,8 +438,8 @@ def measure_accuracy(root: Path, count: int, seed: int) -> PopulationAccuracy:
     for index, specimen in enumerate(ids):
         resampled, aligned_lm, common_colors = {}, {}, {}
         for name, directory in directories.items():
-            original = MeshIO.read(directory / "aligned" / f"{specimen}.obj")
-            mesh = MeshIO.read(
+            original = read_mesh(directory / "aligned" / f"{specimen}.obj")
+            mesh = read_mesh(
                 directory / "resampled" / f"{specimen}.obj", allow_degenerate=True
             )
             if not np.array_equal(
@@ -520,7 +521,7 @@ def measure_accuracy(root: Path, count: int, seed: int) -> PopulationAccuracy:
         )
         # Persist a clearly marked checkpoint so an interrupted diagnostic can be
         # inspected; only the caller writes the final complete accuracy.json.
-        (root / "accuracy.partial.json").write_text(
+        (root / ("accuracy.partial.json" if capture == "current" else f"{capture}-accuracy.partial.json")).write_text(
             result.model_dump_json(indent=2) + "\n"
         )
         print(f"Measured accuracy {index + 1}/{len(ids)}: {specimen}", flush=True)
@@ -532,11 +533,13 @@ def main():
     parser.add_argument("root", type=Path)
     parser.add_argument("--samples", type=int, default=10000)
     parser.add_argument("--seed", type=int, default=413)
+    parser.add_argument("--capture", choices=("current", "reference", "B0"), default="current")
     args = parser.parse_args()
     if args.samples < 1:
         parser.error("Samples must be positive")
-    result = measure_accuracy(args.root.resolve(), args.samples, args.seed)
-    (args.root / "accuracy.json").write_text(result.model_dump_json(indent=2) + "\n")
+    result = measure_accuracy(args.root.resolve(), args.samples, args.seed, args.capture)
+    name = "accuracy.json" if args.capture == "current" else f"{args.capture}-accuracy.json"
+    (args.root / name).write_text(result.model_dump_json(indent=2) + "\n")
 
 
 if __name__ == "__main__":

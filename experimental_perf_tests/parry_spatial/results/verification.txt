@@ -1,0 +1,12 @@
+Completed capture: 47 specimens x 2 workloads x 3 repeats x 4 methods = 1,128 measurements.
+Each backend/method/repeat has exactly 47 distinct specimen IDs.
+All recorded implementation and extension-binary SHA-256 hashes match the files after capture.
+All 94 saved specimen/workload comparisons have zero point or distance tolerance failures.
+Serial and 8-worker Parry result arrays match exactly in every repeated comparison.
+The scratch-reuse VTK control matches the original VTK loop exactly in every repeated comparison.
+All 47 saved MorphoWeave-workload comparisons have identical projected positions after float32 rounding.
+Maximum Native barycentric-reconstruction difference: 4.18436e-15 in model coordinates.
+Different triangle IDs are recorded, not treated as exact correspondence equivalence.
+Analytic and boundary checks passed before the capture; see results.json verification_cases.
+Rust formatting and git diff whitespace checks passed after the capture.
+Production package source and vendored MorphoWeave were not edited.

@@ -20,6 +20,7 @@ from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 from vtkmodules.vtkCommonDataModel import vtkPolyData
 
 from interdeca._mesh_cache import MeshCache
+from interdeca._morphoweave_spatial import MorphoWeaveSpatial
 from interdeca.io import LandmarkIO, MeshIO
 from interdeca.models import Mesh
 from interdeca.serde import LandmarksData, MeshData
@@ -219,4 +220,7 @@ def load_atlas_builder(host: Host) -> ModuleType:
     module = importlib.util.module_from_spec(spec)
     module.__dict__["__builtins__"] = {**vars(builtins), "__import__": scoped_import}
     exec(compile(content, str(SOURCE), "exec"), module.__dict__)  # noqa: S102 -- pinned, hash-verified upstream source
+    # The source remains byte-verified and unmodified. Local surface adapters
+    # replace its scalar VTK queries while retaining orchestration and warps.
+    MorphoWeaveSpatial.install(module)
     return module

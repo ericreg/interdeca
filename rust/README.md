@@ -1,7 +1,7 @@
-# Native mesh and texture operations
+# Native mesh, texture, and spatial operations
 
 This crate builds the private `interdeca._native` module inside the main Python
-package. `MeshIO` and `TextureIO` are the public interfaces. There is no Python
+package. `MeshIO`, `TextureIO`, and `Spatial` are the public interfaces. There is no Python
 OBJ parser or formatter fallback, and production OBJ loading always validates.
 
 The native reader preserves vertex order, triangle order, corner UVs, negative
@@ -60,3 +60,56 @@ The parser handles ASCII numeric OBJ syntax and UTF-8 text/comments. It does not
 emulate Python's acceptance of Unicode decimal numerals. Polygon triangulation,
 materials, normal processing, and a general OBJ scene representation are outside
 this deliberately narrow mesh contract.
+
+## Surface projection
+
+`Spatial.index(mesh)` snapshots geometry into an owned `parry3d-f64` 0.31.1
+triangle BVH. `Spatial.project(index, points)` returns read-only closest points,
+original triangle IDs, and squared distances in the same order as the queries.
+Inputs and output positions use float64; faces use int64 at the Python boundary
+and checked u32 internally. No triangles or vertices are reordered, merged, or
+removed. Degenerate correspondence triangles remain present. Interior points
+project onto the surface rather than returning the input as a solid-volume hit.
+Nonfinite inputs, invalid indices, and failed/overflowing projections raise errors.
+
+Native correspondence uses this index in common warped space and retains its
+existing barycentric reconstruction. The MorphoWeave private host substitutes
+batched surface queries and unsigned coordinate-distance checks while retaining
+upstream TPS and float32 input/output rounding. Its separate nearest-vertex mean
+algorithm stays upstream. The vendored source remains unmodified and hash-checked;
+these local adapters would need upstream adoption to benefit standalone MorphoWeave.
+There is no production VTK closest-surface fallback. The offline accuracy tool
+deliberately retains VTK as an independent comparison implementation.
+
+At shared edges and vertices, different incident triangles can have the same
+closest point. Parry may choose a different triangle from VTK. The prototype's
+47-specimen checks found only rounding-level changes in recovered geometry and
+identical float32 projections, but do not promise identical face IDs at UV seams.
+Independent point queries preserve order and serial/parallel numerical results;
+there is no parallel floating-point reduction or fast-math change.
+
+### Worker selection
+
+- Default process-wide limit: `min(8, std::thread::available_parallelism())`.
+- For N queries, maximum active chunks: `min(limit, max(1, N // 8192))`;
+  zero queries use zero chunks. Thus fewer than 16,384 queries run serially.
+- A single lazy Rayon pool is shared across indices. The index build is serial.
+  Repeated specimens reuse the pool, and concurrent callers share its fixed limit.
+- `INTERDECA_SPATIAL_THREADS` overrides eight with a positive integer, capped by
+  available CPUs. It is read once per process; restart after changing it. Invalid
+  settings raise an error rather than silently selecting an arbitrary budget.
+- `Spatial.workers_for(N)` exposes the selection. This is a concurrency bound,
+  not a promise that the OS runs that many workers simultaneously.
+
+The 8-worker prototype beat serial search on the 47-clam workloads. Eight is a
+conservative default, not an optimum demonstrated for every CPU or mesh. The
+8,192-query grain avoids scheduling overhead on small landmark batches; it is a
+policy threshold, not an empirically established universal crossover. More than
+eight workers may help larger batches on machines with more available CPUs;
+benchmark before raising the cap. Lower the limit when several application
+processes share the machine. The setting does not control Blender, SciPy's
+nearest-vertex mean search, BLAS, or unrelated VTK operations.
+
+Geometry and queries are copied before releasing the GIL, protecting the Rust
+work from writable Python aliases. The pool and immutable index can serve
+concurrent calls; returned NumPy arrays own their Rust allocations.

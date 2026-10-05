@@ -7,10 +7,6 @@ from scipy.interpolate import RBFInterpolator
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, dijkstra
 from scipy.spatial import Delaunay, cKDTree
-from vtkmodules.vtkCommonCore import reference
-from vtkmodules.vtkCommonDataModel import vtkStaticCellLocator
-
-from interdeca.io import MeshIO
 from interdeca.models import (
     AnalysisGeometry,
     Arrays,
@@ -25,6 +21,7 @@ from interdeca.models import (
     SpatialTransform,
     Specimen,
 )
+from interdeca.spatial import Spatial
 
 
 class Geometry:
@@ -312,36 +309,10 @@ class Geometry:
         warped_mesh = Mesh(warped_subject, specimen.mesh.faces).validated()
         # Reuse one spatial index for all queries instead of searching every
         # specimen triangle separately for every atlas vertex.
-        surface = MeshIO.to_polydata(warped_mesh)
-        locator = vtkStaticCellLocator()
-        locator.SetDataSet(surface)
-        locator.BuildLocator()
+        index = Spatial.index(warped_mesh)
         # Retain the closest triangle as well as its point: recovering coordinates
         # on the original specimen will need both.
-        closest = np.empty_like(warped_atlas)
-        cell_ids = np.empty(len(warped_atlas), dtype=np.int64)
-        squared_distances = np.empty(len(warped_atlas))
-        for index, point in enumerate(warped_atlas):
-            # VTK writes its answers into mutable arguments; each query gets its
-            # own containers so previous results cannot be overwritten.
-            destination = [0.0, 0.0, 0.0]
-            cell_id, sub_id, distance_squared = (
-                reference(0),
-                reference(0),
-                reference(0.0),
-            )
-            locator.FindClosestPoint(
-                point, destination, cell_id, sub_id, distance_squared
-            )
-            if int(cell_id) < 0:
-                raise ValueError(
-                    f"{specimen.specimen_id}: surface projection failed at vertex {index}."
-                )
-            closest[index], cell_ids[index], squared_distances[index] = (
-                destination,
-                int(cell_id),
-                float(distance_squared),
-            )
+        closest, cell_ids, squared_distances = Spatial.project(index, warped_atlas)
         # Report distances in ordinary length units and enforce the caller's
         # quality limit before accepting these correspondences.
         projection_distances = np.sqrt(np.maximum(squared_distances, 0))

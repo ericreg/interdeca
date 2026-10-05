@@ -16,4 +16,6 @@ rust/target/
 src/interdeca/*.so
 src/interdeca/*.pyd
 src/interdeca/*.dylib
-experimental_perf_tests/
+experimental_perf_tests/*
+!experimental_perf_tests/parry_spatial/
+experimental_perf_tests/parry_spatial/target/

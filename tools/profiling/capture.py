@@ -25,6 +25,7 @@ from interdeca.dataset import Dataset
 from interdeca.io import LandmarkIO, MeshIO, TextureIO
 from interdeca.models import Arrays, Landmarks, Mesh
 from interdeca.serial_execution import SerialExecutionManager
+from interdeca.spatial import Spatial
 from tools.profiling.serde import CacheCapture, Config, Span
 
 
@@ -282,6 +283,10 @@ class Recorder:
         self.wrap(_native, "read_obj", file_direction="read")
         self.wrap(_native, "write_obj", file_direction="write")
         self.wrap(MeshIO, "write_obj")
+        # These spans include all worker CPU in their process totals; thread CPU
+        # and Yappi alone cannot attribute work performed on Rust's native pool.
+        self.wrap(Spatial, "index")
+        self.wrap(Spatial, "project")
         for name in (
             "texture_from_rgba8", "texture_to_rgba8",
             "texture_to_linear", "texture_from_linear",

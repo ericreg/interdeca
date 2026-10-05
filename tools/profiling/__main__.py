@@ -17,11 +17,12 @@ from pathlib import Path
 
 import psutil
 
-from interdeca import _native
+from interdeca import Spatial, _native
 from interdeca.blender import Blender
 from interdeca.serde import BlenderInstallationData
 from tools.profiling.capture import run_child
 from tools.profiling.serde import Config, ProcessSample, Run, Sample
+from tools.profiling.storage import archive_meshes
 
 REPOSITORY = Path(__file__).resolve().parents[2]
 
@@ -41,6 +42,7 @@ def fingerprint(directory: Path) -> dict[str, str]:
     # Optional storage compaction happens only after the complete output was
     # hashed. Resume still rehashes every retained file and checks the saved
     # hashes of deliberately omitted artifacts against the original run record.
+    directory = directory.resolve()
     omitted_path = directory / "omitted-artifacts.json"
     omitted = json.loads(omitted_path.read_text()) if omitted_path.exists() else {}
 
@@ -112,8 +114,12 @@ def omit_artifacts(directory: Path):
         for path in (directory / folder).rglob("*")
         if path.is_file() and path.suffix.lower() in (".obj", ".png", ".npy", ".npz")
     ]
-    omitted = {str(path.relative_to(directory)): sha256(path) for path in paths}
-    (directory / "omitted-artifacts.json").write_text(json.dumps(omitted, indent=2) + "\n")
+    manifest = directory / "omitted-artifacts.json"
+    omitted = json.loads(manifest.read_text()) if manifest.exists() else {}
+    omitted.update({str(path.relative_to(directory)): sha256(path) for path in paths})
+    temporary = manifest.with_suffix(".partial")
+    temporary.write_text(json.dumps(omitted, indent=2) + "\n")
+    temporary.replace(manifest)
     for path in paths:
         path.unlink()
 
@@ -254,6 +260,10 @@ def main():
         help="Hash then remove generated meshes/images/arrays after each successful run.",
     )
     parser.add_argument(
+        "--archive-first-baseline", action="store_true",
+        help="Losslessly gzip first-baseline meshes; retain its images/arrays for accuracy, omit later run artifacts.",
+    )
+    parser.add_argument(
         "--resume",
         action="store_true",
         help="Verify and preserve completed runs in an existing output directory.",
@@ -296,6 +306,8 @@ def main():
         parser.error("Cache budget must be nonnegative.")
     if args.timeout <= 0:
         parser.error("Timeout must be positive.")
+    if args.omit_artifacts and args.archive_first_baseline:
+        parser.error("Choose either artifact omission or first-baseline archival.")
     if len(set(args.backends)) != len(args.backends):
         parser.error("Specify each backend only once.")
     root = args.output.resolve()
@@ -344,6 +356,7 @@ def main():
         "inputs": str(inputs),
         "specimens": specimens,
         "native_sha256": sha256(Path(_native.__file__)),
+        "spatial_worker_limit": Spatial.workers_for(1_000_000_000),
         "rust_sha256": {
             str(path.relative_to(REPOSITORY)): sha256(path)
             for path in [*(REPOSITORY / "rust/src").rglob("*.rs"),
@@ -367,6 +380,7 @@ def main():
                 "OPENBLAS_NUM_THREADS",
                 "MKL_NUM_THREADS",
                 "VECLIB_MAXIMUM_THREADS",
+                "INTERDECA_SPATIAL_THREADS",
             )
         },
     }
@@ -418,23 +432,30 @@ def main():
                         else args.cache_budget_mib * 2**20
                     ),
                 )
+                result = None
                 if args.resume and (config.output / "run.json").exists():
                     existing = Run.model_validate_json(
                         (config.output / "run.json").read_text()
                     )
                     if existing.exit_code == 0 and existing.config == config:
-                        continue
-                print(f"Starting {config.output.name}", flush=True)
-                if shutil.disk_usage(root).free < 8 * 2**30:
-                    raise RuntimeError("At least 8 GiB free disk is required to start a capture.")
-                result = measure(config, args.interval, timeout=args.timeout)
+                        result = existing
+                # Resume also finishes interrupted post-capture storage work.
+                # The original successful timing record is never re-measured.
+                if result is None:
+                    print(f"Starting {config.output.name}", flush=True)
+                    if shutil.disk_usage(root).free < 8 * 2**30:
+                        raise RuntimeError("At least 8 GiB free disk is required to start a capture.")
+                    result = measure(config, args.interval, timeout=args.timeout)
                 if backend in expected and result.output_hashes != expected[backend]:
                     raise RuntimeError(
                         f"Instrumented outputs differ for {backend}; inspect {config.output}"
                     )
                 expected[backend] = result.output_hashes
-                if args.omit_artifacts:
-                    omit_artifacts(config.output)
+                if args.omit_artifacts or args.archive_first_baseline:
+                    if args.archive_first_baseline and mode == "baseline" and repeat == 0:
+                        archive_meshes(config.output)
+                    else:
+                        omit_artifacts(config.output)
                     if fingerprint(config.output) != result.output_hashes:
                         raise RuntimeError("Artifact omission changed the verified fingerprint.")
     print(

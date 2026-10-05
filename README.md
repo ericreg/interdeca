@@ -73,6 +73,11 @@ handles, RAS OBJ/Markups I/O, logging, and inert display hooks needed by upstrea
 modules or construct widgets. Unsupported host APIs and an unexpected upstream
 source hash fail explicitly; there is no fallback to the original backend.
 
+The private host replaces closest-surface projection and coordinate-distance
+checks with the library's batched Rust/Parry implementation. These are local
+InterDeCA optimizations, not changes to the upstream submodule. Upstream TPS,
+nearest-vertex mean construction, and float32 projection outputs are preserved.
+
 Both backends retain source triangle order and per-corner UVs during alignment.
 MorphoWeave's TPS projection is requested for **every** atlas vertex; the adapter
 attaches the shared atlas faces and UVs unchanged, including collapsed specimen
@@ -119,6 +124,15 @@ operations; cancellation waits for the active batch, and detailed messages are
 logs rather than parsed progress. Temporary staging files are removed on success
 or failure. No additional worker process is introduced.
 
+Closest-surface queries use a shared native thread pool. The default limit is
+`min(8, available CPUs)`, with at least 8,192 queries per worker; batches below
+16,384 queries stay serial. Set `INTERDECA_SPATIAL_THREADS` to a positive integer
+before starting the process to change the limit, still capped by available CPUs.
+The setting is read once. Eight is a conservative default supported by the
+47-clam benchmark, not a claim that eight is optimal on every machine. Larger
+limits need measurement; smaller limits help when several processes share a CPU.
+See [the spatial contract and worker policy](rust/README.md#surface-projection).
+
 To upgrade the dependency, review the upstream API and numerical changes, update
 the submodule pin and `_morphoweave_host.py` revision/source hash together, and run
 the host-contract tests plus both small-clams e2e cases. Do not patch the submodule
@@ -135,6 +149,7 @@ immediately; it does not create a scheduled task.
 | `blender.py` | `Blender` | `check_available`, `clean_atlas`, `prepare_atlas_uv`, `bake_specimen_texture` |
 | `atlas.py` | `Atlas` | `compute_reference`, `prepare_contribution`, `assemble_mean`, `align_specimen` |
 | `morphoweave.py` | `MorphoWeave` | `build_atlas`, `restore_input_scale`, `align_specimens`, `resample_specimen` |
+| `spatial.py` | `Spatial` | `index`, `project`, `workers_for` |
 | `geometry.py` | `Geometry` | `prepare_analysis`, `resample_specimen`, `select_region`, `extract_region` |
 | `color_analysis.py` | `ColorAnalysis` | `sample_specimen_colors`, `compute_normalization_stats`, `process_specimen_colors`, `average_textures`, `expand_face_colors` |
 | `population.py` | `Population` | `align_clusters`, `assemble_features`, `fit_model`, `reconstruct_features` |

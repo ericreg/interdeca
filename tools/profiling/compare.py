@@ -1,7 +1,6 @@
 """Compare a candidate with an accepted profile, including relocated archives."""
 
 import argparse
-import hashlib
 import json
 import statistics
 from pathlib import Path
@@ -10,8 +9,8 @@ from typing import NamedTuple
 import numpy as np
 from PIL import Image
 
-from interdeca.io import MeshIO
 from tools.profiling.serde import Comparison, MetricChange, Run, Span, Summary
+from tools.profiling.storage import archive_path, digest, read_mesh
 
 REQUIRED_ACTIONS = {
     "atlas",
@@ -35,11 +34,6 @@ class Outputs(NamedTuple):
     presentations: list[dict]
     completions: list[dict]
     atlas_metadata: dict
-
-
-def digest(path: Path) -> str:
-    with path.open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
 def relocated(path: str, original: Path, current: Path) -> Path:
@@ -72,6 +66,15 @@ def outputs(directory: Path) -> Outputs:
         for path in atlas.rglob("*")
         if path.is_file() and path.name != "atlas_run.json"
     }
+    # Logical paths remain stable after lossless post-capture compression. Only
+    # archived OBJ files are restored here; deliberately omitted arrays still fail.
+    omitted_path = directory / "omitted-artifacts.json"
+    if omitted_path.exists():
+        for name in json.loads(omitted_path.read_text()):
+            path = directory / name
+            compressed = archive_path(path)
+            if path.suffix == ".obj" and path.is_relative_to(atlas) and compressed is not None and compressed.is_file():
+                files["atlas/" + str(path.relative_to(atlas))] = path
 
     def collect(value, key):
         if isinstance(value, dict):
@@ -192,7 +195,7 @@ def file_difference(left: Path, right: Path) -> str:
         with Image.open(left) as a, Image.open(right) as b:
             return "decoded pixels: " + array_difference(np.asarray(a), np.asarray(b))
     if left.suffix == ".obj":
-        a, b = (MeshIO.read(path, allow_degenerate=True) for path in (left, right))
+        a, b = (read_mesh(path, allow_degenerate=True) for path in (left, right))
         return "; ".join(
             name
             + ": "
