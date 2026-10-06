@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "profile": "cichlid-rerun-unverified",
+  "units": "source model units; verify against archived run",
+  "reference_id": "Mchenga_m1",
+  "donors": [
+    {
+      "donor_id": "Mchenga_m1",
+      "mesh": {
+        "path": "../../../data/fishy/donors/Models/Mchenga_m1.obj"
+      },
+      "landmarks": {
+        "path": "../../../data/fishy/donors/LMS/Mchenga_m1.mrk.json"
+      },
+      "mesh_coordinates": "RAS"
+    },
+    {
+      "donor_id": "Nimbo_f1",
+      "mesh": {
+        "path": "../../../data/fishy/donors/Models/Nimbo_f1.obj"
+      },
+      "landmarks": {
+        "path": "../../../data/fishy/donors/LMS/Nimbo_f1.mrk.json"
+      },
+      "mesh_coordinates": "RAS"
+    },
+    {
+      "donor_id": "Nimbo_f2",
+      "mesh": {
+        "path": "../../../data/fishy/donors/Models/Nimbo_f2.obj"
+      },
+      "landmarks": {
+        "path": "../../../data/fishy/donors/LMS/Nimbo_f2.mrk.json"
+      },
+      "mesh_coordinates": "RAS"
+    },
+    {
+      "donor_id": "yellowhead_m1",
+      "mesh": {
+        "path": "../../../data/fishy/donors/Models/yellowhead_m1.obj"
+      },
+      "landmarks": {
+        "path": "../../../data/fishy/donors/LMS/yellowhead_m1.mrk.json"
+      },
+      "mesh_coordinates": "RAS"
+    },
+    {
+      "donor_id": "yellowhead_m2",
+      "mesh": {
+        "path": "../../../data/fishy/donors/Models/yellowhead_m2.obj"
+      },
+      "landmarks": {
+        "path": "../../../data/fishy/donors/LMS/yellowhead_m2.mrk.json"
+      },
+      "mesh_coordinates": "RAS"
+    },
+    {
+      "donor_id": "yellowhead_m4",
+      "mesh": {
+        "path": "../../../data/fishy/donors/Models/yellowhead_m4.obj"
+      },
+      "landmarks": {
+        "path": "../../../data/fishy/donors/LMS/yellowhead_m4.mrk.json"
+      },
+      "mesh_coordinates": "RAS"
+    },
+    {
+      "donor_id": "yellowhead_m5",
+      "mesh": {
+        "path": "../../../data/fishy/donors/Models/yellowhead_m5.obj"
+      },
+      "landmarks": {
+        "path": "../../../data/fishy/donors/LMS/yellowhead_m5.mrk.json"
+      },
+      "mesh_coordinates": "RAS"
+    }
+  ],
+  "generation": {
+    "samples": 250,
+    "seed": 49,
+    "expected_landmarks": 47,
+    "tps_lambda": 1e-06,
+    "resolution": 2048,
+    "emission_margin": 16,
+    "noise_amount": 0.1,
+    "noise_scale": 8.0
+  },
+  "transfer": {
+    "merge_distance": 0.0,
+    "angle_degrees": 66.0,
+    "island_margin": 0.002,
+    "resolution": 2048,
+    "cage_extrusion": 0.001,
+    "margin": 2,
+    "timeout": 300
+  }
+}

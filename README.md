@@ -9,6 +9,18 @@ The numerical core and shared MVC controller do not import Slicer, Qt, or the ol
 Selection, and MultiRecolor workflows. See [Slicer setup and parity](docs/slicer.md).
 An automated test suite and exhaustive numerical parity testing remain deferred.
 
+## Fishy paper reproduction
+
+The [fishy reproduction bundle](experiments/fishy/README.md) lives in this repository.
+It provides the cichlid generator, a runner through this core, archived-atlas input
+contracts, and composition-baseline evaluation. The [source-pinned paper runner](experiments/fishy/PAPER_REPRODUCTION.md)
+adds Alek's October 5 analyses and Figure 6–13 mapping, isolated environments,
+input hashes, stage logs and numerical comparisons. See the
+[execution verdict](docs/fishy/paper-reproduction.md) and
+[provenance](docs/fishy/provenance.md) before claiming exact paper reproduction.
+The [completed 250-fish archive baseline](docs/fishy/results.md) includes matched
+native/atlas composition scores, validation evidence and reproducible commands.
+
 ## Installation
 
 The package supports Python 3.12 or newer, including the installed Slicer 3.12 runtime.

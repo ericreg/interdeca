@@ -9,3 +9,6 @@ wheels/
 # Virtual environments
 .venv
 .ruff_cache
+
+# Research data and generated paper artifacts stay outside source control.
+/data/fishy/

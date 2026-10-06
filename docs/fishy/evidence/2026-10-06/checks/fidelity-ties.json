@@ -1,0 +1,29 @@
+{
+  "original": {
+    "faces": 49997,
+    "differs_from_author_by_gt_1e-4": 1949,
+    "median_author_difference": 0.0,
+    "max_author_difference": 96.78883361816406,
+    "differs_from_original": 0,
+    "boundary_tie_count": 34265,
+    "changed_with_boundary_tie": 0
+  },
+  "reversed-corners": {
+    "faces": 49997,
+    "differs_from_author_by_gt_1e-4": 2008,
+    "median_author_difference": 0.0,
+    "max_author_difference": 75.5772705078125,
+    "differs_from_original": 2005,
+    "boundary_tie_count": 34265,
+    "changed_with_boundary_tie": 1941
+  },
+  "shuffled-corners": {
+    "faces": 49997,
+    "differs_from_author_by_gt_1e-4": 2090,
+    "median_author_difference": 0.0,
+    "max_author_difference": 75.50494384765625,
+    "differs_from_original": 2084,
+    "boundary_tie_count": 34265,
+    "changed_with_boundary_tie": 2028
+  }
+}

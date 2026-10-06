@@ -1,0 +1,46 @@
+{
+  "e4_primary_classifier_scores": {
+    "scores": 52,
+    "maximum_absolute_difference": 0.0010869565217390686
+  },
+  "e2_preservation.transfer_cost_composition": {
+    "leaves": 4,
+    "maximum_absolute_difference": 0.0
+  },
+  "e2_preservation.atlas_gain_spatial": {
+    "leaves": 4,
+    "maximum_absolute_difference": 0.0
+  },
+  "e2_preservation.atlas_gain_spatial_dim_matched": {
+    "leaves": 4,
+    "maximum_absolute_difference": 0.0
+  },
+  "e5b_expert_repr.representation_ceiling": {
+    "leaves": 24,
+    "maximum_absolute_difference": 0.0
+  },
+  "e5b_expert_repr.tag_curves": {
+    "leaves": 720,
+    "maximum_absolute_difference": 6.388928459943877e-06
+  },
+  "e5b_expert_repr.pairwise_warp": {
+    "leaves": 24,
+    "maximum_absolute_difference": 0.014430321211836579
+  },
+  "independent_e2_verifier": {
+    "classification_scores": 40,
+    "maximum_absolute_difference": 0.0,
+    "input_order_matches": true,
+    "ground_truth_join_matches": true,
+    "native_pigment_max_difference": 0.0,
+    "native_spatial_max_differences": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "post_pigment_area_max_difference": 0.0,
+    "post_axial_max_difference": 0.0,
+    "canonical_profiles_max_difference": 0.0,
+    "matched_palette_max_difference": 5.7572502321079355e-11
+  }
+}

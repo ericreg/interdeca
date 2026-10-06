@@ -1,0 +1,75 @@
+{
+  "mesh_basis": "Archived synthetic generator copies its UV-preserving decimated input OBJ unchanged (upstream color_fishy_tps.py lines 1014-1019). One archived donor mesh is reused per stem; original scan PNGs recovered from Seagate. No mesh or texture transformations applied.",
+  "files": [
+    {
+      "donor": "Mchenga_m1",
+      "mesh_source": "source/meshes/Mchenga_m1_fishy_000002.obj",
+      "archived_mesh_file": "/mnt/data/ml_data/color-modeling-pub/3D_Fish (Copy)/3D_Fish/Downsampled_decimate/Models/Mchenga_m1.obj",
+      "mesh_sha256": "6e352504d4a0316b072f19d97a5bc1d293cea1b62a02207fe0c0e1eb53e379f1",
+      "texture_source": "Seagate/School/3D_Fish/Fish/Texture/Mchenga_m1.png",
+      "texture_sha256": "7f82d5d90421fda592c24a57116ea6908329c11dd92622c3ab76d6f0fce9b6c4",
+      "copied_mesh_identical": true,
+      "copied_texture_identical": true
+    },
+    {
+      "donor": "Nimbo_f1",
+      "mesh_source": "source/meshes/Nimbo_f1_fishy_000012.obj",
+      "archived_mesh_file": "/mnt/data/ml_data/color-modeling-pub/3D_Fish (Copy)/3D_Fish/Downsampled_decimate/Models/Nimbo_f1.obj",
+      "mesh_sha256": "eddad3844a133c33e73affeaf5513d1e623dd1565e3f5d488c19a74d01be337a",
+      "texture_source": "Seagate/School/3D_Fish/Fish/Texture/Nimbo_f1.png",
+      "texture_sha256": "763cf738c7a59712c15dbb4ea84761b43ef2e227c917c565e0d92b70c8fdf708",
+      "copied_mesh_identical": true,
+      "copied_texture_identical": true
+    },
+    {
+      "donor": "Nimbo_f2",
+      "mesh_source": "source/meshes/Nimbo_f2_fishy_000000.obj",
+      "archived_mesh_file": "/mnt/data/ml_data/color-modeling-pub/3D_Fish (Copy)/3D_Fish/Downsampled_decimate/Models/Nimbo_f2.obj",
+      "mesh_sha256": "938fbdb46ac7f2ebd4d2bc5fb4d8e7e1fd08fafaf10cc0b8253fb270d19fcc80",
+      "texture_source": "Seagate/School/3D_Fish/Fish/Texture/Nimbo_f2.png",
+      "texture_sha256": "4aadce50f2ef8eb9c012e8e56232da97e27bd408426093e10bbba8a96d92bbd0",
+      "copied_mesh_identical": true,
+      "copied_texture_identical": true
+    },
+    {
+      "donor": "yellowhead_m1",
+      "mesh_source": "source/meshes/yellowhead_m1_fishy_000018.obj",
+      "archived_mesh_file": "/mnt/data/ml_data/color-modeling-pub/3D_Fish (Copy)/3D_Fish/Downsampled_decimate/Models/yellowhead_m1.obj",
+      "mesh_sha256": "41ad044685b79d223c2a9c334265c7935b18ff890f2c5f195aebc01e39bb84d1",
+      "texture_source": "Seagate/School/3D_Fish/Fish/Texture/yellowhead_m1.png",
+      "texture_sha256": "23d23b8514bd76fc9f104d31d0397b0bcf186ae985cb6a4b93bd69bec027c27a",
+      "copied_mesh_identical": true,
+      "copied_texture_identical": true
+    },
+    {
+      "donor": "yellowhead_m2",
+      "mesh_source": "source/meshes/yellowhead_m2_fishy_000005.obj",
+      "archived_mesh_file": "/mnt/data/ml_data/color-modeling-pub/3D_Fish (Copy)/3D_Fish/Downsampled_decimate/Models/yellowhead_m2.obj",
+      "mesh_sha256": "3f942a35c0c1bb3001b4357f8983049d1b73fe1c32873cc1c88aa98a3fd3f8b1",
+      "texture_source": "Seagate/School/3D_Fish/Fish/Texture/yellowhead_m2.png",
+      "texture_sha256": "658e02e2943b321ec60f16c3db46b1df0ecece3a9d334dd698be1960eb70c276",
+      "copied_mesh_identical": true,
+      "copied_texture_identical": true
+    },
+    {
+      "donor": "yellowhead_m4",
+      "mesh_source": "source/meshes/yellowhead_m4_fishy_000001.obj",
+      "archived_mesh_file": "/mnt/data/ml_data/color-modeling-pub/3D_Fish (Copy)/3D_Fish/Downsampled_decimate/Models/yellowhead_m4.obj",
+      "mesh_sha256": "257c782f8ad89c31f66c69a4faa00cbc4cda9f943a2689119d97c9b813e9e121",
+      "texture_source": "Seagate/School/3D_Fish/Fish/Texture/yellowhead_m4.png",
+      "texture_sha256": "47617f5cb8f043273e0ddbb0936a9fcbb13e3a7bd5e9387f6184c426cb9d783f",
+      "copied_mesh_identical": true,
+      "copied_texture_identical": true
+    },
+    {
+      "donor": "yellowhead_m5",
+      "mesh_source": "source/meshes/yellowhead_m5_fishy_000004.obj",
+      "archived_mesh_file": "/mnt/data/ml_data/color-modeling-pub/3D_Fish (Copy)/3D_Fish/Downsampled_decimate/Models/yellowhead_m5.obj",
+      "mesh_sha256": "83c305a6058231083d820d33545cfb2893aa888e8f750b59c6b55feebf5baf08",
+      "texture_source": "Seagate/School/3D_Fish/Fish/Texture/yellowhead_m5.png",
+      "texture_sha256": "f2fd335c13789ea80b51ca53dfcdf20903952e03e5b0407949154ad362fdb6b1",
+      "copied_mesh_identical": true,
+      "copied_texture_identical": true
+    }
+  ]
+}

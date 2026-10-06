@@ -1,0 +1,31 @@
+# Exact environment that produced paper_synth/results (Python 3.12.8, Linux x86_64), frozen 2026-10-05.
+# Install: see paper_synth/README.md section 0.
+contourpy==1.3.3
+cycler==0.12.1
+diptest==0.11.0
+fonttools==4.63.0
+hdbscan==0.8.44
+imageio==2.37.3
+joblib==1.5.3
+kiwisolver==1.5.0
+lazy-loader==0.5
+llvmlite==0.47.0
+matplotlib==3.10.9
+networkx==3.6.1
+numba==0.65.1
+numpy==2.4.6
+packaging==26.2
+pandas==3.0.3
+pillow==12.2.0
+psutil==7.2.2
+pynndescent==0.6.0
+pyparsing==3.3.2
+python-dateutil==2.9.0.post0
+scikit-image==0.26.0
+scikit-learn==1.8.0
+scipy==1.17.1
+six==1.17.0
+threadpoolctl==3.6.0
+tifffile==2026.6.1
+tqdm==4.67.3
+umap-learn==0.5.12

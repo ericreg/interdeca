@@ -1,0 +1,7 @@
+{
+  "palette_bins": 24,
+  "seed": 0,
+  "folds": 5,
+  "repeats": 4,
+  "logistic_c": 1.0
+}
