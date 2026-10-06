@@ -1,0 +1,10 @@
+{
+  "source_coordinate_table_sha256": "d700d8a03324570b5af07a8f81e35c7012e50322b52da3b2734782b8573e3a37",
+  "source_summary_sha256": "ffbf31de6d85de180f898f384fd47db918b987e5ea6ca9abd3dfeb93172c0c3d",
+  "scope": "Documented method reconstruction; original 32-specimen run not certified.",
+  "specimens": 32,
+  "render_script_sha256": "51d23c8670009725c94d54c66ac661f7a337f9d663d1497cec0421e2429a9824",
+  "exported_png_sha256": "ca5c6fc32b8ed3e2a4c4dd3b692adf1e54e999abf5e44d372c8d19765002f67a",
+  "published_coordinate_table_sha256": "3aa7ec39ba4c7f2054aaf81f1a17230487090a251e8ed48be3d5e6682d83fe7f",
+  "published_csv_newlines": "LF; source run CSV uses CRLF. Parsed records are identical."
+}

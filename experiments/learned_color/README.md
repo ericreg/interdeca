@@ -8,10 +8,13 @@ That commit directly descends from `demo` at `464edfb`.
 **Reproduction boundary:** the upstream commit includes rendering and sampling
 helpers and a technical description, but does not include the referenced
 `ijepa_texture_embeddings/ijepa_pipeline_2.py`, active configuration, exact
-32-specimen cohort or analysis outputs. This is an independently executable
+32-specimen cohort or analysis outputs. Subsequent Slack recovery found Charlie's
+May 26 `32_clams.zip` and Eric's June 21 PCA/UMAP images. All 32 specimen IDs
+match the labels visible across those images. This is an independently executable
 reconstruction of the documented method, not recovered original experiment
-code or a certified reproduction of its published figures. The missing inputs
-remain necessary for that claim. See the [execution record](../../docs/learned-color/reproduction.md).
+code or a certified numerical reproduction of those earlier figures. Eric's
+June explanation describes an earlier rendering protocol without rotational
+alignment. See the [execution record](../../docs/learned-color/reproduction.md).
 
 ## Method
 
@@ -67,10 +70,11 @@ for the local Mac validation run, not a claim of bitwise equality to Eric's GPU.
 
 Copy `configs/mussels-paper.example.json` to a local JSON file and edit the
 input/output paths and device. Paths resolve relative to the configuration file.
-Use Eric's exact 32 specimen IDs in `specimen_ids`, or supply a directory
-containing exactly his cohort. The example's expected count is 32. If you run the
-47 locally available mussels, set a different profile and expected count 47 and
-describe it as a new method rerun.
+The example includes the recovered 32 specimen IDs in `specimen_ids`; extract
+the Slack archive without changing its `models/`, `textures/`, and `landmarks/`
+layout, then set the input paths. The expected count is 32. If you run the
+47 locally available mussels, clear `specimen_ids`, set a different profile and
+expected count 47, and describe it as a new method rerun.
 
 From the repository root:
 

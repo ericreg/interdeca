@@ -1,0 +1,11 @@
+{
+  "specimens": 32,
+  "patches": 2048,
+  "each_specimen_has_64_distinct_patches": true,
+  "all_pixels_classified_as_surface": true,
+  "no_crop_pixel_augmentation": true,
+  "all_patch_hashes_match": true,
+  "max_pairwise_crop_iou": 0.5990630489947296,
+  "identical_renders_vs_47_run": 32,
+  "identical_patches_vs_47_run": 2048
+}

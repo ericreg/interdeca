@@ -1,10 +1,84 @@
 # Learned-color reproduction: October 6, 2026
 
-**Executed successfully within the available scope.** The documented frozen
-I-JEPA method completed on the 47 locally available native mussels, producing
-3,008 crop vectors, 47 unit specimen vectors, PCA/UMAP coordinates and cosine
-neighbor tables. This is a new, explicitly labeled method rerun. It does not
-certify Eric's original 32-specimen experiment or reproduce unavailable figures.
+**Executed successfully on the recovered 32-specimen cohort.** The documented
+frozen I-JEPA method produced 2,048 crop vectors, 32 unit specimen vectors,
+PCA/UMAP coordinates and 160 cosine-neighbor rows. The earlier 47-specimen run is
+retained separately below. These are explicitly labeled method reruns; they do
+not certify the numerical values in Eric's original experiment.
+
+## Paper and Slack recovery
+
+The local `Coloring paper draft.docx` already gives the checkpoint name,
+group-PCA camera reference, 64 unaugmented 256² crops, token/patch averaging,
+single specimen L2 normalization, standardized PCA and cosine UMAP settings.
+Recovering Eric's original configuration is not a prerequisite for reconstructing
+those documented steps. The draft states a 32-specimen cohort but does not list
+all specimen IDs.
+
+The [May 26 dataset handoff](https://humanaugmente-e7j6563.slack.com/archives/C09D45GJ8RX/p1779843465024659)
+contains Charlie Clark's `32_clams.zip`, with 32 models, 32 textures and 32 landmark
+files. Every mesh/texture checksum matches the corresponding member of the
+previously available 47-specimen collection. The example configuration now lists
+these 32 IDs explicitly; no subset was inferred from morphology or analysis.
+
+Eric's [June 21 PCA image](https://humanaugmente-e7j6563.slack.com/archives/C09D45GJ8RX/p1782083178344569)
+and [UMAP image](https://humanaugmente-e7j6563.slack.com/archives/C09D45GJ8RX/p1782082893348299)
+were downloaded and inspected. The union of their legible specimen labels matches
+all 32 IDs in the archive. These supply an original cohort and qualitative
+outputs. However, Eric's [June 25 method explanation](https://humanaugmente-e7j6563.slack.com/archives/C09D45GJ8RX/p1782421921119709)
+explicitly describes rendering without rotational alignment. Those earlier
+proof-of-concept images are therefore not a numerical baseline for the updated
+v2.2 group-PCA protocol. No original embedding arrays or coordinates were attached
+to the inspected I-JEPA thread.
+
+There is also a figure/method mismatch in the local draft. Immediately after the
+32-mussel I-JEPA method, the embedded `media/image7.png` shows a standardized
+I-JEPA PCA of six native fish (`Mchenga_m1`, `Nimbo_f1`, `Nimbo_f2`,
+`yellowhead_m2`, `yellowhead_m4`, `yellowhead_m5`). It is not an image of the
+described 32-mussel population. This rerun follows the stated mussel method and
+does not certify that six-fish image or its unspecified source run.
+
+## Recovered 32-specimen execution
+
+The complete pipeline ran anew on the unmodified archive's paired native inputs,
+using the same pinned checkpoint, environment and MPS device as the earlier run.
+The standardized PCA components explain **17.7140% and 17.0422%** of variance.
+UMAP and five-neighbor analysis were fitted to exactly these 32 specimens.
+
+- All 32 exterior renders and all 2,048 patch images are byte-identical to the
+  corresponding artifacts from the earlier 47-specimen run. Each specimen has
+  64 distinct patches; every pixel exceeds the surface alpha threshold, every
+  patch matches its source pixels and checksum, and maximum pairwise IoU is
+  0.599063.
+- Fresh inference produced a 2,048 × 1,280 crop matrix and a 32 × 1,280 specimen
+  matrix. All values are finite. The specimen vectors exactly equal the matching
+  vectors from the independent earlier run; no embedding arrays were reused.
+- Independent float64 raw-crop averaging and normalization matches the specimen
+  vectors within `7.90e-8`. Independent float64 cosine ranking matches all 160
+  saved neighbor rows. Reapplying the saved standardized PCA transform matches
+  coordinates within `1.77e-5`.
+- The completion marker, input/source hashes, expected count and ordered joins
+  were checked. The clean export was visually inspected.
+
+The [32-specimen evidence](evidence/2026-10-06-slack-32/) includes the archive
+and input provenance, paper/Slack recovery record, resolved protocol, numerical
+checks, coordinates, neighbors, summary and clean population figure. Original
+Slack screenshots, native inputs, crops and full matrices remain in ignored
+local data.
+
+![Recovered 32-specimen PCA and UMAP](evidence/2026-10-06-slack-32/population.png)
+
+```sh
+MPLBACKEND=Agg data/learned-color/env/bin/python -m experiments.learned_color \
+  --config data/learned-color/slack-32.json --stage all
+MPLBACKEND=Agg data/learned-color/env/bin/python -m experiments.learned_color.plot \
+  --run data/learned-color/runs/2026-10-06-slack-32 \
+  --output data/learned-color/exports/2026-10-06-slack-32
+```
+
+`slack-32.json` is the ignored machine-specific configuration. The portable
+example now carries the recovered specimen list. Complete local artifacts are
+in `data/learned-color/runs/2026-10-06-slack-32/`.
 
 ## Source and method identity
 
@@ -22,7 +96,7 @@ certify Eric's original 32-specimen experiment or reproduce unavailable figures.
   `f157467ea509bc356ff9f61fd3c0d840eec5e04e`, float32, eager attention, explicit MPS
   device. The Mac device choice is recorded rather than equated to Eric's GPU.
 
-## Executed population
+## Earlier 47-specimen execution
 
 All 47 exact-stem OBJ/texture pairs in the supplied `Mussels` folder were used.
 No 32-specimen subset was guessed. Every input mesh and texture was hashed.
@@ -38,7 +112,7 @@ or out-of-sample performance. UMAP used cosine distance, ten neighbors,
 `min_dist=0.1`, seed 42 and one execution thread. Five non-self cosine neighbors
 were recorded per specimen.
 
-## Independent checks
+## Earlier 47-specimen checks
 
 - All 3,008 saved patches exactly match the corresponding source-render pixels;
   no flips or photometric augmentation occurred. Every patch pixel exceeds the
@@ -67,7 +141,7 @@ independent checks, coordinates, neighbors, summary and a figure. Native inputs,
 rendered specimen images, crops, checkpoint weights and full embedding matrices
 remain outside Git in `data/learned-color/`.
 
-## Commands and artifacts
+## Earlier 47-specimen commands and artifacts
 
 The actual local run used the separate Python 3.12.8 environment:
 
@@ -86,13 +160,18 @@ example and environment instructions are in the
 processor metadata, exact input hashes and a completion marker. A completion
 marker establishes this configured run only.
 
-## Still needed for original-paper certification
+## Still needed for original-output numerical comparison
 
-1. Eric's referenced original pipeline and active configuration.
-2. The exact 32 specimen IDs and corresponding input checksums.
-3. Original model revision, output arrays/figures and the figure-to-run mapping.
+1. Original embedding/coordinate arrays associated with a specified protocol
+   version and figure-to-run mapping.
+2. Original immutable model revision, numerical environment and device details.
+   The draft names the checkpoint; this reconstruction pins a specific revision.
+
+The original pipeline and active YAML would help diagnose numerical differences,
+but the documented method and recovered cohort are sufficient to run the
+reconstruction. The cohort list and June qualitative figures are now recovered.
 
 The source document explicitly distinguishes existing v2.1 outputs from the
-v2.2 protocol. Neither missing output set is replaced by this 47-specimen run.
-The independent implementation is available for review and execution while the
-author handoff is completed.
+v2.2 protocol. The 47-specimen run remains a separate descriptive result;
+recovering the June figures does not establish numerical equivalence to either
+protocol version.
