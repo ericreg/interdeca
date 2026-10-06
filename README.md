@@ -11,6 +11,12 @@ An automated test suite and exhaustive numerical parity testing remain deferred.
 
 ## Installation
 
+The [frozen I-JEPA paper experiment](experiments/learned_color/README.md) runs in
+an isolated research environment inside this repository. It reconstructs Eric's
+documented surface-appearance method while recording the missing original-code
+and 32-specimen-cohort handoff. See its
+[execution record](docs/learned-color/reproduction.md) before claiming exact paper reproduction.
+
 The package supports Python 3.12 or newer, including the installed Slicer 3.12 runtime.
 
 ```sh

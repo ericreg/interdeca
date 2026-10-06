@@ -1,0 +1,15 @@
+{
+  "profile": "available-mussels-47-documented-method-rerun",
+  "specimens": 47,
+  "crops_per_specimen": 64,
+  "embedding_features": 1280,
+  "PCA_explained_variance_ratio": [
+    0.16553200781345367,
+    0.15289124846458435
+  ],
+  "UMAP_method": "UMAP cosine",
+  "scope": "Documented method reconstruction; original 32-specimen run not certified.",
+  "supervised_performance_claim": false,
+  "checkpoint_revision": "f157467ea509bc356ff9f61fd3c0d840eec5e04e",
+  "population_plot_sha256": "0fe7bb3340af653df57a847491fa46277d16a2df5f945598afa3de2deaaaf003"
+}

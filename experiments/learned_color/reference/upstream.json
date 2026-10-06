@@ -1,0 +1,41 @@
+{
+  "repository": "https://github.com/bshi42/3d_color_package",
+  "revision": "b30c495c701093e456231ec8a035012266ccef74",
+  "base_demo_revision": "464edfb77836ee192741391c5fcde0982c1ad0b0",
+  "files": [
+    {
+      "path": "render_clam.py",
+      "sha256": "ab548bf8e20a6526dea1cf54b1f23f829d65456da434fcd5f5dc448940894bed",
+      "integrated_sha256": "8dbd24b67ab8c45a011fbbddaf49cb84d44b8da02bc7cbcb3dcdd306e17126f1"
+    },
+    {
+      "path": "util.py",
+      "sha256": "3339341d5a954ba08533646e26de12b0143eb5ca213d356e942f0ebf73271beb",
+      "integrated_sha256": "3339341d5a954ba08533646e26de12b0143eb5ca213d356e942f0ebf73271beb"
+    },
+    {
+      "path": "patch_sampling.py",
+      "sha256": "0bfb0165b87a60c697015f7341094d32d683e4c39c1cc70c02c8b5026f0a7848",
+      "integrated_sha256": "4fced056bf9f45909bcc80d92090cfca6b73c1eaad7f6fa175bbbb79cf8cfcfb"
+    },
+    {
+      "path": "IJEPA2_TECHNICAL_DESCRIPTION.md",
+      "sha256": "b3fc8781601f798089ebbe4d751f0669dd0ae0c1e4676e73a9fd7855cdbd2804",
+      "integrated_sha256": "b3fc8781601f798089ebbe4d751f0669dd0ae0c1e4676e73a9fd7855cdbd2804"
+    },
+    {
+      "path": "jepa_plan.md",
+      "sha256": "e181cda17ff267663338e36a3becf7af26ba908accd13e2dd59befcc292bc682",
+      "integrated_sha256": "e181cda17ff267663338e36a3becf7af26ba908accd13e2dd59befcc292bc682"
+    }
+  ],
+  "missing_upstream_files": [
+    "ijepa_texture_embeddings/ijepa_pipeline_2.py",
+    "ijepa_texture_embeddings/ijepa_config_2.yaml"
+  ],
+  "integration": "Documented frozen inference reimplementation; not recovered original experiment.",
+  "transformations": [
+    "Use package-relative util imports",
+    "Remove postponed-annotation import; Python 3.12+ supports the existing type syntax"
+  ]
+}

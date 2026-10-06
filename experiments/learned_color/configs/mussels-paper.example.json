@@ -1,0 +1,13 @@
+{
+  "profile": "paper-32-author-cohort-required",
+  "models_dir": "../../../data/learned-color/paper32/models",
+  "textures_dir": "../../../data/learned-color/paper32/textures",
+  "output_dir": "../../../data/learned-color/runs/paper32",
+  "expected_pair_count": 32,
+  "specimen_ids": [],
+  "orientation_reference_id": "UF_IZ_438751",
+  "model_revision": "f157467ea509bc356ff9f61fd3c0d840eec5e04e",
+  "device": "cuda",
+  "allow_cpu": false,
+  "batch_size": 8
+}

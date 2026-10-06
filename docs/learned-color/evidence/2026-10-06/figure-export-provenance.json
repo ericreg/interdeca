@@ -1,0 +1,8 @@
+{
+  "source_coordinate_table_sha256": "0c041064f65f30a7cdd0d4c18ddbb7a90c5850ceb2940805e7cc6fc6843d1091",
+  "source_summary_sha256": "e77e7f2a72eb1be565c2b77b77c5aeee0c1ac6b5e86bb6d691d93282b9952586",
+  "scope": "Documented method reconstruction; original 32-specimen run not certified.",
+  "specimens": 47,
+  "render_script_sha256": "51d23c8670009725c94d54c66ac661f7a337f9d663d1497cec0421e2429a9824",
+  "exported_png_sha256": "6f51de3affd0c74cfe2c2f7fe45f87218ad347401dd7e8ba4b43d622337c2d3b"
+}
