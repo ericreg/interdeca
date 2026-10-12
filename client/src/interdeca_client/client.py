@@ -89,8 +89,10 @@ class ApplicationClient:
             )
         )
 
-    def start(self, executable):
+    def start(self, executable, *, max_workers: int = 1):
         """Launch an independently installed Python environment and capture early failures."""
+        if not isinstance(max_workers, int) or max_workers < 1:
+            raise ValueError("Task worker count must be a positive integer.")
         if self._thread is not None and self._thread.is_alive():
             raise RuntimeError(
                 "The worker is running or stopping; wait for it to exit before starting another."
@@ -149,6 +151,8 @@ class ApplicationClient:
                         "interdeca.worker",
                         "--session-directory",
                         str(self.root),
+                        "--jobs",
+                        str(max_workers),
                     ],
                     env=environment,
                     stdout=stdout,

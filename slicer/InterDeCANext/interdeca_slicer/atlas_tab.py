@@ -15,11 +15,17 @@ class AtlasTab:
         self.widget = qt.QWidget()
         layout = qt.QFormLayout(self.widget)
         inputs = Widgets.section(layout, "Input Directories")
-        self.models = Widgets.path(inputs, "Models:")
-        self.landmarks = Widgets.path(inputs, "Landmarks:")
-        self.textures = Widgets.path(inputs, "Textures:")
-        self.output = Widgets.path(inputs, "Output directory:")
-        self.validation = qt.QLabel("Select model, landmark, and output directories.")
+        self.input_dir = Widgets.path(inputs, "Input directory:")
+        self.coordinates = Widgets.combo(inputs, "Mesh coordinates:")
+        self.coordinates.addItems(["LPS", "RAS"])
+        self.coordinates.setCurrentIndex(
+            1 if app.settings.value("atlas/input_coordinates", "LPS") == "RAS" else 0
+        )
+        self.output = Widgets.path(inputs, "Output directory (optional):")
+        # Each new form starts unchecked because replacement deletes saved runs.
+        self.overwrite = Widgets.check(inputs, "Overwrite _interdeca:", False)
+        self.overwrite.toolTip = "Delete this dataset's _interdeca folder, including previous prepared inputs and results, before running. Raw models, landmarks, and textures remain unchanged."
+        self.validation = qt.QLabel("Select a dataset containing models/, landmarks/, and textures/.")
         self.validation.wordWrap = True
         inputs.addRow(self.validation)
         self.backend = Widgets.combo(inputs, "Atlas implementation:")
@@ -33,6 +39,15 @@ class AtlasTab:
         self.atlas_model = Widgets.path(override, "Atlas Model:", True)
         self.atlas_landmarks = Widgets.path(override, "Atlas Landmarks:", True)
         surface = Widgets.section(layout, "Surface processing (cleanup, UV, bake)", True)
+        # Atlas construction remains independent of the tool used to clean,
+        # unwrap, and bake its final shared surface.
+        self.surface_backend = Widgets.combo(surface, "Surface backend:")
+        self.surface_backend.addItems(["Rust", "Blender"])
+        self.surface_backend.setCurrentIndex(
+            1 if app.settings.value("atlas/surface_backend", "rust") == "blender" else 0
+        )
+        self.blender = Widgets.path(surface, "Blender executable (optional):", True)
+        self.blender.toolTip = "Used only with Blender surface processing. Leave empty for automatic discovery."
         self.merge = Widgets.spin(surface, "Merge by distance:", 0, 1000, 0.0001, 6)
         self.merge.toolTip = "Merge atlas vertices before final UV mapping and correspondence. Zero disables cleanup."
         self.angle = Widgets.spin(surface, "Smart UV angle (deg):", 1, 89, 66, 1)
@@ -44,20 +59,18 @@ class AtlasTab:
             layout, "Run ATLAS and Texture Transfer", lambda: app.guard(self.execute)
         )
         self.paths = (
-            self.models,
-            self.landmarks,
-            self.textures,
+            self.input_dir,
             self.output,
             self.atlas_model,
             self.atlas_landmarks,
+            self.blender,
         )
         self.settings_keys = (
-            "models",
-            "landmarks",
-            "textures",
+            "input_dir",
             "output",
             "atlas_model",
             "atlas_landmarks",
+            "blender",
         )
         for key, widget in zip(self.settings_keys, self.paths):
             saved = app.settings.value("atlas/" + key, "")
@@ -78,7 +91,10 @@ class AtlasTab:
                 else "valueChanged(double)"
             )
             spin.connect(signal, self.changed)
+        self.coordinates.connect("currentIndexChanged(int)", self.changed)
+        self.overwrite.connect("toggled(bool)", self.changed)
         self.backend.connect("currentIndexChanged(int)", self.changed)
+        self.surface_backend.connect("currentIndexChanged(int)", self.changed)
         self.normalize_scale.connect("toggled(bool)", self.changed)
 
     def changed(self, *args):
@@ -89,14 +105,18 @@ class AtlasTab:
             "atlas/backend", ("native", "morphoweave")[int(self.backend.currentIndex)]
         )
         self.app.client.invalidate("all")
-        valid = all(
-            widget.currentPath and Path(widget.currentPath).is_dir()
-            for widget in (self.models, self.landmarks)
+        self.app.settings.setValue(
+            "atlas/surface_backend", ("rust", "blender")[int(self.surface_backend.currentIndex)]
+        )
+        self.app.settings.setValue("atlas/input_coordinates", self.coordinates.currentText)
+        root = Path(self.input_dir.currentPath) if self.input_dir.currentPath else None
+        valid = root is not None and all(
+            (root / name).is_dir() for name in ("models", "landmarks", "textures")
         )
         self.validation.text = (
-            "Input directories found. Specimen pairing and geometry are validated on Run."
-            if valid
-            else "Select existing model and landmark directories."
+            "Input folders found. Matching file names are validated on Run; inputs are prepared under _interdeca/."
+            if valid else
+            "Select a dataset containing models/, landmarks/, and textures/."
         )
 
     def execute(self):
@@ -106,10 +126,10 @@ class AtlasTab:
             str(widget.currentPath) if widget.currentPath else None
         )
         self.app.client.run_atlas(
-            models=str(self.models.currentPath),
-            landmarks=str(self.landmarks.currentPath),
-            output=str(self.output.currentPath),
-            textures=optional(self.textures),
+            input_dir=str(self.input_dir.currentPath),
+            input_coordinates=self.coordinates.currentText,
+            output=optional(self.output),
+            overwrite=bool(self.overwrite.checked),
             atlas_model=optional(self.atlas_model),
             atlas_landmarks=optional(self.atlas_landmarks),
             merge_distance=float(self.merge.value),
@@ -120,11 +140,15 @@ class AtlasTab:
             bake_margin=int(self.bake_margin.value),
             backend=("native", "morphoweave")[int(self.backend.currentIndex)],
             normalize_scale=bool(self.normalize_scale.checked),
+            surface_backend=("rust", "blender")[int(self.surface_backend.currentIndex)],
+            blender=optional(self.blender),
         )
 
     def render(self, busy):
         """Lock pipeline inputs during execution and enable Run only with required paths."""
         self.widget.enabled = not busy
-        self.run.enabled = not busy and all(
-            widget.currentPath for widget in (self.models, self.landmarks, self.output)
+        self.blender.enabled = not busy and int(self.surface_backend.currentIndex) == 1
+        root = Path(self.input_dir.currentPath) if self.input_dir.currentPath else None
+        self.run.enabled = not busy and root is not None and all(
+            (root / name).is_dir() for name in ("models", "landmarks", "textures")
         )

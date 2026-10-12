@@ -44,9 +44,9 @@ class Harness(NamedTuple):
 def harness():
     active = []
 
-    def create(operations):
+    def create():
         dispatcher = Dispatcher(Queue())
-        runner = Harness(SerialExecutionManager(operations, dispatcher), dispatcher, [])
+        runner = Harness(SerialExecutionManager(dispatcher), dispatcher, [])
         active.append(runner)
         return runner
 
@@ -56,11 +56,11 @@ def harness():
         assert runner.manager.join(10)
 
 
-def resource_pipeline():
+def resource_pipeline(acquire, use):
     return Pipeline(
         (
-            (Workflows.task("resource", "acquire")._replace(manage_resource=True),),
-            (Workflows.task("use", "use", ResultRef("resource")),),
+            (Workflows.task("resource", acquire)._replace(manage_resource=True),),
+            (Workflows.task("use", use, ResultRef("resource")),),
         ),
         (ResultRef("use"),),
     )
@@ -80,19 +80,17 @@ def test_success_closes_resources_in_reverse_order_before_notification(
             yield path
         closed.append(name)
 
-    def use(inputs):
-        return tuple((root / "data").read_text() for root in inputs.arguments)
+    def use(*roots):
+        return tuple((root / "data").read_text() for root in roots)
 
-    runner = harness(
-        {"acquire": lambda inputs: acquire(inputs.arguments[0]), "use": use}
-    )
+    runner = harness()
     pipeline = Pipeline(
         (
             tuple(
-                Workflows.task(name, "acquire", name)._replace(manage_resource=True)
+                Workflows.task(name, acquire, name)._replace(manage_resource=True)
                 for name in ("first", "second")
             ),
-            (Workflows.task("use", "use", ResultRef("first"), ResultRef("second")),),
+            (Workflows.task("use", use, ResultRef("first"), ResultRef("second")),),
         ),
         (ResultRef("use"),),
     )
@@ -123,15 +121,17 @@ def test_failure_releases_resources_and_keeps_original_diagnostic(
                 if not suppress:
                     raise
 
-    def fail(inputs):
-        assert inputs.arguments[0].is_dir()
+    def fail(root):
+        assert root.is_dir()
         raise ValueError("operation failed")
 
-    runner = harness({"acquire": lambda inputs: acquire(), "use": fail})
-    runner.manager.submit(resource_pipeline(), runner.events.append, run_id="failure")
+    runner = harness()
+    runner.manager.submit(
+        resource_pipeline(acquire, fail), runner.events.append, run_id="failure"
+    )
     terminal = runner.terminal("failure")
     assert terminal.kind == "failed"
-    assert terminal.failure.operation == "use"
+    assert terminal.failure.operation == fail.__qualname__
     assert terminal.failure.message == "operation failed"
     assert "ValueError: operation failed" in terminal.failure.traceback
     assert all(not root.exists() for root in roots)
@@ -150,15 +150,16 @@ def test_active_cancel_or_close_keeps_resource_until_operation_finishes(
             roots.append(Path(directory))
             yield roots[-1]
 
-    def use(inputs):
-        root = inputs.arguments[0]
+    def use(root):
         entered.set()
         assert release.wait(10)
         assert root.is_dir()
         return "finished operation"
 
-    runner = harness({"acquire": lambda inputs: acquire(), "use": use})
-    runner.manager.submit(resource_pipeline(), runner.events.append, run_id="active")
+    runner = harness()
+    runner.manager.submit(
+        resource_pipeline(acquire, use), runner.events.append, run_id="active"
+    )
     assert entered.wait(10)
     if close:
         runner.manager.close()
@@ -181,18 +182,20 @@ def test_active_cancel_or_close_keeps_resource_until_operation_finishes(
 def test_queued_cancellation_does_not_acquire_a_resource(harness):
     entered, release = Event(), Event()
 
-    def block(inputs):
+    def block():
         entered.set()
         assert release.wait(10)
 
-    def forbidden(inputs):
+    def forbidden(*arguments):
         pytest.fail("A cancelled queued run must never acquire its resources")
 
-    runner = harness({"block": block, "acquire": forbidden, "use": forbidden})
-    blocker = Pipeline(((Workflows.task("block", "block"),),), (ResultRef("block"),))
+    runner = harness()
+    blocker = Pipeline(((Workflows.task("block", block),),), (ResultRef("block"),))
     runner.manager.submit(blocker, runner.events.append, run_id="blocker")
     assert entered.wait(10)
-    runner.manager.submit(resource_pipeline(), runner.events.append, run_id="queued")
+    runner.manager.submit(
+        resource_pipeline(forbidden, forbidden), runner.events.append, run_id="queued"
+    )
     runner.manager.cancel("queued")
     release.set()
     assert runner.terminal("blocker").kind == "completed"
@@ -209,10 +212,12 @@ def test_cleanup_failure_is_not_reported_as_completed(tmp_path, harness):
             yield roots[-1]
         raise OSError("cleanup failed")
 
-    runner = harness(
-        {"acquire": lambda inputs: acquire(), "use": lambda inputs: "value"}
+    runner = harness()
+    runner.manager.submit(
+        resource_pipeline(acquire, lambda root: "value"),
+        runner.events.append,
+        run_id="cleanup",
     )
-    runner.manager.submit(resource_pipeline(), runner.events.append, run_id="cleanup")
     terminal = runner.terminal("cleanup")
     assert terminal.kind == "failed"
     assert terminal.failure.operation == "release_resources"
@@ -222,12 +227,9 @@ def test_cleanup_failure_is_not_reported_as_completed(tmp_path, harness):
 
 
 def test_resource_flag_is_validated_before_submission():
-    task = Workflows.task("acquire", "acquire")._replace(manage_resource="yes")
+    task = Workflows.task("acquire", lambda: None)._replace(manage_resource="yes")
     with pytest.raises(TypeError, match="boolean"):
-        TaskValues.snapshot(
-            Pipeline(((task,),), (ResultRef("acquire"),)),
-            {"acquire": lambda inputs: None},
-        )
+        TaskValues.snapshot(Pipeline(((task,),), (ResultRef("acquire"),)))
 
 
 def test_cancellation_during_cleanup_is_not_reported_as_completed(tmp_path, harness):
@@ -242,11 +244,11 @@ def test_cancellation_during_cleanup_is_not_reported_as_completed(tmp_path, harn
             cleaning.set()
             assert release.wait(10)
 
-    runner = harness(
-        {"acquire": lambda inputs: acquire(), "use": lambda inputs: "value"}
-    )
+    runner = harness()
     runner.manager.submit(
-        resource_pipeline(), runner.events.append, run_id="cleanup-cancel"
+        resource_pipeline(acquire, lambda root: "value"),
+        runner.events.append,
+        run_id="cleanup-cancel",
     )
     try:
         assert cleaning.wait(10)

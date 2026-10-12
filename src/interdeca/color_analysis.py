@@ -299,11 +299,12 @@ class ColorAnalysis:
         *,
         overwrite: bool = False,
     ) -> Path:
-        """Average matching atlas textures in linear light, ignoring transparent pixels.
+        """Average encoded RGB byte values equally, matching the original module.
 
-        Images must share UV topology and resolution. Input alpha acts as a
-        fractional contribution weight; output alpha is the maximum input alpha,
-        preserving coverage wherever any specimen supplies valid image data.
+        Images must share UV topology and resolution. Each input contributes
+        once at every pixel, without linear-light conversion or alpha weighting.
+        Fractional mean byte values are truncated as in the original NumPy mean
+        followed by uint8 conversion. Output alpha retains maximum input coverage.
         """
         # Each specimen should contribute once, and output must not overwrite
         # an input that another task may still be using.
@@ -321,9 +322,8 @@ class ColorAnalysis:
         # Accumulate one image at a time so the whole population need not be
         # resident in memory while forming the average.
         height, width = first.resolution[1], first.resolution[0]
-        color_sum, weight_sum, coverage = (
-            np.zeros((height, width, 3)),
-            np.zeros((height, width)),
+        color_sum, coverage = (
+            np.zeros((height, width, 3), dtype=np.uint64),
             np.zeros((height, width)),
         )
         # The same pixel must represent the same atlas location in every image;
@@ -337,21 +337,15 @@ class ColorAnalysis:
             rgb, alpha = TextureIO.read(texture.path)
             if rgb.shape != color_sum.shape:
                 raise ValueError("Texture dimensions disagree with metadata.")
-            # Average light values rather than encoded sRGB numbers, weighting
-            # coverage so transparent padding cannot darken the mean.
-            color_sum += TextureIO.to_linear(rgb) * alpha[..., None]
-            weight_sum += alpha
+            # Recover exact input bytes before summing. Integer division matches
+            # the legacy mean-to-uint8 truncation without floating-point drift.
+            color_sum += np.rint(rgb * 255).astype(np.uint64)
             coverage = np.maximum(coverage, alpha)
-        # Leave uncovered pixels at zero without dividing by zero; coverage stays
-        # separate so these pixels remain distinguishable from measured black.
-        mean = np.divide(
-            color_sum,
-            weight_sum[..., None],
-            out=np.zeros_like(color_sum),
-            where=weight_sum[..., None] > 0,
-        )
+        # Alpha remains separate coverage metadata and does not change the RGB
+        # mean. The writer receives already-truncated byte values in unit range.
+        mean = (color_sum // len(textures)) / 255
         return TextureIO.write_png(
-            TextureIO.from_linear(mean), coverage, destination, overwrite=overwrite
+            mean, coverage, destination, overwrite=overwrite
         )
 
     @staticmethod

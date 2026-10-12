@@ -21,5 +21,8 @@ experimental_perf_tests/*
 !experimental_perf_tests/parry_spatial/
 experimental_perf_tests/parry_spatial/target/
 
+# 
+data/
+
 # Keep the surface qualification and source provenance harness reproducible.
 !experimental_perf_tests/native_surface/

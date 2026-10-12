@@ -1,0 +1,24 @@
+# Weekly summary: September 29–October 5, 2026
+
+Features implemented since the project started, through the `dev/local-subprocess` branch history:
+
+- **Independent numerical core:** Separated geometry, texture, and population operations from Slicer and Qt so the same calculations can run in a GUI, CLI, or external application.
+- **Explicit application pipelines:** Added staged tasks and dependencies for atlas construction, alignment, resampling, baking, and analysis so execution order and intermediate results are managed consistently.
+- **Slicer presentation client:** Implemented the ATLAS, Mesh Selection, and MultiRecolor interfaces so users can construct atlases, select/export regions, visualize textures, and explore population colors interactively.
+- **Dedicated local application worker:** Moved controllers, state, execution, and reconstruction into a separate Python environment, with a thin client and versioned WebSocket/JSON protocol, to keep scientific dependencies outside Slicer's Python environment.
+- **Progress, cancellation, and diagnostics:** Added task progress, cancellation, capability reporting, logs, and worker startup diagnostics so long operations and failures are visible and manageable.
+- **Shared CLI application client:** Added chained commands, scripts, and an interactive shell using the same application session as Slicer, enabling manual runs and automation while preserving atlas and model state between actions.
+- **Population analysis and reconstruction:** Exposed PCA, ICA, and UMAP, with UMAP installed by default, plus specimen visualization, axis selection, and morphospace reconstruction so users can compare and explore population color variation.
+- **Preserved mesh correspondence:** Retained vertex/triangle order and per-corner UV associations, including collapsed faces in projected outputs, so alignment and serialization do not break the shared atlas or misassign texture colors.
+- **MorphoWeave comparison backend:** Integrated pinned upstream atlas workflows through a Slicer-free adapter and exposed backend selection in both clients, enabling comparisons with the original atlas algorithm through the same downstream workflow.
+- **Correct atlas scale and recorded provenance:** Restored generated MorphoWeave meshes and landmarks to mean input landmark size, preserved specimen scale by default, and recorded conversion/backend metadata so outputs retain interpretable units and construction history.
+- **Lower texture memory use:** Removed duplicate validation buffers and used byte-image decoding when floating-point colors were unnecessary, reducing peak allocations while retaining input validation and ownership guarantees.
+- **Less repeated MorphoWeave I/O:** Reused staged inputs, cached parsed originals and saved geometry within memory budgets, and released completed workspaces/results earlier to avoid repeated disk work and unnecessary resource retention.
+- **Rust mesh and texture I/O:** Moved OBJ reading, validation, writing, and texture conversion into the compiled extension to reduce Python parsing and conversion costs on large populations.
+- **Rust smoothing and parallel surface queries:** Moved face-color smoothing into Rust and replaced scalar closest-surface loops with batched Parry queries using a bounded shared thread pool, accelerating color processing and correspondence while preserving indexing.
+- **Blender functionality implemented in Rust:** Ported atlas cleanup, Smart UV projection/packing, and color-only texture baking so normal CLI and Slicer workflows require no Blender executable; explicit Blender reference APIs and transition settings remain available.
+- **Reproducible validation and profiling:** Added Slicer/CLI parity comparisons, numerical regression and resource-scaling checks, CPU/memory captures, artifact hashes, and preserved 47-specimen evidence so performance changes can be assessed against their output accuracy. All 564 final bake comparisons passed with deterministic pixels and no coverage loss; final workflows matched cleanup geometry and UVs exactly, with small accepted color/PCA differences.
+- **Measured final workflow improvements:** Final local Rust workflows were 24–36% faster and used 11–15% less peak memory than their saved Blender references, demonstrating the practical benefit of removing the external bake pipeline. These figures compare one fresh final run per backend with saved reference runs.
+- **Packaging, provenance, and manual setup guides:** Verified local wheels and corresponding source archives, retained upstream revisions/checksums and license notices, and added the small-clams tutorial and CLI/Slicer README quickstart so the implementation can be installed, reproduced, and reviewed.
+
+Cross-platform runtime and the latest interactive Slicer changes remain unverified; the two atlas algorithms are available for comparison without a claim of scientific equivalence.

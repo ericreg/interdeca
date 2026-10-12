@@ -32,6 +32,17 @@ class WorkerPanel:
         saved = application.settings.value("worker/python", default)
         self.python.setCurrentPath(str(saved))
         layout.addRow("Worker Python:", self.python)
+        # Each task may hold a dense specimen and use Rust's internal threads;
+        # one is the conservative default, with an explicit CPU-bounded choice.
+        available = os.cpu_count() or 1
+        self.jobs = qt.QSpinBox()
+        self.jobs.setRange(1, available)
+        self.jobs.setValue(int(application.settings.value("worker/jobs", 1)))
+        self.jobs.toolTip = "1 executes tasks serially; higher counts execute independent tasks in parallel. More workers use more memory. Stop and Start Worker to apply a changed count."
+        layout.addRow(f"Task workers ({available} logical CPUs):", self.jobs)
+        restart_hint = qt.QLabel("Worker count takes effect on Start Worker; stop the current worker first to change it.")
+        restart_hint.wordWrap = True
+        layout.addRow(restart_hint)
         help_text = qt.QLabel(
             "Install InterDeCA in a separate Python 3.12+ environment. "
             "Select that environment's Python executable here. "
@@ -60,10 +71,12 @@ class WorkerPanel:
             )
 
     def launch(self):
-        """Persist the executable choice, then let the client supervise startup."""
+        """Persist the executable and concurrency choices before starting a session."""
         path = self.python.currentPath
         self.application.settings.setValue("worker/python", path)
-        self.application.client.start(path)
+        jobs = int(self.jobs.value)
+        self.application.settings.setValue("worker/jobs", jobs)
+        self.application.client.start(path, max_workers=jobs)
 
     def shutdown(self):
         """Detach old state before stopping a worker that may still be computing."""

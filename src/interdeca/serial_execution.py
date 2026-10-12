@@ -1,8 +1,8 @@
-"""FIFO implementation of the execution interface with one private worker."""
+"""FIFO pipeline execution with optional concurrent tasks inside each stage."""
 
 from collections import Counter
-from collections.abc import Callable, Mapping
-from contextlib import ExitStack
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import ExitStack, contextmanager, nullcontext
 from queue import Queue
 from threading import Event, Lock, Thread
 from traceback import format_exc
@@ -29,26 +29,31 @@ class _Submission(NamedTuple):
 
 
 class SerialExecutionManager:
-    """Execute complete pipelines serially; publish events through the host dispatcher.
+    """Execute pipelines in FIFO order, with bounded concurrency within each stage.
 
     Cancellation is observed between operations. close is nonblocking because
-    an active native call or Blender subprocess cannot be safely killed as a thread.
+    active numerical operations cannot be safely killed as threads.
+    Stage barriers preserve dependencies; results are collected in declared order.
     """
 
-    def __init__(self, operations: Mapping[str, Callable], dispatcher: EventDispatcher):
-        # Copy the registry so later registration cannot change a queued operation.
-        self._operations = dict(operations)
+    def __init__(
+        self, dispatcher: EventDispatcher,
+        *, max_workers: int = 1,
+    ):
+        if max_workers < 1:
+            raise ValueError("max_workers must be positive.")
+        self._max_workers = max_workers
         self._dispatcher = dispatcher
         self._queue: Queue[_Submission | None] = Queue()
         self._pending: dict[RunId, Event] = {}
         self._lock = Lock()
         self._closed = False
-        self._worker = Thread(target=self._work, name="interdeca-serial", daemon=True)
+        self._worker = Thread(target=self._work, name="interdeca-execution", daemon=True)
         self._worker.start()
 
     def submit(self, pipeline: Pipeline, observer: Observer, *, run_id: RunId) -> RunId:
         """Submit inputs using the run ID already allocated by the application worker."""
-        frozen = TaskValues.snapshot(pipeline, self._operations)
+        frozen = TaskValues.snapshot(pipeline)
         with self._lock:
             if self._closed:
                 raise RuntimeError("Execution manager is closed.")
@@ -117,7 +122,7 @@ class SerialExecutionManager:
             raise TypeError("Managed task results must be context managers.") from None
         value = enter(resource)
 
-        # A registered operation's exception remains a failed run even if a
+        # An operation's exception remains a failed run even if a
         # general-purpose context manager would normally suppress that exception.
         def release(*error):
             leave(resource, *error)
@@ -125,6 +130,42 @@ class SerialExecutionManager:
 
         resources.push(release)
         return value
+
+    @contextmanager
+    def _stage_tasks(self, stage, results, cancelled):
+        """Bound active inputs and drain running calls before resource cleanup.
+
+        Earlier stages own every dependency. A batch retains resolved inputs
+        until all of its operations finish, even when a sibling fails or cancels.
+        """
+        # One worker retains the original direct-call path. Extra workers share
+        # immutable numerical inputs and operate on distinct specimen outputs.
+        # Resource producers stay serial so cancellation cannot abandon an
+        # acquired context manager before it is registered for cleanup.
+        workers = 1 if any(task.manage_resource for task in stage) else self._max_workers
+        pool = (
+            ThreadPoolExecutor(max_workers=workers)
+            if workers > 1 else nullcontext(None)
+        )
+        with pool as executor:
+            def batches():
+                for offset in range(0, len(stage), workers):
+                    if cancelled.is_set():
+                        break
+                    pending = []
+                    for task in stage[offset:offset + workers]:
+                        inputs = TaskValues.map(
+                            task.inputs, lambda ref: TaskValues.resolve(ref, results)
+                        )
+                        future = (
+                            executor.submit(task.invoke, inputs)
+                            if executor is not None else None
+                        )
+                        pending.append((task, inputs, future))
+                    # Declaration order keeps progress and result publication
+                    # deterministic; the submitted operations still overlap.
+                    yield from pending
+            yield batches()
 
     def _execute(self, submission: _Submission) -> None:
         results = {}
@@ -160,53 +201,56 @@ class SerialExecutionManager:
             terminal = None
             with ExitStack() as resources:
                 for index, stage in enumerate(submission.pipeline.stages):
-                    for task in stage:
-                        if submission.cancelled.is_set():
-                            terminal = current._replace(
-                                kind="cancelled", completed=count
+                    with self._stage_tasks(
+                        stage, results, submission.cancelled
+                    ) as stage_tasks:
+                        for task, inputs, future in stage_tasks:
+                            if submission.cancelled.is_set():
+                                terminal = current._replace(
+                                    kind="cancelled", completed=count
+                                )
+                                break
+                            current = base._replace(
+                                kind="task_started",
+                                task_id=task.task_id,
+                                label=task.label or task.operation_name,
+                                completed=count,
+                                stage=index + 1,
                             )
-                            break
-                        current = base._replace(
-                            kind="task_started",
-                            task_id=task.task_id,
-                            label=task.label or task.operation,
-                            completed=count,
-                            stage=index + 1,
-                        )
-                        self._emit(submission, current)
-                        operation = task.operation
-                        inputs = TaskValues.map(
-                            task.inputs, lambda ref: TaskValues.resolve(ref, results)
-                        )
-                        result = self._operations[task.operation](inputs)
-                        if task.manage_resource:
-                            # A child stack supports one explicit early close and
-                            # still receives exception details on failure. Closing
-                            # it again at run exit is harmless because it is empty.
-                            scope = resources.enter_context(ExitStack())
-                            result = self._manage(scope, result)
-                            scopes[task.task_id] = scope
-                        results[task.task_id] = result
-                        count += 1
-                        self._emit(
-                            submission,
-                            current._replace(
-                                kind="task_completed", completed=count, result=result
-                            ),
-                        )
-                        # Observers may retain diagnostic results separately.
-                        # Remove only the manager's now-unused references; arrays
-                        # shared with downstream results remain alive normally.
-                        for reference in dependencies[task.task_id]:
-                            remaining[reference.task_id] -= 1
-                            if remaining[reference.task_id] == 0:
-                                results.pop(reference.task_id)
-                        if remaining[task.task_id] == 0:
-                            results.pop(task.task_id)
-                        del inputs, result
-                        operation = "release_resources"
-                        for resource_id in reversed(releases.get(task.task_id, ())):
-                            scopes.pop(resource_id).close()
+                            self._emit(submission, current)
+                            operation = task.operation_name
+                            result = (
+                                task.invoke(inputs)
+                                if future is None else future.result()
+                            )
+                            if task.manage_resource:
+                                # A child stack supports one explicit early close and
+                                # still receives exception details on failure. Closing
+                                # it again at run exit is harmless because it is empty.
+                                scope = resources.enter_context(ExitStack())
+                                result = self._manage(scope, result)
+                                scopes[task.task_id] = scope
+                            results[task.task_id] = result
+                            count += 1
+                            self._emit(
+                                submission,
+                                current._replace(
+                                    kind="task_completed", completed=count, result=result
+                                ),
+                            )
+                            # Observers may retain diagnostic results separately.
+                            # Remove only the manager's now-unused references; arrays
+                            # shared with downstream results remain alive normally.
+                            for reference in dependencies[task.task_id]:
+                                remaining[reference.task_id] -= 1
+                                if remaining[reference.task_id] == 0:
+                                    results.pop(reference.task_id)
+                            if remaining[task.task_id] == 0:
+                                results.pop(task.task_id)
+                            del inputs, result
+                            operation = "release_resources"
+                            for resource_id in reversed(releases.get(task.task_id, ())):
+                                scopes.pop(resource_id).close()
                     if terminal is not None:
                         break
                 # A cancel during the final operation still cancels the run. Keep
@@ -231,7 +275,7 @@ class SerialExecutionManager:
             if submission.cancelled.is_set():
                 terminal = current._replace(kind="cancelled", completed=count)
             self._emit(submission, terminal)
-        except Exception as error:  # noqa: BLE001 -- isolate arbitrary registered operation failures
+        except Exception as error:  # noqa: BLE001 -- isolate arbitrary operation failures
             failure = Failure(operation, str(error), format_exc())
             self._emit(
                 submission,

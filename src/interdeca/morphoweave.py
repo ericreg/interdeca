@@ -133,7 +133,8 @@ class MorphoWeave:
 
     @staticmethod
     def stage_inputs(
-        specimens: Sequence[Specimen], *, cache_budget_bytes: int = 192 * 2**20
+        specimens: Sequence[Specimen], *, cache_budget_bytes: int = 192 * 2**20,
+        workspace_parent: Path | None = None,
     ) -> MorphoWeaveWorkspace:
         """Stage original RAS geometry once; the caller must close the returned scope.
 
@@ -142,10 +143,17 @@ class MorphoWeave:
         resource nor these numerical operations import an execution manager.
         cache_budget_bytes bounds retained mesh arrays; zero disables reuse.
         File parsing and mutable VTK copies are measured separately from this budget.
+        workspace_parent keeps temporary staging under an application's input root.
         """
         specimens = Dataset.validate_specimens(specimens)
         identities = MorphoWeave._identities(specimens)
-        directory = tempfile.TemporaryDirectory(prefix="interdeca-morphoweave-inputs-")
+        # Root-directory workflows keep even temporary upstream files under
+        # _interdeca; the managed scope still removes them after their last use.
+        if workspace_parent is not None:
+            workspace_parent.mkdir(parents=True, exist_ok=True)
+        directory = tempfile.TemporaryDirectory(
+            prefix="interdeca-morphoweave-inputs-", dir=workspace_parent
+        )
         workspace = None
         # A producer failure occurs before a caller can enter the returned scope;
         # release partial staging explicitly rather than relying on garbage collection.

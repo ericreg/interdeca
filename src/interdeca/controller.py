@@ -12,9 +12,10 @@ from interdeca.application_models import (
     PlotData,
 )
 from interdeca.execution import ExecutionEvent, ExecutionManager, Pipeline
+from interdeca.geometry import Geometry
 from interdeca.models import Arrays, Mesh
 from interdeca.serde import AtlasRequest, ColorRequest, ModelRequest
-from interdeca.workflows import Workflows
+from interdeca.workflows import Operations, Workflows
 
 
 class ApplicationView(Protocol):
@@ -118,7 +119,7 @@ class ApplicationController:
             raise ValueError("Run color processing first.")
         self.start(
             "display",
-            Workflows.single("display", self.state.colors, specimen_id),
+            Workflows.single(Operations.display, self.state.colors, specimen_id),
             run_id=run_id,
         )
 
@@ -136,7 +137,7 @@ class ApplicationController:
         self.start(
             "selection",
             Workflows.single(
-                "select",
+                Geometry.select_region,
                 mesh,
                 points,
                 same_side_only=same_side_only,
@@ -157,7 +158,7 @@ class ApplicationController:
             raise ValueError("Apply a region selection first.")
         self.start(
             "export",
-            Workflows.single("extract", mesh, self.state.selection),
+            Workflows.single(Geometry.extract_region, mesh, self.state.selection),
             run_id=run_id,
         )
 
@@ -252,7 +253,9 @@ class ApplicationController:
         )
         self.start(
             "morphospace",
-            Workflows.single("reconstruct", population, self.state.colors, coordinates),
+            Workflows.single(
+                Operations.reconstruct, population, self.state.colors, coordinates
+            ),
             run_id=run_id,
         )
         self.state = self.state._replace(

@@ -22,6 +22,7 @@ from pydantic import (
     PrivateAttr,
     StrictInt,
     StringConstraints,
+    ValidationInfo,
     WithJsonSchema,
     model_validator,
 )
@@ -234,14 +235,15 @@ class AtlasRequest(CoreData[AtlasOptions]):
     """Validate paths and settings before allocating an output run."""
 
     record_type = AtlasOptions
-    models: Path
-    landmarks: Path
-    output: Path
+    models: Path | None = None
+    landmarks: Path | None = None
+    output: Path | None = None
     textures: Path | None = None
     atlas_model: Path | None = None
     atlas_landmarks: Path | None = None
     blender: str | None = Field(
-        default=None, description="Deprecated; ignored by native surface processing."
+        default=None,
+        description="Optional Blender executable for the Blender surface backend.",
     )
     merge_distance: float = Field(default=0.0001, ge=0, allow_inf_nan=False)
     uv_angle: float = Field(default=66, gt=0, le=89, allow_inf_nan=False)
@@ -251,6 +253,51 @@ class AtlasRequest(CoreData[AtlasOptions]):
     bake_margin: int = Field(default=2, ge=0, le=64)
     backend: Literal["native", "morphoweave"] = "native"
     normalize_scale: bool = False
+    input_dir: Path | None = None
+    input_coordinates: Literal["LPS", "RAS"] | None = None
+    overwrite: bool = False
+    surface_backend: Literal["rust", "blender"] = "rust"
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_inputs(cls, value: object, info: ValidationInfo) -> object:
+        """Resolve one dataset root before constructing the immutable record."""
+        # Dictionaries are the JSON/constructor boundary; internal algorithms
+        # continue to consume NamedTuple records after this validation step.
+        if isinstance(value, AtlasOptions):
+            data = value._asdict()
+        elif isinstance(value, dict):
+            data = dict(value)
+        else:
+            return value
+        root = data.get("input_dir")
+        if root is not None:
+            try:
+                root = Path(root).expanduser().resolve()
+                for field in ("models", "landmarks", "textures"):
+                    expected = root / field
+                    supplied = data.get(field)
+                    if (
+                        supplied is not None
+                        and Path(supplied).expanduser().resolve() != expected
+                    ):
+                        raise ValueError(
+                            "--input-dir cannot be combined with different explicit input directories."
+                        )
+                    data[field] = str(expected) if info.mode == "json" else expected
+            except TypeError as error:
+                raise ValueError("Input directories must be filesystem paths.") from error
+            data["input_dir"] = str(root) if info.mode == "json" else root
+            if data.get("output") is None:
+                output = root / "_interdeca" / "runs"
+                data["output"] = str(output) if info.mode == "json" else output
+        # Legacy inputs already contain RAS meshes; raw mussel root inputs use LPS.
+        # Other root datasets can explicitly choose RAS instead of being flipped.
+        if data.get("input_coordinates") is None:
+            data["input_coordinates"] = "LPS" if root is not None else "RAS"
+        if any(data.get(field) is None for field in ("models", "landmarks", "output")):
+            raise ValueError("Supply --input-dir, or --models, --landmarks, and --output.")
+        return data
 
     @model_validator(mode="after")
     def paired_override(self) -> Self:
@@ -258,7 +305,33 @@ class AtlasRequest(CoreData[AtlasOptions]):
         # A mesh alone cannot define anatomical correspondence for an override.
         if (self.atlas_model is None) != (self.atlas_landmarks is None):
             raise ValueError("An atlas override requires both model and landmarks.")
+        # Cleanup belongs only to a dataset root. Never delete the source of an
+        # override or raw inputs reached through links into generated storage.
+        if self.overwrite:
+            if self.input_dir is None:
+                raise ValueError("--overwrite requires --input-dir.")
+            workspace = self.input_dir / "_interdeca"
+            if workspace.is_symlink():
+                raise ValueError("Cannot overwrite a symlinked _interdeca directory.")
+            for path in (
+                self.models, self.landmarks, self.textures,
+                self.atlas_model, self.atlas_landmarks,
+            ):
+                if path is not None and path.resolve().is_relative_to(workspace):
+                    raise ValueError("Overwrite inputs and atlas overrides must be outside _interdeca.")
         return self
+
+
+class InputPreparationData(BaseModel):
+    """Record raw-input normalization and the exact faces removed from its copy."""
+
+    specimen_id: str
+    source_mesh: Path
+    source_landmarks: Path
+    source_texture: Path
+    mesh_coordinates: Literal["LPS", "RAS"]
+    output_coordinates: Literal["RAS"] = "RAS"
+    removed_zero_area_faces: list[int]
 
 
 class AtlasScaleConversionData(CoreData[AtlasScaleConversion]):
@@ -293,6 +366,10 @@ class AtlasRunData(BaseModel):
     model_config = ConfigDict(extra="forbid")
     schema_version: Literal[2] = 2
     options: AtlasRequest
+    prepared_input_directory: Path | None = None
+    blender_executable: Path | None = None
+    blender_version: tuple[int, int, int] | None = None
+    texture_average_method: Literal["encoded_rgb_mean"] | None = None
     upstream_revision: str | None = None
     upstream_source_sha256: str | None = None
     reference_normalizes_scale: bool | None

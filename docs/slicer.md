@@ -37,15 +37,36 @@ module paths**, then restart. Select **Shape Analysis → InterDeCA Next**. The
 `~/code/interdeca/.venv/bin/python` (Windows: `.venv/Scripts/python.exe`). A source
 checkout supplies this default; `INTERDECA_WORKER_PYTHON` or the saved setting can
 override it. The panel starts a configured worker automatically and also provides
-Start/Stop controls. **Install Client Transport** installs only `websockets` and
+Start/Stop controls. **Task workers** selects concurrency from one up to the
+local logical CPU count. One executes tasks serially; higher counts use parallel
+execution within each workflow stage. The count is saved and takes effect when
+the worker starts. To change an active worker, stop it, wait for shutdown, then
+start it again; fitted models from the previous session are discarded. Additional
+workers hold more specimen data in memory, and Rust operations also use internal
+threads. **Install Client Transport** installs only `websockets` and
 requires a Slicer restart.
 
 The worker reports PCA, ICA, and UMAP as its estimator capabilities. UMAP is
 installed by default in the worker environment; its dependency constraints do not
 involve Slicer's binary stack. Startup errors show the retained diagnostic directory,
 including subprocess stdout/stderr even when the WebSocket never connects.
-Atlas cleanup, UV projection, and texture transfer run in the worker's Rust
-extension. No Blender installation or executable setting is required.
+Atlas cleanup, UV projection, and texture transfer default to the worker's Rust
+extension. To use external Blender, expand **Surface processing (cleanup, UV,
+bake)** and select **Surface backend → Blender**. Its executable field is
+optional when Blender can be discovered automatically. This works with either
+atlas implementation. Blender 3.6+ is required for that choice; Rust requires no
+Blender installation.
+
+For the local mussel dataset, follow the [README quickstart](../README.md#quickstart-local-cli-and-slicer-clients)
+and select `data/mussels_52` in the ATLAS **Input directory** control, using its
+absolute path. Set **Mesh coordinates** to **LPS**. The worker requires matching
+file base names in `models/`, `landmarks/`, and `textures/`, then prepares a fresh
+RAS copy under `_interdeca` automatically. Leave **Output directory (optional)**
+empty to use `_interdeca/runs`. Check **Overwrite _interdeca** to delete previous
+generated inputs and results before this run; leave it unchecked to retain them.
+The checkbox starts unchecked. Raw input folders remain unchanged. An atlas
+override must be copied outside `_interdeca` before an overwrite run. Both clients
+use the same preparation workflow.
 
 Do not add the worker environment's `site-packages` to Slicer's Python path.
 Communication uses one local WebSocket, versioned JSON, and managed numerical

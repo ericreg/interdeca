@@ -76,10 +76,10 @@ class ObservedQueue(Queue):
 def driver_factory():
     drivers = []
 
-    def create(operations):
+    def create():
         callbacks = Queue()
         driver = Driver(
-            SerialExecutionManager(operations, Dispatcher(callbacks)), callbacks, []
+            SerialExecutionManager(Dispatcher(callbacks)), callbacks, []
         )
         drivers.append(driver)
         return driver
@@ -95,37 +95,34 @@ def test_nested_fanout_releases_last_input_and_keeps_final_outputs(driver_factor
     references = []
     reached, proceed = Event(), Event()
 
-    def produce(inputs):
+    def produce():
         data = np.arange(4096, dtype=float)
         references.append(weakref.ref(data))
         return data
 
-    def right(inputs):
-        nested = inputs.arguments[0]
+    def right(nested):
         assert nested.first is nested.rest[0]
         return np.array([nested.first.sum() + nested.rest[0].sum()])
 
-    def check(inputs):
+    def check(left, right):
         reached.set()
         assert proceed.wait(10)
         assert references[0]() is None
-        return float(inputs.arguments[0][0] + inputs.arguments[1][0])
+        return float(left[0] + right[0])
 
-    driver = driver_factory({
-        "produce": produce,
-        "left": lambda inputs: np.array([inputs.arguments[0].sum()]),
-        "right": right,
-        "check": check,
-    })
+    def left(data):
+        return np.array([data.sum()])
+
+    driver = driver_factory()
     task, ref = Workflows.task, ResultRef
     pipeline = Pipeline(
         (
-            (task("source", "produce"),),
+            (task("source", produce),),
             (
-                task("left", "left", ref("source")),
-                task("right", "right", Nested(ref("source"), (ref("source"),))),
+                task("left", left, ref("source")),
+                task("right", right, Nested(ref("source"), (ref("source"),))),
             ),
-            (task("check", "check", ref("left"), ref("right")),),
+            (task("check", check, ref("left"), ref("right")),),
         ),
         (ref("check"), ref("left")),
     )
@@ -150,13 +147,13 @@ def test_idle_worker_and_queued_notifications_release_input_snapshot(
     monkeypatch.setattr(serial_execution, "Queue", ObservedQueue)
     references = []
 
-    def consume(inputs):
-        references.append(weakref.ref(inputs.arguments[0]))
-        return float(inputs.arguments[0].sum())
+    def consume(data):
+        references.append(weakref.ref(data))
+        return float(data.sum())
 
-    driver = driver_factory({"consume": consume})
+    driver = driver_factory()
     source = np.arange(4096, dtype=float)
-    pipeline = Workflows.single("consume", source)
+    pipeline = Workflows.single(consume, source)
     driver.manager.submit(pipeline, driver.observe, run_id="idle")
     assert driver.manager._queue.idle.wait(10)
     # No callbacks have been delivered yet. Neither the idle worker nor those
@@ -204,27 +201,23 @@ def test_explicit_boundary_closes_once_in_reverse_order_before_later_work(
             yield root
         closed.append(name)
 
-    def consume(inputs):
-        return tuple((root / "value").read_text() for root in inputs.arguments)
+    def consume(*roots):
+        return tuple((root / "value").read_text() for root in roots)
 
-    def later(inputs):
+    def later(result):
         assert closed == ["second", "first"]
         assert all(not root.exists() for root in roots)
-        return inputs.arguments[0]
+        return result
 
-    driver = driver_factory({
-        "acquire": lambda inputs: acquire(inputs.arguments[0]),
-        "consume": consume,
-        "later": later,
-    })
+    driver = driver_factory()
     task, ref = Workflows.task, ResultRef
     pipeline = Pipeline(
         (
-            tuple(task(name, "acquire", name)._replace(
+            tuple(task(name, acquire, name)._replace(
                 manage_resource=True, release_after="consume"
             ) for name in ("first", "second")),
-            (task("consume", "consume", ref("first"), ref("second")),),
-            (task("later", "later", ref("consume")),),
+            (task("consume", consume, ref("first"), ref("second")),),
+            (task("later", later, ref("consume")),),
         ),
         (ref("later"),),
     )
@@ -246,17 +239,19 @@ def test_default_resource_scope_preserves_forwarded_paths(tmp_path, driver_facto
             (root / "value").write_text("indirect consumer")
             yield root
 
-    driver = driver_factory({
-        "acquire": lambda inputs: acquire(),
-        "forward": lambda inputs: inputs.arguments[0] / "value",
-        "read": lambda inputs: inputs.arguments[0].read_text(),
-    })
+    def forward(root):
+        return root / "value"
+
+    def read(path):
+        return path.read_text()
+
+    driver = driver_factory()
     task, ref = Workflows.task, ResultRef
     pipeline = Pipeline(
         (
-            (task("resource", "acquire")._replace(manage_resource=True),),
-            (task("forward", "forward", ref("resource")),),
-            (task("read", "read", ref("forward")),),
+            (task("resource", acquire)._replace(manage_resource=True),),
+            (task("forward", forward, ref("resource")),),
+            (task("read", read, ref("forward")),),
         ),
         (ref("read"),),
     )
@@ -285,25 +280,24 @@ def test_early_scope_failure_keeps_diagnostics_and_stops_later_work(
         if failure == "cleanup":
             raise OSError("cleanup failed")
 
-    def consume(inputs):
-        assert inputs.arguments[0].is_dir()
+    def consume(root):
+        assert root.is_dir()
         if failure == "operation":
             raise ValueError("operation failed")
         return "owned result"
 
-    driver = driver_factory({
-        "acquire": lambda inputs: acquire(),
-        "consume": consume,
-        "later": lambda inputs: pytest.fail("Work continued after failure"),
-    })
+    def later(*arguments):
+        return pytest.fail("Work continued after failure")
+
+    driver = driver_factory()
     task, ref = Workflows.task, ResultRef
     pipeline = Pipeline(
         (
-            (task("resource", "acquire")._replace(
+            (task("resource", acquire)._replace(
                 manage_resource=True, release_after="consume"
             ),),
-            (task("consume", "consume", ref("resource")),),
-            (task("later", "later", ref("consume")),),
+            (task("consume", consume, ref("resource")),),
+            (task("later", later, ref("consume")),),
         ),
         (ref("later"),),
     )
@@ -312,7 +306,7 @@ def test_early_scope_failure_keeps_diagnostics_and_stops_later_work(
     assert terminal.kind == "failed"
     assert terminal.failure.message == f"{failure} failed"
     assert terminal.failure.operation == (
-        "consume" if failure == "operation" else "release_resources"
+        consume.__qualname__ if failure == "operation" else "release_resources"
     )
     assert received == (["operation failed"] if failure == "operation" else [])
     assert all(not root.exists() for root in roots)
@@ -332,24 +326,24 @@ def test_early_scope_cancel_or_close_waits_for_active_consumer(
             yield roots[-1]
         closed.append(True)
 
-    def consume(inputs):
+    def consume(root):
         entered.set()
         assert proceed.wait(10)
-        assert inputs.arguments[0].is_dir()
+        assert root.is_dir()
         return "owned"
 
-    driver = driver_factory({
-        "acquire": lambda inputs: acquire(), "consume": consume,
-        "later": lambda inputs: pytest.fail("Cancelled work continued"),
-    })
+    def later(*arguments):
+        return pytest.fail("Cancelled work continued")
+
+    driver = driver_factory()
     task, ref = Workflows.task, ResultRef
     pipeline = Pipeline(
         (
-            (task("resource", "acquire")._replace(
+            (task("resource", acquire)._replace(
                 manage_resource=True, release_after="consume"
             ),),
-            (task("consume", "consume", ref("resource")),),
-            (task("later", "later", ref("consume")),),
+            (task("consume", consume, ref("resource")),),
+            (task("later", later, ref("consume")),),
         ),
         (ref("later"),),
     )
@@ -376,32 +370,35 @@ def test_early_scope_cancel_or_close_waits_for_active_consumer(
 @pytest.mark.parametrize("case", ["ordinary", "missing", "earlier", "later", "output", "empty", "type"])
 def test_invalid_resource_boundaries_fail_before_execution(case):
     task, ref = Workflows.task, ResultRef
-    resource = task("resource", "noop")._replace(
+    resource = task("resource", lambda *arguments: None)._replace(
         manage_resource=case != "ordinary",
         release_after={"missing": "unknown", "earlier": "before", "empty": "", "type": 3}.get(case, "use"),
     )
     pipeline = Pipeline(
         (
-            (task("before", "noop"),),
+            (task("before", lambda *arguments: None),),
             (resource,),
-            (task("use", "noop", ref("resource")),),
-            (task("after", "noop", ref("resource") if case == "later" else ref("use")),),
+            (task("use", lambda *arguments: None, ref("resource")),),
+            (task("after", lambda *arguments: None, ref("resource") if case == "later" else ref("use")),),
         ),
         (ref("resource") if case == "output" else ref("after"),),
     )
     with pytest.raises((TypeError, ValueError), match="release|boundary"):
-        TaskValues.snapshot(pipeline, {"noop": lambda inputs: None})
+        TaskValues.snapshot(pipeline)
 
 
 def test_nested_final_reference_survives_last_task_consumer(driver_factory):
-    driver = driver_factory({
-        "produce": lambda inputs: Nested(np.arange(8), (np.arange(4),)),
-        "consume": lambda inputs: int(inputs.arguments[0].sum()),
-    })
+    def produce():
+        return Nested(np.arange(8), (np.arange(4),))
+
+    def consume(data):
+        return int(data.sum())
+
+    driver = driver_factory()
     task, ref = Workflows.task, ResultRef
     pipeline = Pipeline(
-        ((task("source", "produce"),),
-         (task("consume", "consume", ref("source", ("first",))),)),
+        ((task("source", produce),),
+         (task("consume", consume, ref("source", ("first",))),)),
         (ref("consume"), ref("source", ("rest", 0))),
     )
     driver.manager.submit(pipeline, driver.observe, run_id="final-path")
@@ -414,22 +411,24 @@ def test_nested_final_reference_survives_last_task_consumer(driver_factory):
 def test_queued_cancellation_does_not_acquire_early_scope(driver_factory):
     entered, proceed = Event(), Event()
 
-    def block(inputs):
+    def block():
         entered.set()
         assert proceed.wait(10)
 
-    driver = driver_factory({
-        "block": block,
-        "acquire": lambda inputs: pytest.fail("Cancelled scope was acquired"),
-        "use": lambda inputs: None,
-    })
+    def acquire():
+        pytest.fail("Cancelled scope was acquired")
+
+    def use(root):
+        return None
+
+    driver = driver_factory()
     task, ref = Workflows.task, ResultRef
     queued = Pipeline(
-        ((task("resource", "acquire")._replace(manage_resource=True, release_after="use"),),
-         (task("use", "use", ref("resource")),)),
+        ((task("resource", acquire)._replace(manage_resource=True, release_after="use"),),
+         (task("use", use, ref("resource")),)),
         (ref("use"),),
     )
-    driver.manager.submit(Workflows.single("block"), driver.observe, run_id="block")
+    driver.manager.submit(Workflows.single(block), driver.observe, run_id="block")
     try:
         assert entered.wait(10)
         driver.manager.submit(queued, driver.observe, run_id="queued")

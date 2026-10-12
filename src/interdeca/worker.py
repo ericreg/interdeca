@@ -76,8 +76,9 @@ class EventBuffer:
 class WorkerServer:
     """Bind only loopback, authenticate a single host, and exit on disconnect."""
 
-    def __init__(self, root, token):
+    def __init__(self, root, token, *, max_workers: int = 1):
         self.root, self.token = root, token
+        self.max_workers = max_workers
         self.connected = Event()
         self.stopped = Event()
 
@@ -96,7 +97,7 @@ class WorkerServer:
 
     def handle(self, socket):
         events = EventBuffer()
-        session = ApplicationSession(self.root, events)
+        session = ApplicationSession(self.root, events, max_workers=self.max_workers)
         sender = Thread(
             target=events.send, args=(socket,), name="interdeca-events", daemon=True
         )
@@ -151,7 +152,10 @@ def main():
     """Start a private worker; the launcher passes its secret through the environment."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--session-directory", type=Path, required=True)
+    parser.add_argument("--jobs", type=int, default=1, help="Concurrent tasks per workflow stage (default: 1).")
     arguments = parser.parse_args()
+    if arguments.jobs < 1:
+        parser.error("--jobs must be a positive integer")
     root = arguments.session_directory.resolve()
     root.mkdir(parents=True, exist_ok=True)
     diagnostic_file = logging.FileHandler(root / "worker.log", encoding="utf-8")
@@ -163,7 +167,7 @@ def main():
     )
     logging.basicConfig(level=logging.INFO, handlers=[diagnostic_file])
     token = os.environ.pop("INTERDECA_SESSION_TOKEN")
-    WorkerServer(root, token).run()
+    WorkerServer(root, token, max_workers=arguments.jobs).run()
 
 
 if __name__ == "__main__":

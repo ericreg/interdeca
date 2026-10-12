@@ -41,7 +41,6 @@ from interdeca.serde import (
     TerminalEvent,
 )
 from interdeca.serial_execution import SerialExecutionManager
-from interdeca.workflows import Operations
 
 logger = logging.getLogger(__name__)
 
@@ -93,9 +92,11 @@ class SessionLogHandler(logging.Handler):
 class SessionExecution:
     """Attach request identity to an otherwise host-independent execution manager."""
 
-    def __init__(self, session):
+    def __init__(self, session, *, max_workers: int = 1):
         self.session = session
-        self.manager = SerialExecutionManager(Operations.registry(), session)
+        self.manager = SerialExecutionManager(
+            session, max_workers=max_workers
+        )
 
     def submit(self, pipeline, observer, *, run_id):
         context = self.session.context
@@ -193,7 +194,7 @@ class ApplicationSession:
         }
     )
 
-    def __init__(self, root, events):
+    def __init__(self, root, events, *, max_workers: int = 1):
         self.root, self.events = root, events
         self.artifacts = ArtifactStore(root)
         self.queue = Queue(maxsize=256)
@@ -202,7 +203,7 @@ class ApplicationSession:
         self.dataset_id = self.model_id = None
         self.seen = set()
         self.closed = False
-        self.execution = SessionExecution(self)
+        self.execution = SessionExecution(self, max_workers=max_workers)
         self.controller = ApplicationController(self.execution, self)
         self.log_handler = SessionLogHandler(self)
         logging.getLogger("interdeca").addHandler(self.log_handler)
@@ -349,6 +350,15 @@ class ApplicationSession:
                     "Model is no longer available; fit the population again."
                 )
             if action == "run_atlas":
+                # Diagnostics may be open throughout the session. Refuse to
+                # unlink its files while replacing a generated dataset workspace.
+                if payload.overwrite and self.root.resolve().is_relative_to(
+                    payload.input_dir / "_interdeca"
+                ):
+                    raise ValueError(
+                        "Overwrite requires a session directory outside _interdeca; "
+                        "omit the global CLI --output or choose another location."
+                    )
                 controller.run_atlas(payload, run_id=self.context.run_id)
             elif action == "process_colors":
                 controller.process_colors(

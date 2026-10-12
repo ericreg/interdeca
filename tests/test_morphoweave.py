@@ -21,6 +21,7 @@ from interdeca.models import AtlasModel, AtlasScaleConversion, Landmarks, Mesh, 
 from interdeca.morphoweave import MorphoWeave
 from interdeca.serde import AtlasRequest, AtlasRunData, AtlasScaleConversionData
 from interdeca.serial_execution import SerialExecutionManager
+from interdeca.surface import MeshProcessing
 from interdeca.workflows import Operations, Workflows
 
 
@@ -519,7 +520,7 @@ def test_staging_cleans_up_if_writing_an_input_fails(specimens, tmp_path, monkey
 
 
 def test_atlas_workflow_releases_shared_inputs_if_cleanup_fails_before_alignment(
-    specimens, tmp_path
+    specimens, tmp_path, monkeypatch
 ):
     models, landmarks = tmp_path / "models", tmp_path / "landmarks"
     for item in specimens:
@@ -530,22 +531,20 @@ def test_atlas_workflow_releases_shared_inputs_if_cleanup_fails_before_alignment
     options = AtlasOptions(
         models, landmarks, tmp_path / "output", backend="morphoweave"
     )
-    operations = Operations.registry()
-    operations["blender"] = lambda inputs: None
 
-    def fail_cleanup(inputs):
+    def fail_cleanup(atlas, **options):
         raise ValueError("cleanup deliberately failed")
 
-    operations["clean"] = fail_cleanup
+    monkeypatch.setattr(MeshProcessing, "clean_atlas", fail_cleanup)
     callbacks, events = Queue(), []
-    manager = SerialExecutionManager(operations, Callbacks(callbacks.put))
+    manager = SerialExecutionManager(Callbacks(callbacks.put))
     try:
         manager.submit(Workflows.atlas(options), events.append, run_id="atlas-failure")
         while not events or events[-1].kind not in ("completed", "failed", "cancelled"):
             callbacks.get(timeout=10)()
         terminal = events[-1]
         assert terminal.kind == "failed"
-        assert terminal.failure.operation == "clean"
+        assert terminal.failure.operation == fail_cleanup.__qualname__
         assert terminal.failure.message == "cleanup deliberately failed"
         resources = [
             event.result
@@ -565,7 +564,9 @@ def test_atlas_workflow_releases_shared_inputs_if_cleanup_fails_before_alignment
 
 
 @pytest.mark.parametrize("close", [False, True])
-def test_atlas_workflow_releases_staging_on_cancel_or_close(specimens, tmp_path, close):
+def test_atlas_workflow_releases_staging_on_cancel_or_close(
+    specimens, tmp_path, close, monkeypatch
+):
     models, landmarks = tmp_path / "models", tmp_path / "landmarks"
     for item in specimens:
         MeshIO.write_obj(item.mesh, models / f"{item.specimen_id}.obj")
@@ -576,19 +577,17 @@ def test_atlas_workflow_releases_staging_on_cancel_or_close(specimens, tmp_path,
         models, landmarks, tmp_path / "output", backend="morphoweave"
     )
     entered, release = Event(), Event()
-    operations = Operations.registry()
-    operations["blender"] = lambda inputs: None
 
-    def wait_at_cleanup(inputs):
+    def wait_at_cleanup(atlas, **options):
         entered.set()
         assert release.wait(10)
-        return inputs.arguments[0]
+        return atlas
 
     # Stop between real upstream mean construction and final alignment. This
     # exercises the application lifetime, not just a standalone with-statement.
-    operations["clean"] = wait_at_cleanup
+    monkeypatch.setattr(MeshProcessing, "clean_atlas", wait_at_cleanup)
     callbacks, events = Queue(), []
-    manager = SerialExecutionManager(operations, Callbacks(callbacks.put))
+    manager = SerialExecutionManager(Callbacks(callbacks.put))
     try:
         manager.submit(Workflows.atlas(options), events.append, run_id="atlas-cancel")
         assert entered.wait(10)
@@ -695,45 +694,46 @@ def test_repeated_host_operations_release_only_their_saved_entries(specimens):
             assert left.tobytes() == right.tobytes()
 
 
-def test_workflow_closes_workspace_before_publishing_owned_alignment(specimens, tmp_path):
+def test_workflow_closes_workspace_before_publishing_owned_alignment(
+    specimens, tmp_path, monkeypatch
+):
     models, landmarks = tmp_path / "models", tmp_path / "landmarks"
     for specimen in specimens:
         MeshIO.write_obj(specimen.mesh, models / f"{specimen.specimen_id}.obj")
         LandmarkIO.write_json(specimen.landmarks, landmarks / f"{specimen.specimen_id}.mrk.json")
     options = AtlasOptions(models, landmarks, tmp_path / "out", backend="morphoweave")
-    pipeline = Workflows.atlas(options)
-    stages = []
-    for stage in pipeline.stages:
-        stages.append(stage)
-        if any(task.task_id == "saved_atlas" for task in stage):
-            break
-    pipeline = Pipeline(stages, (ResultRef("saved_atlas"),))
-    operations = Operations.registry()
-    acquire, save = operations["morphoweave_inputs"], operations["save_atlas"]
+    acquire, save = MorphoWeave.stage_inputs, Operations.save_atlas
     workspaces = []
 
-    def stage(inputs):
-        workspace = acquire(inputs)
+    def stage(specimens, **options):
+        workspace = acquire(specimens, **options)
         workspaces.append(workspace)
         return workspace
 
-    def publish(inputs):
+    def publish(atlas, directory):
         workspace = workspaces[0]
         assert not workspace.root.exists()
         assert workspace.cache.closed
         assert workspace.cache.stats.array_bytes == 0
         assert workspace.cache.stats.peak_array_bytes > 0
-        assert np.isfinite(inputs.arguments[0].mesh.vertices).all()
-        return save(inputs)
+        assert np.isfinite(atlas.mesh.vertices).all()
+        return save(atlas, directory)
 
-    operations.update(
-        morphoweave_inputs=stage, save_atlas=publish,
-        blender=lambda inputs: None,
-        clean=lambda inputs: inputs.arguments[0],
-        uv=lambda inputs: inputs.arguments[0],
-    )
+    # Bind replacements before constructing the pipeline, which retains those
+    # exact callables rather than looking up mutable registrations at execution.
+    monkeypatch.setattr(MorphoWeave, "stage_inputs", stage)
+    monkeypatch.setattr(Operations, "save_atlas", publish)
+    monkeypatch.setattr(MeshProcessing, "clean_atlas", lambda atlas, **options: atlas)
+    monkeypatch.setattr(MeshProcessing, "prepare_atlas_uv", lambda atlas, **options: atlas)
+    pipeline = Workflows.atlas(options)
+    stages = []
+    for tasks in pipeline.stages:
+        stages.append(tasks)
+        if any(task.task_id == "saved_atlas" for task in tasks):
+            break
+    pipeline = Pipeline(stages, (ResultRef("saved_atlas"),))
     callbacks, events = Queue(), []
-    manager = SerialExecutionManager(operations, Callbacks(callbacks.put))
+    manager = SerialExecutionManager(Callbacks(callbacks.put))
     try:
         manager.submit(pipeline, events.append, run_id="early-workspace")
         while not events or events[-1].kind not in ("completed", "failed", "cancelled"):

@@ -42,7 +42,8 @@ class HostInputs(NamedTuple):
 class CliApplication:
     """Present application events as durable numerical artifacts and terminal output."""
 
-    def __init__(self, directory: Path, quiet: bool, json_events: bool):
+    def __init__(self, directory: Path, quiet: bool, json_events: bool, jobs: int = 1):
+        self.jobs = jobs
         self.directory = directory
         self.quiet, self.json_events = quiet, json_events
         self.inputs = HostInputs()
@@ -55,7 +56,9 @@ class CliApplication:
     def client(self) -> LocalApplicationClient:
         """Delay session startup so subcommand help has no filesystem or thread effects."""
         if self._client is None:
-            self._client = LocalApplicationClient(self.directory, self.receive)
+            self._client = LocalApplicationClient(
+                self.directory, self.receive, max_workers=self.jobs
+            )
             self.events_file = (self.directory / "events.jsonl").open(
                 "x", encoding="utf-8"
             )
@@ -243,8 +246,12 @@ def mesh_options(function):
     is_flag=True,
     help="Write every application event as one JSON line to stdout.",
 )
+@click.option(
+    "--jobs", "-j", type=click.IntRange(min=1), default=1, show_default=True,
+    help="Maximum concurrent tasks within a workflow stage. Set before the command.",
+)
 @click.pass_context
-def main(ctx, output, quiet, json_events):
+def main(ctx, output, quiet, json_events, jobs):
     """Run InterDeCA in process. Chain commands to share one live application session.
 
     Example: interdeca colors --mesh atlas.obj --textures textures fit --method pca
@@ -257,9 +264,9 @@ def main(ctx, output, quiet, json_events):
         directory = (
             output or Path(tempfile.gettempdir()) / f"interdeca-cli-{uuid4().hex}"
         )
-        ctx.obj = CliApplication(directory, quiet, json_events)
+        ctx.obj = CliApplication(directory, quiet, json_events, jobs)
         ctx.call_on_close(ctx.obj.close)
-    elif output is not None or quiet or json_events:
+    elif output is not None or quiet or json_events or jobs != 1:
         raise click.UsageError(
             "Set session options when starting the CLI, before entering a shell or script."
         )
@@ -281,15 +288,30 @@ def capabilities(app):
 
 
 @main.command()
-@click.option("--models", type=input_directory, required=True)
-@click.option("--landmarks", type=input_directory, required=True)
+@click.option(
+    "--input-dir",
+    type=input_directory,
+    help="Dataset root containing matching models/, landmarks/, and textures/; preparation is automatic under _interdeca/.",
+)
+@click.option(
+    "--coordinates",
+    "input_coordinates",
+    type=click.Choice(["LPS", "RAS"]),
+    default=None,
+    help="Source mesh coordinates; defaults to LPS with --input-dir and RAS with explicit directories.",
+)
+@click.option("--models", type=input_directory)
+@click.option("--landmarks", type=input_directory)
 @click.option("--textures", type=input_directory)
+@click.option(
+    "--overwrite", is_flag=True,
+    help="Delete INPUT_DIR/_interdeca before preparing this run, including previous results.",
+)
 @click.option(
     "--output",
     "atlas_output",
     type=output_path,
-    required=True,
-    help="Parent directory for a new atlas run.",
+    help="Parent directory for a new atlas run; defaults to INPUT_DIR/_interdeca/runs.",
 )
 @click.option("--atlas-model", type=input_file)
 @click.option("--atlas-landmarks", type=input_file)
@@ -307,9 +329,14 @@ def capabilities(app):
     help="Allow scale changes during specimen alignment. Generated MorphoWeave atlases are restored to mean input size in either mode.",
 )
 @click.option(
+    "--surface-backend", type=click.Choice(["rust", "blender"]),
+    default="rust", show_default=True,
+    help="Implementation for atlas cleanup, UV mapping, and texture baking.",
+)
+@click.option(
     "--blender",
     type=str,
-    help="Deprecated compatibility option; ignored by native surface processing.",
+    help="Optional Blender executable; used with --surface-backend blender. Otherwise auto-discovered.",
 )
 @click.option(
     "--merge-distance", type=click.FloatRange(min=0), default=0.0001, show_default=True
@@ -338,7 +365,7 @@ def capabilities(app):
 def atlas(app, atlas_output, background, **options):
     """Build or override an atlas, align/resample specimens, and optionally bake textures.
 
-    Input mesh directories must contain RAS coordinates; landmark file metadata is honored.
+    Dataset roots are prepared automatically. Landmark file metadata is honored.
     """
     request = AtlasRequest(output=atlas_output, **options)
     app.perform("run_atlas", background=background, **request.model_dump(mode="json"))

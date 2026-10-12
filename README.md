@@ -37,20 +37,205 @@ compatible prebuilt wheel does not require a Rust compiler.
 
 The package and native extension are GPL-3.0-or-later. The Blender source-derived
 cleanup, UV and bake implementation runs in the native extension. Blender is
-not required by production workflows. See [port status and qualification](docs/native-surface/README.md)
+optional: the default Rust surface backend requires no Blender installation. See [port status and qualification](docs/native-surface/README.md)
 and [third-party notices](THIRD_PARTY_NOTICES.md).
 
 UMAP is a required core dependency; no extra installation flag is needed.
 Slicer still installs only the independent client, keeping UMAP and its numerical
 dependencies in the external worker environment.
 
-Atlas cleanup, Smart UV projection, and texture baking run in process through
-Rust. The `Blender` API remains available for explicit reference comparisons;
-only those calls require an external Blender installation. The deprecated
-`--blender` option and serialized `blender` setting are accepted and ignored by
-production workflows during the transition release.
+Atlas cleanup, Smart UV projection, and texture baking use Rust by default.
+Select `--surface-backend blender` to run those operations in external Blender
+processes; `--blender` optionally supplies the executable. Slicer exposes the
+same choice under **Surface processing → Surface backend**.
 The `interdeca` CLI and `interdeca-worker` host entry points are separate from
 those stateless numerical operations.
+
+## Quickstart: local CLI and Slicer clients
+
+Rust processing is enabled automatically in both clients; there is no
+`--backend rust` switch and no Blender installation is needed. `--backend native`
+selects InterDeCA's original **atlas construction algorithm**; `morphoweave`
+selects the comparison algorithm. Both support either surface backend. Surface queries use Rust; cleanup, UV
+mapping, and texture baking use the selected Rust or Blender implementation.
+
+### Prepare the local environment and inputs
+
+From the checkout, with Python 3.12+, `uv`, Rust, and your platform linker installed:
+
+```sh
+cd ~/code/interdeca
+git submodule update --init --recursive
+uv sync --locked --inexact
+```
+
+`uv sync` builds and installs the Rust extension into `.venv`. After changing Rust
+code, rebuild with `just rust-build`, or
+`uv sync --locked --inexact --reinstall-package interdeca`.
+
+The local mussel dataset lives under the repository root:
+
+```text
+data/mussels_52/
+  models/       # UF_IZ_180660.obj, ...
+  landmarks/    # UF_IZ_180660.mrk.json, ...
+  textures/     # UF_IZ_180660.png, ...
+```
+
+There are currently **47 complete specimens**, despite the folder's name. Select
+this dataset root directly; InterDeCA requires `models/`, `landmarks/`, and
+`textures/` to contain exactly the same specimen base names. For example,
+`UF_IZ_180660.obj`, `UF_IZ_180660.mrk.json`, and `UF_IZ_180660.png` form one set.
+Missing files, duplicate IDs, and extra texture IDs fail before preparation.
+
+Input preparation is automatic. The raw mussel meshes use LPS coordinates;
+`--input-dir` defaults to LPS, and `--coordinates RAS` selects meshes already in
+RAS. Landmark files honor their own coordinate metadata. The workflow converts
+meshes/landmarks to RAS, removes only exactly zero-area source triangles, and copies
+texture bytes without changing pixels. Repair indices are recorded in JSON;
+vertex order and surviving face order/UVs are preserved. **Raw files stay unchanged.**
+Each run writes its fresh prepared copy under the input directory:
+
+```text
+data/mussels_52/_interdeca/
+  prepared/interdeca_<timestamp>_<id>/
+    models/        # Validated RAS meshes
+    landmarks/     # RAS landmarks
+    textures/      # Original image bytes
+    preparation/   # Per-specimen source paths and removed face indices
+  runs/interdeca_<timestamp>_<id>/  # Atlas and downstream results
+```
+
+To keep only the latest generated workspace, add `atlas --overwrite`, or check
+**Overwrite _interdeca** in Slicer's ATLAS form. This deletes the entire dataset's
+`_interdeca/` before preparation, including previous results, then creates a fresh
+run. The default preserves earlier runs. Raw `models/`, `landmarks/`, and
+`textures/` remain unchanged. Copy any atlas override out of `_interdeca/` before
+using it with overwrite. Results saved through a custom atlas output outside
+`_interdeca/` are not removed.
+
+```sh
+uv run --no-sync interdeca --jobs 2 atlas --backend morphoweave \
+  --input-dir ./data/mussels_52 --overwrite --bake-size 512
+```
+
+For overwrite runs, leave the global CLI session `--output` unset or point it
+outside `_interdeca/`; an active session's diagnostics cannot be deleted.
+
+MorphoWeave's temporary staging also stays under `_interdeca` and is released
+when alignment finishes. Fresh copies avoid stale conversions after source edits
+or failed runs. No preparation command or second dataset directory is required.
+See the [small-clams tutorial](docs/tutorials/small_clams.md) for a smaller walkthrough.
+
+### Run the CLI application client
+
+Run atlas construction, texture transfer, color sampling, and PCA in one session:
+
+```sh
+uv run --no-sync interdeca --output ./data/mussels_52/_interdeca/session-001 \
+  atlas --backend native --input-dir ./data/mussels_52 --bake-size 512 \
+  colors --sample-only --samples 1000 \
+  fit --method pca --components 2 \
+  status
+```
+
+Run these commands from the repository root. The global `--output` names a **new**
+session directory, so change `session-001` on subsequent runs. The atlas, aligned/
+resampled specimens, textures, and average texture are saved under
+`data/mussels_52/_interdeca/runs/interdeca_<timestamp>_<id>/` by default.
+`atlas --output` optionally selects a different result parent; prepared inputs
+always remain under `<input-dir>/_interdeca/`.
+Color sampling automatically uses this session's atlas and baked textures. Start
+at 512 pixels for a quick check, then use `--bake-size 2048` for higher resolution.
+The legacy `--models`, `--landmarks`, and optional `--textures` arguments remain
+available for already prepared inputs and geometry-only runs; these require
+`atlas --output` and default to RAS mesh coordinates.
+
+Enable concurrent specimen tasks with the global `--jobs` (`-j`) option, before
+`atlas`. For example, run MorphoWeave atlas construction without Blender:
+
+```sh
+uv run --no-sync interdeca --jobs 2 atlas \
+  --backend morphoweave --input-dir ./data/mussels_52 --bake-size 512
+```
+
+The default is `--jobs 1`. Independent tasks within each stage can overlap;
+stages and submitted workflows remain ordered. Rust operations also use internal
+threads. More jobs keep more specimen data in memory, so start with two for dense
+meshes. Cancellation stops new batches and waits for active operations to finish.
+
+For a manual interactive session, start `uv run --no-sync interdeca shell`. At
+`interdeca>`, enter the same `atlas ...`, `colors ...`, `fit ...`, and `status`
+commands without the `uv run` prefix. Use `--help` or `atlas --help` for options,
+and `quit` to exit. Keep dependent commands in the same invocation or shell so the
+atlas and fitted model remain available. The CLI hosts the application directly;
+you do not need to launch `interdeca-worker` separately. See [CLI details](docs/cli.md).
+
+### Use Blender for surface processing
+
+Blender is an independent surface-processing choice, compatible with both atlas
+algorithms. For example:
+
+```sh
+uv run --no-sync interdeca --jobs 2 atlas \
+  --backend morphoweave --surface-backend blender \
+  --blender /Applications/Blender.app/Contents/MacOS/Blender \
+  --input-dir ./data/mussels_52 --bake-size 512
+```
+
+Omit `--blender` to discover Blender through `BLENDER_EXECUTABLE`, PATH, or standard
+installation locations. Blender 3.6+ is required for this option. In Slicer, expand
+**Surface processing (cleanup, UV, bake)**, select **Blender** under **Surface
+backend**, and optionally choose its executable. Then run ATLAS normally. Rust
+remains the default and requires no Blender executable. Parallel task workers can
+run specimen bakes concurrently; each Blender process uses one thread. Temporary
+Blender files stay under the dataset's `_interdeca/` and are removed after each
+operation. Run metadata records the selected backend and discovered Blender path
+and version. A missing Blender fails before any requested overwrite cleanup.
+
+### Run the Slicer client through its UI
+
+1. Install only the thin client into Slicer's Python. On macOS, from the repository
+   root, run the following in your terminal (adjust the Slicer application path if needed):
+
+   ```sh
+   /Applications/Slicer.app/Contents/bin/PythonSlicer -m pip install -e "$PWD/client"
+   ```
+
+   Alternatively, in Slicer's **Python Console**, run
+   `slicer.util.pip_install("-e /absolute/path/to/interdeca/client")` with your actual
+   checkout path. The core and Rust extension stay in the external `.venv`.
+
+2. In Slicer, add the absolute path to `slicer/InterDeCANext` under
+   **Settings → Modules → Additional module paths**, then restart Slicer. Open
+   **Shape Analysis → InterDeCA Next**.
+3. Expand **Application Worker** and set **Worker Python** to the checkout's
+   `.venv/bin/python` (Windows: `.venv/Scripts/python.exe`). The worker may start
+   automatically; otherwise click **Start Worker**. Set **Task workers** to `1`
+   for serial tasks or a higher count for parallel tasks (start with `2` for dense
+   meshes). The picker shows the available logical CPU count. To apply a changed
+   count, **Stop Worker**, wait for shutdown, then **Start Worker**; this starts
+   a fresh session. Wait for its estimator capabilities and ready state before
+   running a workflow.
+4. In **ATLAS**, set **Input directory** to
+   `/Users/eric/code/interdeca/data/mussels_52` (adjust the checkout path if needed).
+   Set **Mesh coordinates** to **LPS** for these raw mussels, or **RAS** for meshes
+   already in RAS. Leave **Output directory (optional)** empty to save results
+   under the dataset's `_interdeca/runs/`. Select **InterDeCA (original)** for the
+   native atlas algorithm. Leave both atlas override fields empty to construct
+   a new atlas. Matching file names are validated and preparation runs automatically.
+5. Expand **Surface processing (cleanup, UV, bake)**, set **Bake size (px)** to
+   `512` for the first run, and leave the other defaults unless your model scale
+   requires different distances. Click **Run ATLAS and Texture Transfer**.
+6. On completion, the log shows the saved-results path and the UI switches to
+   **MultiRecolor**, with **ATLAS Model** and its texture directory selected.
+   In Step 1, choose **Subsample and Average Only**, set the face count to `1000`,
+   and click **Subsample and Average** to process colors. In Step 3, select **PCA**, set two
+   components, and click **Compare Textures**. Step 2 displays individual textures;
+   Step 4's **Visualize Morphospace** enables reconstruction from the fitted model.
+
+Slicer starts and manages the local worker through this panel; no separate worker
+terminal is required. See [Slicer setup and controls](docs/slicer.md) for details.
 
 ## MorphoWeave comparison backend
 
@@ -151,7 +336,7 @@ immediately; it does not create a scheduled task.
 | Module | Namespace | Operations |
 | --- | --- | --- |
 | `dataset.py` | `Dataset` | `inspect_specimen`, `validate_specimens` |
-| `blender.py` (reference only) | `Blender` | `check_available`, `clean_atlas`, `prepare_atlas_uv`, `bake_specimen_texture` |
+| `blender.py` | `Blender` | `check_available`, `clean_atlas`, `prepare_atlas_uv`, `bake_specimen_texture` |
 | `atlas.py` | `Atlas` | `compute_reference`, `prepare_contribution`, `assemble_mean`, `align_specimen` |
 | `morphoweave.py` | `MorphoWeave` | `build_atlas`, `restore_input_scale`, `align_specimens`, `resample_specimen` |
 | `surface.py` | `MeshProcessing`, `TextureBaking` | `clean`, `clean_atlas`, `uv_layout`, `prepare_atlas_uv`, `bake_pixels`, `bake_specimen_texture` |
@@ -368,8 +553,11 @@ matches per-specimen luminance/chroma moments to pooled moments, preserving hue
 where hue is defined. Constant channels do not acquire artificial variance.
 Clustering uses Lab K-means, optional average-linkage consolidation, and Hungarian
 matching to an explicit reference specimen. The common palette averages aligned
-centroids equally across specimens. Texture image averaging uses linear-light
-RGB; display conversions of normalized Lab may clip out-of-gamut colors.
+centroids equally across specimens. Texture image averaging uses the arithmetic
+mean of encoded RGB bytes, with equal specimen weights and truncation to uint8,
+matching the original module. Alpha remains separate coverage metadata and does
+not reweight the mean. Display conversions of normalized Lab may clip
+out-of-gamut colors.
 
 Population models support PCA, FastICA, and UMAP, all installed by `uv sync`. Feature
 standardization is explicit and its fitted parameters are returned. Missing
@@ -388,8 +576,12 @@ and analysis preparation → baking → sampling/statistics → specimen process
 
 `execution.py` defines `Task`, `ResultRef`, `Pipeline`, `ExecutionManager`, and
 `EventDispatcher`. Result references must point to earlier stages. Submission
-copies input arrays and freezes the stages. Registered operations receive named
-input records; task definitions contain no executable callbacks or scene objects.
+copies input arrays and freezes the stages. Tasks hold direct callable references
+to domain static methods, with positional and keyword inputs stored separately.
+The executor resolves result references and calls each operation without a string
+registry. Callable names are used only for diagnostics. Pipelines stay inside the
+application process; serialized user requests contain no executable references
+or scene objects.
 Every submission requires the run ID reserved by the application worker; the
 executor no longer allocates an implicit identifier.
 

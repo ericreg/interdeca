@@ -61,7 +61,7 @@ class Dispatcher(NamedTuple):
 
 def partial_controller():
     controller = ApplicationController(PassiveManager([]), View())
-    controller.start("display", Workflows.single("noop"), run_id="run")
+    controller.start("display", Workflows.single(lambda: None), run_id="run")
     buffer = np.arange(4096, dtype=float)
     reference = weakref.ref(buffer)
     controller._on_event(
@@ -96,7 +96,7 @@ def test_failure_and_cancellation_keep_partial_diagnostics(kind):
     assert controller.completed_tasks[0].task_id == "partial"
     assert controller._view.actions == []
     assert controller.state.status == ("failed" if kind == "failed" else "cancelled")
-    controller.start("display", Workflows.single("noop"), run_id="next")
+    controller.start("display", Workflows.single(lambda: None), run_id="next")
     assert reference() is None
 
 
@@ -143,7 +143,7 @@ def test_repeated_population_and_reconstruction_preserve_state_and_results(color
     coordinates = expected.model.scores[0].copy()
     reconstructed = Operations.reconstruct(expected, colors, coordinates)
     callbacks = Queue()
-    manager = SerialExecutionManager(Operations.registry(), Dispatcher(callbacks))
+    manager = SerialExecutionManager(Dispatcher(callbacks))
     view = View()
     controller = ApplicationController(manager, view)
     controller.state = controller.state._replace(colors=colors)

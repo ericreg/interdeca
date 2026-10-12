@@ -2,15 +2,34 @@
 
 from collections.abc import Sequence
 from pathlib import Path
+from shutil import copyfile, rmtree
 
 import numpy as np
 
-from interdeca.io import LandmarkIO, MeshIO, TextureIO
-from interdeca.models import CoordinateSystem, Specimen
+from interdeca.io import Files, LandmarkIO, MeshIO, TextureIO
+from interdeca.models import CoordinateSystem, Mesh, Specimen
+from interdeca.serde import InputPreparationData
 
 
 class Dataset:
     """Namespace for loading specimens and checking their shared assumptions."""
+
+    @staticmethod
+    def reset_workspace(input_dir: Path, protected_paths: tuple[Path, ...]) -> None:
+        """Delete generated storage for an explicitly requested overwrite run.
+
+        This operation runs before preparation, within the workflow's execution
+        order. Raw inputs and atlas overrides must not point into that storage.
+        """
+        workspace = input_dir.resolve() / "_interdeca"
+        # Recheck links at execution time as well as request validation, before
+        # deleting anything. Linked source files must survive the cleanup too.
+        if workspace.is_symlink():
+            raise ValueError("Cannot overwrite a symlinked _interdeca directory.")
+        if any(path.resolve().is_relative_to(workspace) for path in protected_paths):
+            raise ValueError("Overwrite inputs and atlas overrides must be outside _interdeca.")
+        if workspace.exists():
+            rmtree(workspace)
 
     @staticmethod
     def inspect_specimen(
@@ -26,7 +45,7 @@ class Dataset:
 
         Mesh and landmark axes can differ on disk; both are converted to RAS.
         Their length units must already agree. Texture files are decoded once
-        here to expose corrupt input before Blender is started.
+        here to expose corrupt input before atlas construction and baking.
         """
         # Normalize each file's coordinate convention before any comparison;
         # mesh and landmark files may encode the same specimen using different axes.
@@ -35,7 +54,7 @@ class Dataset:
             landmarks_path, coordinate_system=landmark_coordinate_system
         )
         # Discover missing or unreadable textures now, before expensive geometry
-        # and Blender work has been scheduled for this specimen.
+        # and baking work has been scheduled for this specimen.
         texture = (
             None
             if texture_path is None
@@ -52,6 +71,88 @@ class Dataset:
         specimen = Specimen(specimen_id, mesh, landmarks, texture).validated()
         Dataset.validate_specimens([specimen])
         return specimen
+
+    @staticmethod
+    def prepare_specimen(
+        specimen_id: str,
+        mesh_path: Path | str,
+        landmarks_path: Path | str,
+        texture_path: Path | str,
+        directory: Path,
+        *,
+        mesh_coordinate_system: CoordinateSystem = "LPS",
+    ) -> Specimen:
+        """Normalize one raw specimen and publish its private RAS input copy.
+
+        LPS to RAS reverses X/Y and preserves distances and triangle winding.
+        Only exactly zero-area source faces are removed before correspondence;
+        original vertex order and surviving face order and UVs remain unchanged.
+        Repair indices are recorded in a JSON file. No original file is modified.
+        Every workflow supplies a fresh directory under its input's _interdeca.
+        """
+        # A raw face can collapse to a line or point and cannot support source
+        # projection. Thin nonzero faces remain subject to ordinary validation.
+        mesh = MeshIO.read(
+            mesh_path, coordinate_system=mesh_coordinate_system, allow_degenerate=True
+        )
+        triangles = mesh.vertices[mesh.faces]
+        doubled_area = np.linalg.norm(
+            np.cross(
+                triangles[:, 1] - triangles[:, 0],
+                triangles[:, 2] - triangles[:, 0],
+            ),
+            axis=1,
+        )
+        removed = np.flatnonzero(doubled_area == 0)
+        if removed.size:
+            keep = doubled_area != 0
+            mesh = Mesh(
+                mesh.vertices,
+                mesh.faces[keep],
+                None if mesh.uv is None else mesh.uv[keep],
+            ).validated()
+            del keep
+        else:
+            mesh = mesh.validated()
+        # Large geometry snapshots have no role in image validation or export.
+        removed_faces = removed.tolist()
+        del triangles, doubled_area, removed
+
+        # Both records enter the same RAS frame; source image bytes and UVs do
+        # not change axes. Reject unusable inputs before publishing their copies.
+        landmarks = LandmarkIO.read(landmarks_path)
+        texture = Path(texture_path).expanduser().resolve(strict=True)
+        if mesh.uv is None:
+            raise ValueError(f"{specimen_id}: a textured source mesh needs UV coordinates.")
+        TextureIO.validate_file(texture)
+        specimen = Specimen(specimen_id, mesh, landmarks, texture).validated()
+        Dataset.validate_specimens([specimen], require_textures=True)
+
+        # Private per-run names prevent concurrent preparations and failed runs
+        # from replacing each other. Images are streamed as unaltered file bytes.
+        directory = Path(directory)
+        MeshIO.write_obj(mesh, directory / "models" / f"{specimen_id}.obj")
+        LandmarkIO.write_json(landmarks, directory / "landmarks" / f"{specimen_id}.mrk.json")
+        destination = directory / "textures" / texture.name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        if destination.exists():
+            raise FileExistsError(destination)
+        copyfile(texture, destination)
+        preparation = InputPreparationData(
+            specimen_id=specimen_id,
+            source_mesh=Path(mesh_path).resolve(),
+            source_landmarks=Path(landmarks_path).resolve(),
+            source_texture=texture,
+            mesh_coordinates=mesh_coordinate_system,
+            removed_zero_area_faces=removed_faces,
+        )
+        Files.write(
+            directory / "preparation" / f"{specimen_id}.json",
+            (preparation.model_dump_json(indent=2) + "\n").encode(),
+        )
+        # Downstream algorithms reuse the validated arrays rather than parsing
+        # the just-written OBJ; the copied image snapshots this workflow's input.
+        return Specimen(specimen_id, mesh, landmarks, destination.resolve())
 
     @staticmethod
     def validate_specimens(

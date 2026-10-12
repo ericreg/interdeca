@@ -17,8 +17,27 @@ class ResultRef(NamedTuple):
     path: tuple[str | int, ...] = ()
 
 
+class Option(NamedTuple):
+    """A named operation argument; dictionaries remain only actual lookup tables."""
+
+    name: str
+    value: Any
+
+
+class TaskCall(NamedTuple):
+    """Positional and named inputs, with ResultRef values for earlier results."""
+
+    arguments: tuple = ()
+    options: tuple[Option, ...] = ()
+
+
 class Task(NamedTuple):
-    """One registered operation with a fixed-field input record.
+    """One callable operation with explicit positional and named inputs.
+
+    Operations are code references, normally domain static methods. Pipelines
+    stay inside the application process; executable references are not accepted
+    through serialized user requests. Arguments remain separate so submission
+    can snapshot arrays and validate dependencies before executing any work.
 
     A managed result is a context manager. Its entered value is available to
     downstream tasks; cleanup finishes before the run's terminal notification.
@@ -32,11 +51,25 @@ class Task(NamedTuple):
     """
 
     task_id: str
-    operation: str
-    inputs: tuple
+    operation: Callable[..., Any]
+    inputs: TaskCall
     label: str = ""
     manage_resource: bool = False
     release_after: str | None = None
+
+    @property
+    def operation_name(self) -> str:
+        """Describe the callable for diagnostics without using its name for dispatch."""
+        return getattr(self.operation, "__qualname__", type(self.operation).__qualname__)
+
+    def invoke(self, inputs: TaskCall) -> Any:
+        """Call the operation after the executor resolves its input references."""
+        # Keyword dictionaries exist only at the Python call boundary. The stored
+        # inputs remain records that dependency validation can inspect and copy.
+        return self.operation(
+            *inputs.arguments,
+            **{option.name: option.value for option in inputs.options},
+        )
 
 
 class Pipeline(NamedTuple):
@@ -147,7 +180,7 @@ class TaskValues:
         return tuple(references)
 
     @staticmethod
-    def snapshot(pipeline: Pipeline, operations: Mapping[str, Callable]) -> Pipeline:
+    def snapshot(pipeline: Pipeline) -> Pipeline:
         """Reject ambiguous graphs before any operation can produce side effects."""
         seen: set[str] = set()
         stages = []
@@ -165,18 +198,17 @@ class TaskValues:
             for task in stage:
                 if not task.task_id or task.task_id in seen | current:
                     raise ValueError(f"Duplicate or empty task ID: {task.task_id!r}")
-                if task.operation not in operations:
-                    raise ValueError(f"Unknown operation: {task.operation}")
+                # Queued work retains the callable itself; a name cannot select code.
+                if not callable(task.operation):
+                    raise TypeError("Task operation must be a callable reference.")
                 if not isinstance(task.manage_resource, bool):
                     raise TypeError("manage_resource must be a boolean.")
                 if task.release_after is not None and (
                     not isinstance(task.release_after, str) or not task.release_after
                 ):
                     raise TypeError("release_after must be a nonempty task ID or None.")
-                if not isinstance(task.inputs, tuple) or not hasattr(
-                    task.inputs, "_fields"
-                ):
-                    raise TypeError("Task inputs must be a NamedTuple record.")
+                if not isinstance(task.inputs, TaskCall):
+                    raise TypeError("Task inputs must be a TaskCall record.")
                 copied.append(
                     task._replace(inputs=TaskValues.map(task.inputs, check, True))
                 )

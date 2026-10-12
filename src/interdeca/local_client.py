@@ -50,10 +50,13 @@ class LocalApplicationClient:
 
     The supplied directory must be new. Outputs are persistent presentation data,
     not serialized estimators or a restorable application session. close cancels
-    outstanding work and waits for active serial operations before releasing inputs.
+    outstanding work and waits for active operations before releasing inputs.
     """
 
-    def __init__(self, root: Path, receive: Callable[[BoundaryData], None]):
+    def __init__(
+        self, root: Path, receive: Callable[[BoundaryData], None],
+        *, max_workers: int = 1,
+    ):
         self.root = root.resolve()
         self.root.mkdir(parents=True, exist_ok=False)
         self.artifacts = ArtifactStore(self.root)
@@ -82,7 +85,7 @@ class LocalApplicationClient:
         self.previous_log_level = logger.level
         logger.setLevel(logging.INFO)
         logging.getLogger().addHandler(self.log_handler)
-        self.application = ApplicationSession(self.root, self.events)
+        self.application = ApplicationSession(self.root, self.events, max_workers=max_workers)
 
     def send(self, action: str, **payload) -> str:
         """Queue one user action directly, preserving the common application contract."""

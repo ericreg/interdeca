@@ -81,72 +81,25 @@ Continue at [Inspect individual textures and process colors](#inspect-individual
 
 ## Route B: construct a new atlas and bake textures
 
-### Prepare a copy in a common coordinate frame
+### Copy the raw dataset into a working directory
 
-The original OBJ positions match the LPS positions in the landmark files.
-The new core reads OBJ positions as RAS and converts landmark positions using
-their JSON metadata. Using the original files directly would therefore put
-mesh and landmarks in different frames.
-
-Run the following once in **Terminal**. It writes RAS meshes and RAS landmark
-files into a separate working directory and copies the original texture images.
-Changing LPS to RAS reverses both X and Y; it preserves distances, triangle
-winding, connectivity, and per-corner UVs. Do not flip the texture images.
+Keep the reference repository unchanged by copying its raw dataset once. There
+is no manual coordinate conversion or mesh repair step:
 
 ```bash
-cd /Users/eric/code/interdeca
-uv run python - <<'PY'
-from pathlib import Path
-from shutil import copyfile
-
-from interdeca.io import LandmarkIO, MeshIO
-
-source = Path("/Users/eric/code/3d_color_package/tests/data/small_clams")
-work = Path.home() / "interdeca-runs" / "small_clams"
-destination = work / "inputs_ras"
-specimens = (
-    ("UF_IZ_507781", ".png"),
-    ("UF_IZ_507782", ".tiff"),
-    ("UF_IZ_507879", ".png"),
-)
-
-# Refuse an existing copy so rerunning cannot replace previously prepared inputs.
-destination.mkdir(parents=True, exist_ok=False)
-for folder in ("models", "landmarks", "textures"):
-    (destination / folder).mkdir()
-
-for specimen_id, texture_suffix in specimens:
-    # Both readers produce RAS positions; the landmark reader honors LPS metadata.
-    mesh = MeshIO.read(
-        source / "models" / f"{specimen_id}.obj", coordinate_system="LPS"
-    )
-    landmarks = LandmarkIO.read(
-        source / "landmarks" / f"{specimen_id}.mrk.json"
-    )
-
-    # Save the new coordinates while retaining face identities and texture layout.
-    MeshIO.write_obj(mesh, destination / "models" / f"{specimen_id}.obj")
-    LandmarkIO.write_json(
-        landmarks, destination / "landmarks" / f"{specimen_id}.mrk.json"
-    )
-    texture_name = specimen_id + texture_suffix
-    copyfile(
-        source / "textures" / texture_name,
-        destination / "textures" / texture_name,
-    )
-    print(f"Prepared {specimen_id}", flush=True)
-
-# The atlas workflow creates a separate timestamped directory inside this folder.
-(work / "runs").mkdir(exist_ok=True)
-print(f"Inputs: {destination}")
-print(f"Output parent: {work / 'runs'}")
-PY
+mkdir -p /Users/eric/interdeca-runs/small_clams
+cp -R /Users/eric/code/3d_color_package/tests/data/small_clams \
+  /Users/eric/interdeca-runs/small_clams/inputs
 ```
 
-Expect three `Prepared ...` messages. On subsequent runs, reuse this prepared
-copy and skip the command. If preparation stopped partway through, inspect the
-error and choose a fresh working directory before retrying. The conversion is
-specific to these raw clams files; do not repeat it on an already-RAS atlas.
+Skip this command when the working copy already exists. The working dataset
+contains matching specimen base names in `models/`, `landmarks/`, and `textures/`.
+Choose **LPS** for its raw mesh coordinates; landmark JSON metadata is read
+independently. Every atlas run converts a fresh copy to RAS and removes exactly
+zero-area faces, preserving vertex order, surviving triangle order, and
+per-corner UVs. Source files remain unchanged. Prepared copies and repair records
+are stored in `inputs/_interdeca/prepared/<run>/`; default results are stored in
+`inputs/_interdeca/runs/<run>/`.
 
 ### Set the ATLAS controls
 
@@ -154,10 +107,9 @@ In **ATLAS**, enter:
 
 | Control | Value |
 | --- | --- |
-| Models | `/Users/eric/interdeca-runs/small_clams/inputs_ras/models` |
-| Landmarks | `/Users/eric/interdeca-runs/small_clams/inputs_ras/landmarks` |
-| Textures | `/Users/eric/interdeca-runs/small_clams/inputs_ras/textures` |
-| Output directory | `/Users/eric/interdeca-runs/small_clams/runs` |
+| Input directory | `/Users/eric/interdeca-runs/small_clams/inputs` |
+| Mesh coordinates | `LPS` |
+| Output directory | Leave empty to use `inputs/_interdeca/runs` |
 | Atlas Model / Atlas Landmarks override | Leave both empty |
 | Merge by distance | `0.0001` |
 | Smart UV angle (deg) | `66` |
@@ -170,7 +122,7 @@ Expand **Surface processing (cleanup, UV, bake)** to see the numerical settings.
 the earlier workflow defaults except for the smaller first-pass bake. After a
 successful check, use `2048` for a higher-resolution visual comparison.
 
-Click **Run ATLAS and Texture Transfer**. Expect progress through inspection,
+Click **Run ATLAS and Texture Transfer**. Expect progress through automatic input preparation,
 reference/contribution/mean construction, cleanup, UVs, alignment, resampling,
 baking, and averaging. Some tasks are much slower than others; the task counter
 is not an elapsed-time estimate. Input controls lock while the run is active.
@@ -309,14 +261,14 @@ Do these after inspecting your successful results.
   by cancellation and unlocked controls. Later tasks and obsolete display results
   should not be applied. If a short run finishes before the click, try another run.
 - **Atlas override:** in **ATLAS**, choose the `atlas.obj` and `atlas.mrk.json` from
-  a successful Route B run as the paired override. Keep the prepared input
-  directories and textures. Run again. Construction of the mean atlas is skipped,
+  a successful Route B run as the paired override. Keep the raw input directory and its LPS coordinate setting. Run again. Construction of the mean atlas is skipped,
   while cleanup, UV generation, resampling, and baking produce a new run directory.
 - **Merge disabled:** repeat that override check with **Merge by distance = 0**.
   This disables merging, not UV generation. Use this run's own baked textures.
-- **No-texture branch:** clear **Textures** and run the override again. Expect
-  geometry/landmark outputs and an empty downstream texture-directory selector.
-  Do not pair the new atlas with textures left over from another UV map.
+- **Geometry-only branch (CLI):** use explicit `--models`, `--landmarks`, and
+  `--output` directories and omit `--textures`. Specify `--coordinates LPS` for
+  these raw meshes. Dataset-root runs in Slicer require all three matching folders.
+  Do not pair a geometry-only atlas with textures from another UV map.
 
 Changing ATLAS settings invalidates downstream results. If you only want to
 analyze an already-baked atlas, use Route A's loading approach with that atlas's

@@ -21,14 +21,13 @@ from interdeca.models import (
 class AtlasOptions(NamedTuple):
     """Legacy defaults in model units; cleanup precedes final correspondence."""
 
-    models: Path
-    landmarks: Path
-    output: Path
+    models: Path | None = None
+    landmarks: Path | None = None
+    output: Path | None = None
     textures: Path | None = None
     atlas_model: Path | None = None
     atlas_landmarks: Path | None = None
-    # Retain serialized requests from the transition release; native operations
-    # do not discover or invoke this executable.
+    # An optional executable is used only with the Blender surface backend.
     blender: str | None = None
     merge_distance: float = 0.0001
     uv_angle: float = 66.0
@@ -38,6 +37,11 @@ class AtlasOptions(NamedTuple):
     bake_margin: int = 2
     backend: Literal["native", "morphoweave"] = "native"
     normalize_scale: bool = False
+    # Root-directory requests prepare raw inputs inside their own private run.
+    input_dir: Path | None = None
+    input_coordinates: Literal["LPS", "RAS"] | None = None
+    overwrite: bool = False
+    surface_backend: Literal["rust", "blender"] = "rust"
 
 
 class ColorOptions(NamedTuple):

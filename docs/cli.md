@@ -102,20 +102,30 @@ mesh invalidates its dependent state. `invalidate all` also clears CLI input cho
 
 ## Atlas and selection examples
 
+Select a dataset root containing `models/`, `landmarks/`, and `textures/` with
+exactly matching specimen base names. Preparation runs automatically under
+`<input-dir>/_interdeca/prepared/`; results default to `<input-dir>/_interdeca/runs/`.
+Raw mesh coordinates default to LPS with `--input-dir`; use `--coordinates RAS`
+for an already-RAS dataset. Landmarks honor their own coordinate metadata.
+Run from the repository root:
+
 ```sh
-uv run interdeca --output /tmp/interdeca-atlas-session \
-  atlas --models inputs/models --landmarks inputs/landmarks \
-        --textures inputs/textures --output results --bake-size 512 \
+uv run --no-sync interdeca --output ./data/mussels_52/_interdeca/session-001 \
+  atlas --input-dir ./data/mussels_52 --bake-size 512 \
   colors --sample-only --samples 1000 \
   fit --method pca --components 2
 ```
 
-`atlas --output` is the parent directory for an isolated atlas run and may already
-exist. It is separate from the global session output. Omit `--textures` for a
-geometry-only atlas. An override requires both mesh and landmarks. Set
+`atlas --output` optionally overrides the result parent and may already exist.
+It is separate from the global session output. Prepared copies always remain
+under the input root's `_interdeca`, and exactly zero-area input face repairs are
+recorded alongside them. Original inputs remain unchanged. Legacy explicit
+`--models`/`--landmarks` directories still require `--output`; omit `--textures`
+in that mode for a geometry-only atlas. An override requires both mesh and landmarks. Set
 `--merge-distance 0` to disable merging. All options use the Slicer/core defaults.
 
-Atlas input mesh directories must contain **RAS** coordinates. For individual
+Legacy explicit atlas input directories default to **RAS** mesh coordinates;
+`atlas --coordinates LPS` explicitly converts LPS meshes. For individual
 `--mesh` inputs, `--coordinates LPS` explicitly converts the mesh to RAS.
 Landmark formats honor their own coordinate metadata. Plain `.npy` curve points
 must already be world RAS coordinates with shape `(N, 3)`. Vertex-color inputs are
@@ -204,5 +214,27 @@ synthetic CLI check also verified finite two-dimensional scores and reconstructi
 the WebSocket worker advertised UMAP while its client remained independent of core
 imports. These checks do not replace a comprehensive numerical suite.
 
-The deprecated `--blender` option is accepted for transition compatibility and
-ignored. Normal atlas workflows require no Blender installation.
+Atlas surface processing defaults to Rust. Use `--surface-backend blender` to
+select external Blender for cleanup, UV projection, and baking, independently of
+`--backend native|morphoweave`. `--blender /path/to/blender` optionally selects its
+executable; otherwise it is discovered automatically. Blender 3.6+ is required
+only when this surface backend is selected.
+
+### Parallel task execution
+
+Use `interdeca --jobs 2 atlas --backend morphoweave --input-dir ./data/mussels_52`
+to run up to two independent tasks within each stage concurrently. `-j` is an
+alias; this global option goes before `atlas`, `shell`, or `script`. The default
+is one task at a time. Stage barriers and workflow order remain intact, resource
+acquisition stays serial, and cancellation drains running calls before cleanup.
+Rust numerical operations can also use internal threads. Additional jobs increase
+memory use, especially for dense meshes.
+
+### Replace generated dataset files
+
+Add `atlas --overwrite` with `--input-dir` to delete the dataset's entire
+`_interdeca/` before preparation. This removes old prepared copies and run results;
+raw input folders remain unchanged. Without the flag, earlier runs are retained.
+Custom atlas output folders outside `_interdeca/` are retained. The global CLI
+session `--output` must be outside `_interdeca/` (or omitted). Atlas overrides and
+linked source files inside the folder being deleted are rejected.
