@@ -487,6 +487,8 @@ class GenerationTests(unittest.TestCase):
         for row in first:
             parameters = ParameterData.model_validate(row._asdict()).to_internal()
             brushes = Generation.brushes(parameters)
+            for brush in brushes:
+                brush.validated()
             self.assertEqual(
                 [brush.sigma for brush in brushes if brush.sigma == row.stripe_width],
                 [row.stripe_width] * (2 * row.stripe_count),
