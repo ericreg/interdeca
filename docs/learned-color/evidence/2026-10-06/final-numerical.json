@@ -1,0 +1,16 @@
+{
+  "crops_shape": [
+    3008,
+    1280
+  ],
+  "specimen_shape": [
+    47,
+    1280
+  ],
+  "finite_vectors": true,
+  "max_raw_mean_normalization_error": 7.90180615106717e-08,
+  "ordered_cohort_join": true,
+  "independent_cosine_neighbors_match": true,
+  "PCA_saved_transform_max_error": 1.865165707926053e-05,
+  "completed_marker": true
+}

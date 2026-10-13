@@ -1,0 +1,55 @@
+{
+  "scope": "Bounded evidence for documented-method rerun on recovered Slack best-32 cohort; original v2.2 numerical outputs not certified.",
+  "artifacts": [
+    {
+      "path": "coordinates.csv",
+      "bytes": 2806,
+      "sha256": "3aa7ec39ba4c7f2054aaf81f1a17230487090a251e8ed48be3d5e6682d83fe7f"
+    },
+    {
+      "path": "figure-export-provenance.json",
+      "bytes": 694,
+      "sha256": "99f4b8124fec27dcc656b3f06086a4dbc9e39ae85132643d16c932724d10507f"
+    },
+    {
+      "path": "final-numerical.json",
+      "bytes": 392,
+      "sha256": "91e736f5062233798f8ce83f32dc37098494e477d009867387b4575906f0d6aa"
+    },
+    {
+      "path": "neighbors.csv",
+      "bytes": 7518,
+      "sha256": "8dbe006d2e5bfba8d794ed674837ababd1d984b56c3f10313b12f424867229c8"
+    },
+    {
+      "path": "population.png",
+      "bytes": 146955,
+      "sha256": "ca5c6fc32b8ed3e2a4c4dd3b692adf1e54e999abf5e44d372c8d19765002f67a"
+    },
+    {
+      "path": "protocol.json",
+      "bytes": 1532,
+      "sha256": "e3d756107c84f7fc11df02b5e8a65322472b31fcd62dab059f7427ddab4dfd9f"
+    },
+    {
+      "path": "run-provenance.json",
+      "bytes": 12455,
+      "sha256": "1fd78f747d3192c6d81898f008572ce03b46c117e0a46bca031b9d1424f1c227"
+    },
+    {
+      "path": "source-recovery.json",
+      "bytes": 11976,
+      "sha256": "7be21447944d482f6a31e21e52d9fa7acc92799b76be2d9a023b8242f3c8f7f5"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 556,
+      "sha256": "ffbf31de6d85de180f898f384fd47db918b987e5ea6ca9abd3dfeb93172c0c3d"
+    },
+    {
+      "path": "surface-crops.json",
+      "bytes": 329,
+      "sha256": "42119d0a98e07037d6d51bfee90b594c4ca03a68744faa691abf67acf244bdfd"
+    }
+  ]
+}

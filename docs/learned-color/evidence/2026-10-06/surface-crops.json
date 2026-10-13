@@ -1,0 +1,9 @@
+{
+  "specimens": 47,
+  "patches": 3008,
+  "each_specimen_has_64": true,
+  "all_pixels_classified_as_surface": true,
+  "no_crop_pixel_augmentation": true,
+  "all_patch_hashes_match": true,
+  "max_pairwise_crop_iou": 0.5990630489947296
+}

@@ -1,0 +1,15 @@
+{
+  "profile": "slack-best-32-documented-paper-method-rerun",
+  "specimens": 32,
+  "crops_per_specimen": 64,
+  "embedding_features": 1280,
+  "PCA_explained_variance_ratio": [
+    0.17714035511016846,
+    0.17042195796966553
+  ],
+  "UMAP_method": "UMAP cosine",
+  "scope": "Documented method reconstruction; original 32-specimen run not certified.",
+  "supervised_performance_claim": false,
+  "checkpoint_revision": "f157467ea509bc356ff9f61fd3c0d840eec5e04e",
+  "population_plot_sha256": "2e91969e3c63a052631eb9379e05be03434c025facdd3e47caa27f8a17ed3f2e"
+}

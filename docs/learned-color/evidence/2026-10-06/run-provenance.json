@@ -1,0 +1,450 @@
+{
+  "pipeline_version": "documented-ijepa-reconstruction-1",
+  "status": "completed",
+  "inputs": [
+    {
+      "specimen_id": "UF_IZ_180660",
+      "mesh": "UF_IZ_180660.obj",
+      "texture": "UF_IZ_180660.png",
+      "mesh_sha256": "6113ca9f20b2b99e605278bacc10287605953d853d6ebd81a0edb6e4034f7cbc",
+      "texture_sha256": "30e8ddc6e76e209a937b43331d93e31339afe7354c2be131a5e98ad94397af52"
+    },
+    {
+      "specimen_id": "UF_IZ_268940",
+      "mesh": "UF_IZ_268940.obj",
+      "texture": "UF_IZ_268940.png",
+      "mesh_sha256": "5254e1f26a2f66d2e02a85e49521da762e8e95b08a0b7325a0485e2c784aca14",
+      "texture_sha256": "f4b0ea0737a542fc2d13751692e4092b34684a3d2ff47c959a2760b3a681584d"
+    },
+    {
+      "specimen_id": "UF_IZ_269559",
+      "mesh": "UF_IZ_269559.obj",
+      "texture": "UF_IZ_269559.png",
+      "mesh_sha256": "c9505b615d2fe85bfe558c75bd8c902ac665a23fad71680002cc4c5b16c4ced4",
+      "texture_sha256": "8c7f2513392a9e887da86e644022e3fe6ad5603620a89603624f97c4b910b729"
+    },
+    {
+      "specimen_id": "UF_IZ_438751",
+      "mesh": "UF_IZ_438751.obj",
+      "texture": "UF_IZ_438751.png",
+      "mesh_sha256": "ab7e010ffb1d7a104c03acea61a3981896bd54d726590601db307bcbab542758",
+      "texture_sha256": "d0006760f244790f8c1b64182673ee9d057327be4d1c84929fc1a2ef6b80e9b2"
+    },
+    {
+      "specimen_id": "UF_IZ_439319",
+      "mesh": "UF_IZ_439319.obj",
+      "texture": "UF_IZ_439319.png",
+      "mesh_sha256": "9e0cfefd4b2345965cf33b855655947b71c22a57a95af0a4f53b8005a6909189",
+      "texture_sha256": "27c01cdf45dc9ef2d72ebcad9d1a4c5097f85436e563ceac7e79d0d19e083212"
+    },
+    {
+      "specimen_id": "UF_IZ_47462",
+      "mesh": "UF_IZ_47462.obj",
+      "texture": "UF_IZ_47462.png",
+      "mesh_sha256": "d859c31ba9ee0869d7a92a67f3d833086d2def3411935bdb050038befe6b4716",
+      "texture_sha256": "0a0bb79b563da1d976807978671496b9872d5d8e5adeaaf6833aba5fbf8dbdc6"
+    },
+    {
+      "specimen_id": "UF_IZ_507380",
+      "mesh": "UF_IZ_507380.obj",
+      "texture": "UF_IZ_507380.png",
+      "mesh_sha256": "2751660bb23578bc657a8b188d5bf07dc95889062e9395812b33127f5e731ef3",
+      "texture_sha256": "4e0a583c85c3e25659ac20e9c654121f1a14a2dd69167fede6e94b6314561dfd"
+    },
+    {
+      "specimen_id": "UF_IZ_507382",
+      "mesh": "UF_IZ_507382.obj",
+      "texture": "UF_IZ_507382.tiff",
+      "mesh_sha256": "b34293c42b868102d1e6e767501c66bdd5a90bc18c388cb401bda2ba686a7471",
+      "texture_sha256": "0bb726fe601a408570f9e8bb3b67a290b57f473698aace028e666bcec45085cc"
+    },
+    {
+      "specimen_id": "UF_IZ_507385",
+      "mesh": "UF_IZ_507385.obj",
+      "texture": "UF_IZ_507385.png",
+      "mesh_sha256": "6a5472da742e3f1b3e77b62deca62c35e552b07e4607fca922cf9a5b5fd4ed88",
+      "texture_sha256": "f842c29924aa0f3c59feb567a4bc2c560b9c9ef6edb1004e969acb599d13d9d4"
+    },
+    {
+      "specimen_id": "UF_IZ_507391",
+      "mesh": "UF_IZ_507391.obj",
+      "texture": "UF_IZ_507391.tiff",
+      "mesh_sha256": "4f6fc1d5264d0e64409b90692cb20f4512cd88ce1064025407ddf33fc4bc3c41",
+      "texture_sha256": "1ff65f97406c8e0f8648280b0f9ec587e6a334f3e679b094957d76521f47a67c"
+    },
+    {
+      "specimen_id": "UF_IZ_507399",
+      "mesh": "UF_IZ_507399.obj",
+      "texture": "UF_IZ_507399.tiff",
+      "mesh_sha256": "7b578cb222314e5e38f75342de7e0eacfacfacbcbc80915a677499f37f8ddc62",
+      "texture_sha256": "fb6a9b8be03d5e68fc36a52a21de9c015b678c2f5a25004662d3bb750cffdeba"
+    },
+    {
+      "specimen_id": "UF_IZ_507404",
+      "mesh": "UF_IZ_507404.obj",
+      "texture": "UF_IZ_507404.tiff",
+      "mesh_sha256": "58eed67fdbf00677a2a9dfa434207ad9338c469143c82aea421159b4aa9262c0",
+      "texture_sha256": "05a8de8d75bdde929a3a33faf01fe33a5f8f969c3cfb6a488bd177eda35b7ed8"
+    },
+    {
+      "specimen_id": "UF_IZ_507410",
+      "mesh": "UF_IZ_507410.obj",
+      "texture": "UF_IZ_507410.tiff",
+      "mesh_sha256": "3b48d7188dc952b81ca66166d440f5c290470320466ec2677d37ef684ed0c6b4",
+      "texture_sha256": "3b4a2b4d2334704f047edb9d2748580389fb90fbb067173c9a9601b17c0269f5"
+    },
+    {
+      "specimen_id": "UF_IZ_507445",
+      "mesh": "UF_IZ_507445.obj",
+      "texture": "UF_IZ_507445.png",
+      "mesh_sha256": "5c3ba1d7952d93dca597f4491c947f2016006a2378ffdd0f55b79ac7f2554902",
+      "texture_sha256": "24530958481e0477a6338cdd44da8d3cef29498afb237107dc73f72c45efc49f"
+    },
+    {
+      "specimen_id": "UF_IZ_507450",
+      "mesh": "UF_IZ_507450.obj",
+      "texture": "UF_IZ_507450.tiff",
+      "mesh_sha256": "6c105fafa64cb2a52246bd4b7ba194d14fee78242988c51477bf5eaf4547e180",
+      "texture_sha256": "2e1b747ba94bc5c0ee409291be361a16a9ed4ba43f072c4c1ae53554d395f4d9"
+    },
+    {
+      "specimen_id": "UF_IZ_507470",
+      "mesh": "UF_IZ_507470.obj",
+      "texture": "UF_IZ_507470.png",
+      "mesh_sha256": "ec8823246c726d677499a6ac0c1523fd98939e4553cd907334d1c714aa3a6ad0",
+      "texture_sha256": "cfcb96ecb417553090a13eac8f80576c90a0e4c45c32e8511700168381c247a8"
+    },
+    {
+      "specimen_id": "UF_IZ_507511",
+      "mesh": "UF_IZ_507511.obj",
+      "texture": "UF_IZ_507511.png",
+      "mesh_sha256": "c98eacc28241129a72d7869e70ebd5f068ea385fbc15db8116569dca52042e9d",
+      "texture_sha256": "d68c65d09914bcaf616ce92b4873fca26a039d72d6418580411f1c085b61d05f"
+    },
+    {
+      "specimen_id": "UF_IZ_507557",
+      "mesh": "UF_IZ_507557.obj",
+      "texture": "UF_IZ_507557.tiff",
+      "mesh_sha256": "fa43ea3886964e1fe38b97089b41ee40ed4d0b90ec741ae043a3d19f25c8e955",
+      "texture_sha256": "45fce24ae4644a2bb1d7289c4b6fc4381956f0696a9c2be5629370c195b40814"
+    },
+    {
+      "specimen_id": "UF_IZ_507566",
+      "mesh": "UF_IZ_507566.obj",
+      "texture": "UF_IZ_507566.tiff",
+      "mesh_sha256": "094218bdff027cc22368ee45360f3274ea3c81c9fabb0453acfc3516ffe0b6ba",
+      "texture_sha256": "23e1721616621e586f7a531e84aab6b09688a35f4901831143e6cddc1c1b47f5"
+    },
+    {
+      "specimen_id": "UF_IZ_507608",
+      "mesh": "UF_IZ_507608.obj",
+      "texture": "UF_IZ_507608.png",
+      "mesh_sha256": "386e2b4ace492ebbaf84da3f6eeb55408d298ec635ec4ca10799d33da94a7c58",
+      "texture_sha256": "07b49feaf49798de96959e903354e6f448da09ae3c1526f8f3e27b7f93f5d698"
+    },
+    {
+      "specimen_id": "UF_IZ_507616",
+      "mesh": "UF_IZ_507616.obj",
+      "texture": "UF_IZ_507616.png",
+      "mesh_sha256": "d18439e40b9db24762a7d636e8c32c1ac9e73b289cb28a6538f3e83f26279be4",
+      "texture_sha256": "155e5c20e38ad9b68612b9ced7829022826a8c72905ab12535574479910301b0"
+    },
+    {
+      "specimen_id": "UF_IZ_507631",
+      "mesh": "UF_IZ_507631.obj",
+      "texture": "UF_IZ_507631.png",
+      "mesh_sha256": "5185ee986efd974d853b2ba565f3124b209d3018d8170fa7b0b24b1174ce7f2f",
+      "texture_sha256": "6abbc2c9256670c28278a566e6df64b47b651ea02579e82971698857c943a276"
+    },
+    {
+      "specimen_id": "UF_IZ_507653",
+      "mesh": "UF_IZ_507653.obj",
+      "texture": "UF_IZ_507653.tiff",
+      "mesh_sha256": "e533b84169264a794ebb2e49c819768530fc16c4984e2c9f6cbb3fdd3cb31f3b",
+      "texture_sha256": "9db3916f0756ce494f66f20904d816a44064553af70e5298f4d41f511b47c9be"
+    },
+    {
+      "specimen_id": "UF_IZ_507660",
+      "mesh": "UF_IZ_507660.obj",
+      "texture": "UF_IZ_507660.tiff",
+      "mesh_sha256": "5c57f5d2edfabda8d5739b1076f2d8ed81362fb64030d0cb21173397027b54e8",
+      "texture_sha256": "aca6fbfd99a6abccc1d7358798068ceac830ebed6582f502b79dc021de40d383"
+    },
+    {
+      "specimen_id": "UF_IZ_507703",
+      "mesh": "UF_IZ_507703.obj",
+      "texture": "UF_IZ_507703.tiff",
+      "mesh_sha256": "ae60ae043565b75868c7b70dbdf45c7874743c7a8d907e450c40a27e689cee22",
+      "texture_sha256": "69c5f18402fdf48923d5c1de9cb4d14721c5c82a6ce9c4fb4532fce2b7aaee05"
+    },
+    {
+      "specimen_id": "UF_IZ_507709",
+      "mesh": "UF_IZ_507709.obj",
+      "texture": "UF_IZ_507709.png",
+      "mesh_sha256": "a59fb49a1440771e632a5ac8923a2dba4df7103b21976bf2f30519ab4c90ca0b",
+      "texture_sha256": "0d209f0029f7009bbe1b372fe16af9d1c48e4f6e76652c73858b59d91ac631f5"
+    },
+    {
+      "specimen_id": "UF_IZ_507720",
+      "mesh": "UF_IZ_507720.obj",
+      "texture": "UF_IZ_507720.png",
+      "mesh_sha256": "c890308544685d64db493886f0b60274397633e4884da686fd8e7332e17e5c4b",
+      "texture_sha256": "4711adfbe0fc2e36a84f32b2cd24d5cf04afa6b01db05297ae66023aa4867b86"
+    },
+    {
+      "specimen_id": "UF_IZ_507733",
+      "mesh": "UF_IZ_507733.obj",
+      "texture": "UF_IZ_507733.png",
+      "mesh_sha256": "2eef92d0fe38614784a909b304e20dd9aa34e8b31d1a6a1a4bfb92353cd9fece",
+      "texture_sha256": "c7ed88af36a94a586a913bdd53155fd0a8d5a52e60b008ed808b67324e5f84b3"
+    },
+    {
+      "specimen_id": "UF_IZ_507738",
+      "mesh": "UF_IZ_507738.obj",
+      "texture": "UF_IZ_507738.tiff",
+      "mesh_sha256": "4a0bdc2b094c0cf1817d2ea6fb3a10e4425039d5afb797095080d279ecd94917",
+      "texture_sha256": "5317eed6136bb244ba39234d93fa5e502c68b9afdc8293c5c8816b4cfb6f9bd3"
+    },
+    {
+      "specimen_id": "UF_IZ_507751",
+      "mesh": "UF_IZ_507751.obj",
+      "texture": "UF_IZ_507751.tiff",
+      "mesh_sha256": "dce539cfe281ea8e3cb41746f8da32d170901ad3af08d17c8be35ffa282c026f",
+      "texture_sha256": "9d9e659d969829c30eeda93d8753b9de9eba3a4c7b38fb7d6bfc8387d3854be6"
+    },
+    {
+      "specimen_id": "UF_IZ_507756",
+      "mesh": "UF_IZ_507756.obj",
+      "texture": "UF_IZ_507756.png",
+      "mesh_sha256": "0578989edb9987dd37947fbbdb50657d7ec48ee95740a3db5eb4f4affafbb2cd",
+      "texture_sha256": "32bc115232fe74499d9345576792a319b86eaf6cfb205a346954e579d8bff83e"
+    },
+    {
+      "specimen_id": "UF_IZ_507759",
+      "mesh": "UF_IZ_507759.obj",
+      "texture": "UF_IZ_507759.png",
+      "mesh_sha256": "51359cce854fc7cd3a811f8ea09e20e40161653a323756a5f4c46ecce23d2e7e",
+      "texture_sha256": "780dd7afdc4d8a69d0dd05c58b668af16d27c61a9786f350290e331f807404fb"
+    },
+    {
+      "specimen_id": "UF_IZ_507761",
+      "mesh": "UF_IZ_507761.obj",
+      "texture": "UF_IZ_507761.png",
+      "mesh_sha256": "ea8bd265d7159d24403709d99d5342452020c2d932f24442fafc690bcf2e2483",
+      "texture_sha256": "ad7a54abd0b9f43cdf2f7e2c3cb7824ec7583bae3837ad5eb49f0d3ca9cd7c10"
+    },
+    {
+      "specimen_id": "UF_IZ_507781",
+      "mesh": "UF_IZ_507781.obj",
+      "texture": "UF_IZ_507781.png",
+      "mesh_sha256": "8bc99bec2ddc2beee080be3dd229b81c674647876017d6c081dfa11080141b23",
+      "texture_sha256": "5b113badd1bbf573c329faee93c5e56e8b3c79af2387bbe723d7e9ea3e151bc7"
+    },
+    {
+      "specimen_id": "UF_IZ_507782",
+      "mesh": "UF_IZ_507782.obj",
+      "texture": "UF_IZ_507782.tiff",
+      "mesh_sha256": "40973b3207c8d0785b0848ba47602188d0674afa7065986b8d6a2d8006daba73",
+      "texture_sha256": "e0fa7fc71b64d923381972af24ea9b6f1b5feb6ebc88eb413140a0893efe5208"
+    },
+    {
+      "specimen_id": "UF_IZ_507798",
+      "mesh": "UF_IZ_507798.obj",
+      "texture": "UF_IZ_507798.tiff",
+      "mesh_sha256": "7fbb3a1a180bdb771907286a8bde2126df470a40226a13a3a38fcf558a440bd6",
+      "texture_sha256": "565902221fbd801f966d72c316fb6683df4ee831153ef4f067b34109dd6d1cef"
+    },
+    {
+      "specimen_id": "UF_IZ_507831",
+      "mesh": "UF_IZ_507831.obj",
+      "texture": "UF_IZ_507831.png",
+      "mesh_sha256": "afb1e6021f603df178d006644a4e4e87ad4b36752887098be778d0a1e83522d7",
+      "texture_sha256": "597a27f65ee0163523f6425ea9b8ec1767adb502cb7c3abb2c7283223afded83"
+    },
+    {
+      "specimen_id": "UF_IZ_507875",
+      "mesh": "UF_IZ_507875.obj",
+      "texture": "UF_IZ_507875.tiff",
+      "mesh_sha256": "fbd629fa275005e89401f39b9a53a1cd3e236386ca74017bf24f3d1adc7848aa",
+      "texture_sha256": "d751860a19888e52cf4decd23bbaa4d5dfe47458299a72b0eb97c6824ca6f753"
+    },
+    {
+      "specimen_id": "UF_IZ_507879",
+      "mesh": "UF_IZ_507879.obj",
+      "texture": "UF_IZ_507879.png",
+      "mesh_sha256": "622e46574e1b777bd676d5b7481efbbd1dd7264a3db039e6d1640101d8a2f86c",
+      "texture_sha256": "9e6ed1ca4b01cc7659978e04c92eac89570a1ff96a78f75c38d11348193539e9"
+    },
+    {
+      "specimen_id": "UF_IZ_507898",
+      "mesh": "UF_IZ_507898.obj",
+      "texture": "UF_IZ_507898.tiff",
+      "mesh_sha256": "7ed9fedd134ae7d44988628f2482a52d79f0c56a15444eed24d11f405c5c4d28",
+      "texture_sha256": "f2de9b3d68dda7a55f6fc77a949aafe8ae32f6b9617c7a09e3877499383591d9"
+    },
+    {
+      "specimen_id": "UF_IZ_507899",
+      "mesh": "UF_IZ_507899.obj",
+      "texture": "UF_IZ_507899.tiff",
+      "mesh_sha256": "49c0f31b320bbaf89fa43756057af06dc9f1668c7b15acdc2c598f043739cf55",
+      "texture_sha256": "ec376accbd1f211c2cdf91baa5e1c2bcb72b7e0fb5a8f32125ba8da2735becf1"
+    },
+    {
+      "specimen_id": "UF_IZ_507900",
+      "mesh": "UF_IZ_507900.obj",
+      "texture": "UF_IZ_507900.tiff",
+      "mesh_sha256": "721275e92a7a2bb35f72446e9d29474111ff5b9b3811d617da03ced26b1e19c1",
+      "texture_sha256": "df8bfb853da9aceee7db842fac7949641f9952bdf92d3312090b1d93c479a478"
+    },
+    {
+      "specimen_id": "UF_IZ_530488",
+      "mesh": "UF_IZ_530488.obj",
+      "texture": "UF_IZ_530488.tiff",
+      "mesh_sha256": "28c68a3ed8ab2f19dc635b38cb9b26b857980bdb7b5c853fb9c4b6cad9f29df3",
+      "texture_sha256": "b878079e7a7db900d0af5901b48d52cf2a05e3f5f1be49c9abc649c8c36188a1"
+    },
+    {
+      "specimen_id": "UF_IZ_564750",
+      "mesh": "UF_IZ_564750.obj",
+      "texture": "UF_IZ_564750.png",
+      "mesh_sha256": "0525a3241eeac7d65d04b737a442ff8604f6d27a4c03cf471f3d59bc454470f7",
+      "texture_sha256": "3854c779c12bd689497da1d6cfd6cb85d1659074a84731838350fa49b4e81cbc"
+    },
+    {
+      "specimen_id": "UF_IZ_564751",
+      "mesh": "UF_IZ_564751.obj",
+      "texture": "UF_IZ_564751.png",
+      "mesh_sha256": "4bf6bc59485012460001c3943a6a78c4a7e3fb70b6f4cf98dd23e3394cc4a477",
+      "texture_sha256": "0c378de88a5a85c7e3107fffa26ffbaaf40a074c62bea7ddbf467a1e92a18358"
+    },
+    {
+      "specimen_id": "UF_IZ_63733",
+      "mesh": "UF_IZ_63733.obj",
+      "texture": "UF_IZ_63733.png",
+      "mesh_sha256": "3710bf8eb62ba7c11fc35e8130ebe0f178d28c88c841dd69a9e08558d3fc72c2",
+      "texture_sha256": "4ec8bd3a9eea08ef80b522df08c7d8c403a989a86e48d4b415b0b4c32b9c1673"
+    },
+    {
+      "specimen_id": "UF_IZ_65304",
+      "mesh": "UF_IZ_65304.obj",
+      "texture": "UF_IZ_65304.png",
+      "mesh_sha256": "4951200aca1c8e2f9fee1cbfbabcb367a6d8cb3302312d9fbe1addf06edc06f2",
+      "texture_sha256": "6263dc9284254f31e68929d914a24220b8ac762c466de42fdfcbd8561a757693"
+    }
+  ],
+  "source_sha256": {
+    "__init__.py": "a242502fe4388f44683aad10197a8f76bab4c37484fb5460e0b4d4a5d9577012",
+    "__main__.py": "0f7fb2a866df7479263af85ebba18883a8f69bab5f620d093383d4302f9be323",
+    "models.py": "68e503873ebc535de9c8ad9b2be1b3c5edc8083d67773b98fa64dd2dda29cc76",
+    "pipeline.py": "a6fc9195693e2d50f2fa5ce61fc5ef95509efbade58155638271144874d44da0",
+    "reference/__init__.py": "765abd8be1b72ca729d3ff881aa561fb3875bcb8749c1d136c440c3ad3e2898a",
+    "reference/patch_sampling.py": "4fced056bf9f45909bcc80d92090cfca6b73c1eaad7f6fa175bbbb79cf8cfcfb",
+    "reference/render_clam.py": "8dbd24b67ab8c45a011fbbddaf49cb84d44b8da02bc7cbcb3dcdd306e17126f1",
+    "reference/util.py": "3339341d5a954ba08533646e26de12b0143eb5ca213d356e942f0ebf73271beb",
+    "serde.py": "48c777db1a40b923e47b3184897ba31aec7457ea282d0aa0573eaefd60f3a961"
+  },
+  "platform": "macOS-26.5-arm64-arm-64bit",
+  "packages": {
+    "pyvista": "0.48.4",
+    "umap-learn": "0.5.12",
+    "scooby": "0.12.0",
+    "cloudpickle": "3.1.2",
+    "kiwisolver": "1.5.1",
+    "pydantic_core": "2.46.4",
+    "fonttools": "4.66.1",
+    "packaging": "26.3",
+    "networkx": "3.7",
+    "joblib": "1.6.0",
+    "matplotlib": "3.10.9",
+    "Pygments": "2.21.0",
+    "requests": "2.34.2",
+    "hf-xet": "1.6.0",
+    "rich": "15.0.0",
+    "rich-rst": "2.2.0",
+    "torch": "2.8.0",
+    "pillow": "12.2.0",
+    "docstring_parser": "0.18.0",
+    "numpy": "2.4.6",
+    "platformdirs": "4.12.3",
+    "vtk": "9.6.2",
+    "contourpy": "1.4.0",
+    "sympy": "1.14.0",
+    "huggingface_hub": "0.36.2",
+    "torchvision": "0.23.0",
+    "safetensors": "0.8.0",
+    "tqdm": "4.70.1",
+    "setuptools": "84.0.0",
+    "pooch": "1.9.0",
+    "urllib3": "2.8.0",
+    "mdurl": "0.1.2",
+    "python-dateutil": "2.9.0.post0",
+    "mpmath": "1.3.0",
+    "fsspec": "2026.9.0",
+    "llvmlite": "0.50.0",
+    "certifi": "2026.7.22",
+    "cycler": "0.12.1",
+    "filelock": "4.0.12",
+    "Jinja2": "3.1.6",
+    "annotated-types": "0.8.0",
+    "regex": "2026.9.29",
+    "markdown-it-py": "4.2.0",
+    "transformers": "4.56.2",
+    "threadpoolctl": "3.7.0",
+    "typing-inspection": "0.4.4",
+    "numba": "0.68.0",
+    "attrs": "26.1.0",
+    "pydantic": "2.13.4",
+    "pynndescent": "0.6.0",
+    "PyYAML": "6.0.2",
+    "typing_extensions": "4.16.0",
+    "MarkupSafe": "3.0.4",
+    "cyclopts": "5.2.0",
+    "tokenizers": "0.22.2",
+    "click": "8.4.1",
+    "charset-normalizer": "3.5.2",
+    "pyparsing": "3.3.3",
+    "six": "1.17.0",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.8.0",
+    "idna": "3.20"
+  },
+  "scope": "Documented method reconstruction; original 32-specimen run not certified.",
+  "config": {
+    "profile": "available-mussels-47-documented-method-rerun",
+    "expected_pair_count": 47,
+    "specimen_ids": [],
+    "orientation_reference_id": "UF_IZ_438751",
+    "render_size": 2048,
+    "texture_max_size": 4096,
+    "render_margin": 1.08,
+    "crop_padding_pixels": 12,
+    "crop_alpha_tolerance": 8,
+    "patch_alpha_tolerance": 10,
+    "force_square_normalization": true,
+    "patch_size_px": 256,
+    "patches_per_specimen": 64,
+    "max_overlap_iou": 0.6,
+    "patch_sample_seed": 20240601,
+    "checkpoint": "facebook/ijepa_vith14_1k",
+    "model_revision": "f157467ea509bc356ff9f61fd3c0d840eec5e04e",
+    "device": "mps",
+    "allow_cpu": false,
+    "batch_size": 8,
+    "standardize_pca_features": true,
+    "umap_neighbors": 10,
+    "umap_min_dist": 0.1,
+    "random_seed": 42,
+    "nearest_neighbors": 5
+  },
+  "embedding_metadata": {
+    "checkpoint": "facebook/ijepa_vith14_1k",
+    "revision": "f157467ea509bc356ff9f61fd3c0d840eec5e04e",
+    "device": "mps",
+    "dtype": "float32",
+    "pooling": "all-spatial-token-mean",
+    "aggregation": "raw-crop-mean-then-single-L2",
+    "patch_manifest_sha256": "a707acf1f4b3ce253678c27a121af5c97363c12a25a3c32301c38bd225922c8c",
+    "specimen_embeddings_sha256": "fac8c2b5b413b00b9b06f60d5e944eb97b5b008b7db01f396736ed5696091ae0",
+    "crop_embeddings_sha256": "e2eaf890c436f418f62dfc79ce01af6348988af74519c5af3a2b5765367b6be8"
+  }
+}
