@@ -450,7 +450,9 @@ class GenerationTests(unittest.TestCase):
         with self.assertWarnsRegex(RuntimeWarning, "non-positive"):
             row = Generation.sample_labeled(250, 11725)[156]
         width = row.parameters.stripe_width
-        self.assertEqual(width, -0.0008502049605016274)
+        # The seeded draw is the author value to within a few ulps; libm normal
+        # transforms differ by platform, so exact float equality is not portable.
+        self.assertAlmostEqual(width, -0.0008502049605016274, delta=1e-15)
         with self.assertWarnsRegex(RuntimeWarning, "non-positive"):
             parameters = ParameterData.model_validate(
                 row.parameters._asdict()
@@ -474,7 +476,7 @@ class GenerationTests(unittest.TestCase):
         np.random.seed(817)
         with self.assertWarnsRegex(RuntimeWarning, "non-positive"):
             width = Generation.sample(250, 11725)[156].stripe_width
-        self.assertEqual(width, -0.0008502049605016274)
+        self.assertAlmostEqual(width, -0.0008502049605016274, delta=1e-15)
         first = Generation.sample(250, 49)
         np.testing.assert_array_equal(np.random.random(5), expected)
         self.assertEqual(first, Generation.sample(250, 49))
