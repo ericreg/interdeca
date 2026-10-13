@@ -1,0 +1,64 @@
+{
+  "json_semantics": {
+    "ignored_fields": [
+      "seconds",
+      "elapsed",
+      "time",
+      "runtime_s",
+      "wall_s"
+    ],
+    "canonical_sha256": {
+      "reference": "2e7b09985744b58f7a015debee0c3f206dc2db86cc3a8cc79a4d8169310b1bd1",
+      "current": "2e7b09985744b58f7a015debee0c3f206dc2db86cc3a8cc79a4d8169310b1bd1"
+    },
+    "identical_excluding_runtime": true,
+    "raw_differences": [
+      {
+        "field": "seconds",
+        "reference": 232.8,
+        "current": 235.4
+      }
+    ]
+  },
+  "scope": "Read-only rehash of retained October12 fullclean and October13 focused boundary runs; not new scientific execution",
+  "roots": {
+    "reference": "/Users/leyangloh/dev/interdeca-reproduction-clean-2026-10-12-fish/runs/full/source/paper_synth",
+    "current": "/Users/leyangloh/dev/interdeca-boundary-validation-2026-10-13-fish/runs/fidelity/source/paper_synth"
+  },
+  "files": {
+    "results/e1_fidelity.json": {
+      "reference": {
+        "bytes": 9130,
+        "sha256": "813db3ea2f3538b242d297aeda4930aa8e2d0cdc791ec66d596ecb4e85765a69"
+      },
+      "current": {
+        "bytes": 9130,
+        "sha256": "763c3cc88db7f1bb2f9854d9ac1fd7a91143eb674ad93e27f3736e43b6d2eac8"
+      },
+      "byte_identical": false
+    },
+    "results/e1_fidelity_arrays.npz": {
+      "reference": {
+        "bytes": 79515769,
+        "sha256": "de07ff9d2a73b8639ab6f5bff978311e9a83330b03c924ccc0ca698d8344dbf7"
+      },
+      "current": {
+        "bytes": 79515769,
+        "sha256": "de07ff9d2a73b8639ab6f5bff978311e9a83330b03c924ccc0ca698d8344dbf7"
+      },
+      "byte_identical": true
+    },
+    "figures/fig2_fidelity.png": {
+      "reference": {
+        "bytes": 852335,
+        "sha256": "2ea36b89e555035075a01f808cb3025f49760c8bf85f32233dd16b0bb019927f"
+      },
+      "current": {
+        "bytes": 852335,
+        "sha256": "2ea36b89e555035075a01f808cb3025f49760c8bf85f32233dd16b0bb019927f"
+      },
+      "byte_identical": true
+    }
+  },
+  "all_byte_identical": false
+}

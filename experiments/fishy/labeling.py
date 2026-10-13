@@ -21,7 +21,7 @@ class Labeling:
         increasing center. It does not recover the original make_blobs IDs.
         """
         with csv_path.open(newline="") as stream:
-            rows = [ArchiveRow.model_validate(row) for row in csv.DictReader(stream)]
+            rows = [ArchiveRow.from_csv(row) for row in csv.DictReader(stream)]
         if len(rows) < 2 or len({r.sample_tag for r in rows}) != len(rows):
             raise ValueError("Label preparation requires at least two unique samples.")
         # Canonical index order makes the seeded fit independent of CSV row order.

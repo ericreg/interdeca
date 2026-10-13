@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "publication_scope": "Previously local evidence published for review; no new full scientific run. Historical results/reports preserved byte-for-byte.",
+  "validated_branch_head": "0d9fe7df1beaa67e82624a4268409fc4d4d33863",
+  "comparisons": {
+    "october6-vs-author": {
+      "json_leaves": 8110,
+      "json_leaves_changed": 2126,
+      "json_leaves_outside_tolerance": 714,
+      "array_fields": 146,
+      "array_statuses": {
+        "CLOSE": 100,
+        "DIFFERS": 38,
+        "IDENTICAL": 8
+      },
+      "report": "docs/fishy/evidence/2026-10-06/comparison.json",
+      "policy": "Historical JSON symmetric relative1e-6 with1e-12 denominator floor; arrays global reference-magnitude relative1e-6; no atol. Not the revised elementwise comparator."
+    },
+    "full-clean-vs-author": {
+      "json_leaves": 8110,
+      "json_leaves_changed": 2150,
+      "json_leaves_outside_tolerance": 702,
+      "array_fields": 146,
+      "array_statuses": {
+        "CLOSE": 101,
+        "DIFFERS": 37,
+        "IDENTICAL": 8
+      },
+      "report": "docs/fishy/evidence/2026-10-13/full-clean/comparison-author.json",
+      "policy": "Historical JSON symmetric relative1e-6 with1e-12 denominator floor; arrays global reference-magnitude relative1e-6; no atol. Not the revised elementwise comparator."
+    },
+    "full-clean-vs-october6": {
+      "json_leaves": 8110,
+      "json_leaves_changed": 1148,
+      "json_leaves_outside_tolerance": 178,
+      "array_fields": 146,
+      "array_statuses": {
+        "CLOSE": 129,
+        "IDENTICAL": 8,
+        "DIFFERS": 9
+      },
+      "report": "docs/fishy/evidence/2026-10-13/full-clean/comparison-local.json",
+      "policy": "Historical JSON symmetric relative1e-6 with1e-12 denominator floor; arrays global reference-magnitude relative1e-6; no atol. Not the revised elementwise comparator."
+    }
+  },
+  "focused_boundary": {
+    "scope": "Seven-donor smoke; cold250 cache; E1 fidelity; fidelity figure only. Not all21 stages.",
+    "json": "305 numerical leaves IDENTICAL after excluding runtime; raw JSON bytes differ only in seconds",
+    "arrays": "9 fields exact; NPZ byte-identical",
+    "figure": "PNG byte-identical",
+    "author_parity": "Not established; focused equivalence is against prior same-host fullclean run."
+  },
+  "limitations": [
+    "Historical execution sources differ from new review fixes; source digests identify each snapshot.",
+    "Hashes verify identity/integrity, not scientific correctness or data availability.",
+    "Original author input hashes/platform/BLAS and redistribution rights remain unresolved.",
+    "Data and large outputs remain local; published receipts are bounded review evidence, not a publicly downloadable complete reproduction package.",
+    "Historical repeated-fold t/SEM outputs are retained for provenance, not accepted calibrated inference."
+  ],
+  "revised_comparison": {
+    "policy": "symmetric-elementwise-v2",
+    "comparator_sha256": "ec37f26b1fd2cf044607cc23480da1d59fd7cfd8c0017d94bb72f8cf9192122a",
+    "comparisons": [
+      {
+        "reference": "author",
+        "rtol": 1e-06,
+        "atol": 0.0,
+        "report": "elementwise-author-atol-0.json",
+        "json_leaves": 8111,
+        "json_outside_tolerance": 702,
+        "json_undefined": 17,
+        "array_statuses": {
+          "IDENTICAL": 79,
+          "DIFFERS": 40,
+          "CLOSE": 27
+        },
+        "array_elements_outside_tolerance": 2369856,
+        "numerical_parity": "DIFFERS",
+        "wall_seconds": 3.405
+      },
+      {
+        "reference": "author",
+        "rtol": 1e-06,
+        "atol": 1e-08,
+        "report": "elementwise-author-atol-1e-08.json",
+        "json_leaves": 8111,
+        "json_outside_tolerance": 660,
+        "json_undefined": 17,
+        "array_statuses": {
+          "IDENTICAL": 79,
+          "DIFFERS": 37,
+          "CLOSE": 30
+        },
+        "array_elements_outside_tolerance": 2369771,
+        "numerical_parity": "DIFFERS",
+        "wall_seconds": 2.977
+      },
+      {
+        "reference": "author",
+        "rtol": 1e-06,
+        "atol": 1e-07,
+        "report": "elementwise-author-atol-1e-07.json",
+        "json_leaves": 8111,
+        "json_outside_tolerance": 655,
+        "json_undefined": 17,
+        "array_statuses": {
+          "IDENTICAL": 79,
+          "DIFFERS": 37,
+          "CLOSE": 30
+        },
+        "array_elements_outside_tolerance": 2369738,
+        "numerical_parity": "DIFFERS",
+        "wall_seconds": 3.087
+      },
+      {
+        "reference": "local",
+        "rtol": 1e-06,
+        "atol": 0.0,
+        "report": "elementwise-local-atol-0.json",
+        "json_leaves": 8111,
+        "json_outside_tolerance": 178,
+        "json_undefined": 17,
+        "array_statuses": {
+          "IDENTICAL": 113,
+          "CLOSE": 24,
+          "DIFFERS": 9
+        },
+        "array_elements_outside_tolerance": 1012,
+        "numerical_parity": "DIFFERS",
+        "wall_seconds": 3.083
+      },
+      {
+        "reference": "local",
+        "rtol": 1e-06,
+        "atol": 1e-08,
+        "report": "elementwise-local-atol-1e-08.json",
+        "json_leaves": 8111,
+        "json_outside_tolerance": 141,
+        "json_undefined": 17,
+        "array_statuses": {
+          "IDENTICAL": 113,
+          "CLOSE": 24,
+          "DIFFERS": 9
+        },
+        "array_elements_outside_tolerance": 1012,
+        "numerical_parity": "DIFFERS",
+        "wall_seconds": 2.907
+      },
+      {
+        "reference": "local",
+        "rtol": 1e-06,
+        "atol": 1e-07,
+        "report": "elementwise-local-atol-1e-07.json",
+        "json_leaves": 8111,
+        "json_outside_tolerance": 134,
+        "json_undefined": 17,
+        "array_statuses": {
+          "IDENTICAL": 113,
+          "CLOSE": 24,
+          "DIFFERS": 9
+        },
+        "array_elements_outside_tolerance": 1012,
+        "numerical_parity": "DIFFERS",
+        "wall_seconds": 2.977
+      }
+    ],
+    "denominator_note": "8111 includes one empty container omitted by historical flattened 8110; undefined observations remain explicit.",
+    "scope": "Recomparison of existing full-clean outputs; not new full scientific execution."
+  },
+  "inference_supplement": {
+    "result": "inference-donor-held-out.json",
+    "method_and_environment": "inference-method-and-environment.md",
+    "source_sha256": "24444763c43729fef977be439ded2f9b6ba53243642fed271949fd087c1f2a14",
+    "scope": "Descriptive classifier/scaler LOGO on saved descriptors; not end-to-end feature holdout; no inferential p-values or intervals."
+  }
+}

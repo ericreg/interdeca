@@ -40,7 +40,7 @@ class Archive:
                 reader.fieldnames
             ):
                 raise ValueError("Archive CSV needs unique column names.")
-            rows = [ArchiveRow.model_validate(row) for row in reader]
+            rows = [ArchiveRow.from_csv(row) for row in reader]
         if not rows:
             raise ValueError("Archive CSV is empty.")
         rows.sort(key=lambda row: row.sample_index)
@@ -182,7 +182,9 @@ class Archive:
             "labels_note": "Original CSV preserved; no belly/tail mixture labels inferred.",
             "scope": "Input inventory only; no atlas, bake, or paper result verified.",
         }
-        manifest = Manifest(kind="generated", backend="generator", samples=samples)
+        manifest = Manifest(
+            kind="generated", backend="generator", samples=tuple(samples)
+        )
         Artifacts.start(
             output, "import-archived-inputs", [csv_path, source / "README.md"]
         )

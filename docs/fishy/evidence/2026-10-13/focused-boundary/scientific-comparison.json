@@ -1,0 +1,242 @@
+{
+  "json": {
+    "status": "IDENTICAL",
+    "leaves": 305,
+    "outside_tolerance": 0,
+    "differences": []
+  },
+  "arrays": {
+    "dE": {
+      "shape": [
+        250,
+        49997
+      ],
+      "identical": true,
+      "maximum_absolute_error": 0.0
+    },
+    "face_idx": {
+      "shape": [
+        49997
+      ],
+      "identical": true,
+      "maximum_absolute_error": 0.0
+    },
+    "holes": {
+      "shape": [
+        250,
+        49997
+      ],
+      "identical": true,
+      "maximum_absolute_error": null
+    },
+    "ref_lab": {
+      "shape": [
+        250,
+        49997,
+        3
+      ],
+      "identical": true,
+      "maximum_absolute_error": 0.0
+    },
+    "atlas_belly": {
+      "shape": [
+        250,
+        49997
+      ],
+      "identical": true,
+      "maximum_absolute_error": null
+    },
+    "atlas_tail": {
+      "shape": [
+        250,
+        49997
+      ],
+      "identical": true,
+      "maximum_absolute_error": null
+    },
+    "atlas_cheek": {
+      "shape": [
+        250,
+        49997
+      ],
+      "identical": true,
+      "maximum_absolute_error": null
+    },
+    "atlas_stripe": {
+      "shape": [
+        250,
+        49997
+      ],
+      "identical": true,
+      "maximum_absolute_error": null
+    },
+    "spec_idx": {
+      "shape": [
+        250
+      ],
+      "identical": true,
+      "maximum_absolute_error": 0.0
+    }
+  },
+  "smoke": {
+    "execution": "PASS",
+    "scope": "Seven real specimens, one per donor; 1,024 faces each. Not full paper reconstruction.",
+    "local_numerical_parity": "PASS",
+    "relative_tolerance": 1e-06,
+    "source_tree_sha256": "c9606297910b27325f0cc127f4f334bb8f59d118b149f2d3746550c000ded2fd",
+    "python": "3.12.8 (main, Jan 14 2025, 23:36:58) [Clang 19.1.6 ]",
+    "platform": "macOS-26.6.1-arm64-arm-64bit",
+    "packages": {
+      "threadpoolctl": "3.6.0",
+      "umap-learn": "0.5.12",
+      "scikit-image": "0.26.0",
+      "diptest": "0.11.0",
+      "pydantic_core": "2.46.4",
+      "numba": "0.65.1",
+      "matplotlib": "3.10.9",
+      "pandas": "3.0.3",
+      "hdbscan": "0.8.44",
+      "networkx": "3.6.1",
+      "contourpy": "1.3.3",
+      "lazy-loader": "0.5",
+      "pillow": "12.2.0",
+      "kiwisolver": "1.5.0",
+      "packaging": "26.2",
+      "numpy": "2.4.6",
+      "fonttools": "4.63.0",
+      "llvmlite": "0.47.0",
+      "ImageIO": "2.37.3",
+      "python-dateutil": "2.9.0.post0",
+      "scipy": "1.17.1",
+      "joblib": "1.5.3",
+      "cycler": "0.12.1",
+      "annotated-types": "0.8.0",
+      "pyparsing": "3.3.2",
+      "typing-inspection": "0.4.4",
+      "pydantic": "2.13.4",
+      "tifffile": "2026.6.1",
+      "pynndescent": "0.6.0",
+      "typing_extensions": "4.16.0",
+      "tqdm": "4.67.3",
+      "psutil": "7.2.2",
+      "six": "1.17.0",
+      "scikit-learn": "1.8.0"
+    },
+    "seconds": 6.975,
+    "specimens": [
+      {
+        "sample_id": "Mchenga_m1_fishy_000002",
+        "donor_id": 0,
+        "faces": 1024,
+        "median_dE": 0.851102888584137,
+        "p95_dE": 5.568238258361816,
+        "projection_p95": 0.0003310374090670372,
+        "independent_color_max_abs_error": 6.439293542825908e-15,
+        "local_reference_max_abs_error": 0.0,
+        "local_reference_relative_max_error": 0.0,
+        "local_reference_within_1e_6": true
+      },
+      {
+        "sample_id": "Nimbo_f1_fishy_000012",
+        "donor_id": 1,
+        "faces": 1024,
+        "median_dE": 0.8827412724494934,
+        "p95_dE": 2.2928590774536133,
+        "projection_p95": 0.0005735256525364978,
+        "independent_color_max_abs_error": 7.993605777301127e-15,
+        "local_reference_max_abs_error": 0.0,
+        "local_reference_relative_max_error": 0.0,
+        "local_reference_within_1e_6": true
+      },
+      {
+        "sample_id": "Nimbo_f2_fishy_000000",
+        "donor_id": 2,
+        "faces": 1024,
+        "median_dE": 0.8903682231903076,
+        "p95_dE": 3.323953151702881,
+        "projection_p95": 0.00030019810317335376,
+        "independent_color_max_abs_error": 5.218048215738236e-15,
+        "local_reference_max_abs_error": 0.0,
+        "local_reference_relative_max_error": 0.0,
+        "local_reference_within_1e_6": true
+      },
+      {
+        "sample_id": "yellowhead_m1_fishy_000018",
+        "donor_id": 3,
+        "faces": 1024,
+        "median_dE": 0.8953343629837036,
+        "p95_dE": 4.742320537567139,
+        "projection_p95": 0.0004963525456418972,
+        "independent_color_max_abs_error": 9.325873406851315e-15,
+        "local_reference_max_abs_error": 0.0,
+        "local_reference_relative_max_error": 0.0,
+        "local_reference_within_1e_6": true
+      },
+      {
+        "sample_id": "yellowhead_m2_fishy_000005",
+        "donor_id": 4,
+        "faces": 1024,
+        "median_dE": 0.852022647857666,
+        "p95_dE": 4.03245735168457,
+        "projection_p95": 0.00038518859517341854,
+        "independent_color_max_abs_error": 5.773159728050814e-15,
+        "local_reference_max_abs_error": 0.0,
+        "local_reference_relative_max_error": 0.0,
+        "local_reference_within_1e_6": true
+      },
+      {
+        "sample_id": "yellowhead_m4_fishy_000001",
+        "donor_id": 5,
+        "faces": 1024,
+        "median_dE": 0.8750835657119751,
+        "p95_dE": 3.351766586303711,
+        "projection_p95": 0.00038855848728296984,
+        "independent_color_max_abs_error": 7.105427357601002e-15,
+        "local_reference_max_abs_error": 0.0,
+        "local_reference_relative_max_error": 0.0,
+        "local_reference_within_1e_6": true
+      },
+      {
+        "sample_id": "yellowhead_m5_fishy_000004",
+        "donor_id": 6,
+        "faces": 1024,
+        "median_dE": 0.911745011806488,
+        "p95_dE": 3.5357930660247803,
+        "projection_p95": 0.000800898089958424,
+        "independent_color_max_abs_error": 4.884981308350689e-15,
+        "local_reference_max_abs_error": 0.0,
+        "local_reference_relative_max_error": 0.0,
+        "local_reference_within_1e_6": true
+      }
+    ],
+    "output_sha256": {
+      "smoke-arrays.npz": "3823e4091f7b2df6aeb3959b2987aa409b45b29826ae7069a4e345fe361a9ecc",
+      "smoke-fidelity.png": "356712361bea24f635f4bd40c24f083ddef0c0ce0fe8fd540466889ec73d5350"
+    }
+  },
+  "fidelity_png_byte_identical": true,
+  "run_stages": {
+    "build_cache": {
+      "exit_code": 0,
+      "elapsed_seconds": 94.92225193977356,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      }
+    },
+    "e1_fidelity": {
+      "exit_code": 0,
+      "elapsed_seconds": 245.71430921554565,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      }
+    },
+    "fig2_fidelity": {
+      "exit_code": 0,
+      "elapsed_seconds": 138.0948610305786,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      }
+    }
+  },
+  "verdict": "PASS: bounded fresh cache/fidelity/figure and smoke, with exact saved numerical arrays"
+}

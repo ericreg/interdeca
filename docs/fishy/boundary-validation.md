@@ -37,3 +37,15 @@ archived inputs in a disposable directory. Metadata checks cover real historical
 roundtrips, strict validation before output allocation and failed-stage resume
 state, including dependent records and E6 partial checkpoints. These checks do not
 claim a new full paper reproduction or resolve historical numerical discrepancies.
+
+The subsequent research-repository review promoted behavioral boundary, roundtrip,
+stage-invalidation and comparison checks into the [committed test suite](../../tests/README.md).
+These are executable fixtures with temporary inputs; they do not need private
+data or replicate a full paper run. CI runs them in the pinned CPU environment.
+
+The previous focused real-data validation is now linked in the
+[published evidence index](evidence/2026-10-13/README.md). Its nine E1 array fields
+and figure PNG match the preceding same-host run exactly. The JSON's 305
+non-runtime leaves match exactly; raw JSON bytes differ only in `seconds`, as
+the separately published raw and normalized hashes show. The receipts identify
+the historical tested source, not subsequent commits.

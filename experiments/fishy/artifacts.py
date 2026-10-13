@@ -9,7 +9,7 @@ from hashlib import sha256
 from importlib.metadata import version
 from pathlib import Path
 
-from experiments.fishy.serde import Asset, Config, Manifest
+from experiments.fishy.serde import Asset, Config, Donor, Manifest, Sample
 
 
 class Artifacts:
@@ -43,38 +43,60 @@ class Artifacts:
     def config(path: Path) -> Config:
         """Resolve and pin every donor asset before any expensive operation."""
         config = Config.model_validate_json(path.read_text())
-        for donor in config.donors:
-            for asset in (donor.mesh, donor.landmarks):
-                asset.path = Artifacts.resolve(asset, path.resolve().parent)
-                asset.sha256 = Artifacts.digest(asset.path)
-        return config
+        # Frozen boundaries remain immutable. Pin validated replacements rather
+        # than mutating paths/hashes after their original validation.
+        donors = tuple(
+            Donor.model_validate(
+                donor.model_dump()
+                | {
+                    "mesh": Artifacts.pinned(donor.mesh, path.resolve().parent),
+                    "landmarks": Artifacts.pinned(
+                        donor.landmarks, path.resolve().parent
+                    ),
+                }
+            )
+            for donor in config.donors
+        )
+        return Config.model_validate(config.model_dump() | {"donors": donors})
+
+    @staticmethod
+    def pinned(asset: Asset, base: Path) -> Asset:
+        """Return a newly validated absolute identity without modifying the input."""
+        resolved = Artifacts.resolve(asset, base)
+        return Asset(path=resolved, sha256=Artifacts.digest(resolved))
 
     @staticmethod
     def manifest(path: Path) -> Manifest:
         """Validate all asset hashes and identities before processing a population."""
         manifest = Manifest.model_validate_json(path.read_text())
-        assets = [
-            item
+        base = path.resolve().parent
+        samples = tuple(
+            Sample.model_validate(
+                sample.model_dump()
+                | {
+                    "mesh": Artifacts.pinned(sample.mesh, base),
+                    "landmarks": Artifacts.pinned(sample.landmarks, base),
+                    "texture": Artifacts.pinned(sample.texture, base),
+                }
+            )
             for sample in manifest.samples
-            for item in (sample.mesh, sample.landmarks, sample.texture)
-        ]
-        assets += [
-            item
-            for item in (manifest.atlas_mesh, manifest.atlas_landmarks)
-            if item is not None
-        ]
-        for asset in assets:
-            asset.path = Artifacts.resolve(asset, path.resolve().parent)
-            asset.sha256 = Artifacts.digest(asset.path)
-        return manifest
+        )
+        values = manifest.model_dump() | {"samples": samples}
+        for name in ("atlas_mesh", "atlas_landmarks"):
+            asset = getattr(manifest, name)
+            if asset is not None:
+                values[name] = Artifacts.pinned(asset, base)
+        return Manifest.model_validate(values)
 
     @staticmethod
     def write(path: Path, value: dict) -> None:
         """Refuse accidental overwrite and reject NaN in machine-readable output."""
+        # Encode before reserving files/directories: serialization failure must
+        # not leave a new partial stage artifact that resembles valid evidence.
+        encoded = json.dumps(value, indent=2, allow_nan=False) + "\n"
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("x") as stream:
-            json.dump(value, stream, indent=2, allow_nan=False)
-            stream.write("\n")
+            stream.write(encoded)
 
     @staticmethod
     def start(output: Path, stage: str, inputs: list[Path]) -> None:

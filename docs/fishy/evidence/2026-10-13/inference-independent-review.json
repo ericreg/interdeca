@@ -1,0 +1,25 @@
+{
+  "verdict": "No blocking scientific or source-binding finding",
+  "evidence_file": "inference-real250-r8.json",
+  "evidence_sha256": "b41522f7f8339f9dbf5c1775a26865d11bb25a2c92cb11da5561e6e3f8a9d454",
+  "prior_r7_results_unchanged": true,
+  "source_sha256": "24444763c43729fef977be439ded2f9b6ba53243642fed271949fd087c1f2a14",
+  "input_sha256": "627b7cf52c5a69078e11a6126be806368d8516b96b0bd13d6bc0bb898acc99a3",
+  "analysis_config_sha256": "cbcc619846edaf57d586ec72c65f2de188f55d2f5743acb2765259b87906964d",
+  "contrasts": 9,
+  "held_out_scores": 63,
+  "verified": "All donor disjointness, split/index hashes, class counts, paired differences and equal-donor means reconstructed independently; seven behavioral tests pass",
+  "independent_paired_fold": {
+    "factor": "stripe",
+    "donor": "0",
+    "scores": {
+      "pre": 0.59375,
+      "post": 0.9375
+    }
+  },
+  "limits": [
+    "Descriptive only; no calibrated population inference",
+    "Saved descriptors transductive; classifier scaling/fits held out only",
+    "Package/platform versions governed by exact external environment, not embedded in supplement itself"
+  ]
+}

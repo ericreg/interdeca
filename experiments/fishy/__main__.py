@@ -6,12 +6,14 @@ from pathlib import Path
 from experiments.fishy.analysis import Analysis
 from experiments.fishy.archive import Archive
 from experiments.fishy.artifacts import Artifacts
+from experiments.fishy.cli import CLI
 from experiments.fishy.comparison import Comparison
 from experiments.fishy.labeling import Labeling
 from experiments.fishy.native_palette import NativePalette
 from experiments.fishy.pipeline import Pipeline
 
 
+@CLI.command
 def main() -> None:
     """Run one stage at a time so archived atlas outputs can bypass recomputation."""
     parser = argparse.ArgumentParser(description=__doc__)

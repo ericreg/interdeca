@@ -12,11 +12,12 @@ from sklearn.datasets import make_blobs
 from experiments.fishy.models import (
     Brush,
     CanonicalFrame,
+    GeneratorData,
+    LandmarkInput,
     Parameters,
     SampledParameters,
     Spline,
 )
-from interdeca.models import Landmarks
 
 
 class Generation:
@@ -25,6 +26,18 @@ class Generation:
     @staticmethod
     def sample_labeled(count: int, seed: int) -> tuple[SampledParameters, ...]:
         """Preserve original MT19937 draw order without changing global RNG state."""
+        if (
+            isinstance(count, bool)
+            or not isinstance(count, (int, np.integer))
+            or count < 2
+        ):
+            raise ValueError("Sample count must be an integer of at least two.")
+        if (
+            isinstance(seed, bool)
+            or not isinstance(seed, (int, np.integer))
+            or not 0 <= seed <= 4294967295
+        ):
+            raise ValueError("Seed must be a uint32 integer.")
         rng = np.random.RandomState(seed)
         blue, yellow, green, red = [
             colorsys.rgb_to_hsv(*(np.array(rgb) / 255))
@@ -85,7 +98,18 @@ class Generation:
             cheek_z,
         )
         return tuple(
-            SampledParameters(Parameters(*row), int(belly_group[i]), int(tail_group[i]))
+            # Normalize NumPy categorical scalars only after all original draws;
+            # values and RNG order remain exactly the author's protocol.
+            SampledParameters(
+                Parameters(
+                    *(
+                        int(value) if index in (3, 12) else float(value)
+                        for index, value in enumerate(row)
+                    )
+                ).validated(),
+                int(belly_group[i]),
+                int(tail_group[i]),
+            )
             for i, row in enumerate(zip(*columns, strict=True))
         )
 
@@ -95,8 +119,13 @@ class Generation:
         return tuple(item.parameters for item in Generation.sample_labeled(count, seed))
 
     @staticmethod
-    def canonical(landmarks: Landmarks) -> tuple[CanonicalFrame, np.ndarray]:
+    def canonical(landmarks: LandmarkInput) -> tuple[CanonicalFrame, np.ndarray]:
         """Proper Kabsch rotation, unit front/back distance, posterior at zero."""
+        GeneratorData.points(landmarks.points, "canonical landmarks")
+        if len(landmarks.labels) != len(landmarks.points) or len(
+            set(landmarks.labels)
+        ) != len(landmarks.labels):
+            raise ValueError("Canonical landmarks need one unique label per point.")
         groups = (
             ("TFH", "TFT"),
             ("LBWL", "RBWR", "RBWL", "LBWR", "AH"),
@@ -127,12 +156,14 @@ class Generation:
         rotated = (points - pivot) @ rotation.T
         scale = 1 / distance
         translation = -scale * rotated[ids[3]].mean(0)
-        frame = CanonicalFrame(rotation, pivot, scale, translation)
+        frame = CanonicalFrame(rotation, pivot, scale, translation).validated()
         return frame, rotated * scale + translation
 
     @staticmethod
     def world(points: np.ndarray, frame: CanonicalFrame) -> np.ndarray:
         """Undo canonical normalization; atlas alignment itself never scales donors."""
+        GeneratorData.points(points, "world points")
+        frame.validated()
         return (
             (points - frame.translation) / frame.scale
         ) @ frame.rotation + frame.pivot
@@ -140,6 +171,11 @@ class Generation:
     @staticmethod
     def fit(source: np.ndarray, target: np.ndarray, regularization: float) -> Spline:
         """Fit the augmented spline system with an unpenalized affine component."""
+        GeneratorData.points(source, "spline source")
+        GeneratorData.points(target, "spline target")
+        GeneratorData.scalar(regularization, "regularization")
+        if regularization < 0:
+            raise ValueError("Spline regularization must be nonnegative.")
         if source.shape != target.shape or len(source) < 4:
             raise ValueError(
                 "Spline needs matching landmark arrays with at least four points."
@@ -156,11 +192,13 @@ class Generation:
             ]
         )
         solution = np.linalg.solve(system, np.vstack([target, np.zeros((4, 3))]))
-        return Spline(source.copy(), solution[:-4], solution[-4:])
+        return Spline(source.copy(), solution[:-4], solution[-4:]).validated()
 
     @staticmethod
     def evaluate(points: np.ndarray, spline: Spline) -> np.ndarray:
         """Evaluate the generator spline; its radial kernel is r² log(r+epsilon)."""
+        GeneratorData.points(points, "spline evaluation points")
+        spline.validated()
         radii = np.linalg.norm(points[:, None] - spline.controls[None], axis=2)
         return (radii**2 * np.log(radii + 1e-12)) @ spline.weights + np.column_stack(
             [np.ones(len(points)), points]
@@ -169,6 +207,7 @@ class Generation:
     @staticmethod
     def brushes(p: Parameters) -> tuple[Brush, ...]:
         """Order matters: stripes overwrite the base and all colored patches."""
+        p.validated()
         blue = colorsys.rgb_to_hsv(39 / 255, 70 / 255, 144 / 255)
         green = colorsys.rgb_to_hsv(21 / 255, 127 / 255, 31 / 255)
         red = colorsys.rgb_to_hsv(1, 102 / 255, 99 / 255)
@@ -233,13 +272,17 @@ class Generation:
     ) -> Brush:
         """Encode a sphere as a zero-length capsule without changing distances."""
         point = np.array(center, dtype=float)
-        return Brush(point, point, radius, sigma, color, strength)
+        return Brush(point, point, radius, sigma, color, strength).validated()
 
     @staticmethod
     def warp(
         brushes: tuple[Brush, ...], spline: Spline, frame: CanonicalFrame
     ) -> tuple[Brush, ...]:
         """Warp endpoints and scale radii by mean local Jacobian stretch."""
+        spline.validated()
+        frame.validated()
+        for brush in brushes:
+            brush.validated()
         warped = []
         for brush in brushes:
             points = np.stack([brush.start, brush.end])
@@ -276,6 +319,15 @@ class Generation:
         Preserve that behavior rather than silently implementing the draft's
         potentially different interpretation of a final 10% noise blend.
         """
+        # Internal NamedTuple construction is lightweight; validate each direct
+        # entry before arithmetic can turn malformed values into plausible RGB.
+        GeneratorData.points(points, "paint points")
+        GeneratorData.scalar(noise_amount, "noise_amount")
+        GeneratorData.scalar(noise_scale, "noise_scale")
+        if not 0 <= noise_amount <= 1 or noise_scale <= 0:
+            raise ValueError("Noise amount/scale is outside its valid range.")
+        for brush in brushes:
+            brush.validated()
         field = (
             np.sin(points[:, 0] * noise_scale * 3.1)
             + np.sin(points[:, 1] * noise_scale * 2.3 + 1.7)

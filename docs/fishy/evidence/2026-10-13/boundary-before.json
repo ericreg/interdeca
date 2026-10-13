@@ -1,0 +1,53 @@
+{
+  "quoted_scalars": {
+    "samples": 4,
+    "seed": 49,
+    "expected_landmarks": 47,
+    "tps_lambda": 1e-06,
+    "resolution": 2048,
+    "emission_margin": 16,
+    "noise_amount": 0.1,
+    "noise_scale": 8.0
+  },
+  "invalid_assignment": 0,
+  "{'sample_ids': [''], 'donor_ids': ['']}": {
+    "sample_ids": [
+      ""
+    ],
+    "donor_ids": [
+      ""
+    ]
+  },
+  "{'sample_ids': ['fish'], 'donor_ids': [0]}": "ValidationError",
+  "fit regularization nan": {
+    "accepted": true,
+    "finite": false
+  },
+  "fit regularization inf": {
+    "accepted": true,
+    "finite": false
+  },
+  "fit regularization -1.0": {
+    "accepted": true,
+    "finite": true
+  },
+  "sample_parameter_scalar_types": [
+    "float64",
+    "float64",
+    "float64",
+    "int64",
+    "float64",
+    "float64",
+    "float64",
+    "float64",
+    "float64",
+    "float64",
+    "float64",
+    "float64",
+    "int64",
+    "float64",
+    "float64",
+    "float64",
+    "float64"
+  ]
+}

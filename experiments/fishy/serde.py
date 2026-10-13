@@ -9,6 +9,7 @@ from pydantic import (
     ConfigDict,
     Field,
     TypeAdapter,
+    ValidationInfo,
     field_validator,
     model_validator,
 )
@@ -35,7 +36,22 @@ from experiments.fishy.records import (
 class Boundary(BaseModel):
     """Reject misspelled settings and nonfinite scientific parameters."""
 
-    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+    model_config = ConfigDict(
+        extra="forbid",
+        strict=True,
+        frozen=True,
+        allow_inf_nan=False,
+        validate_default=True,
+    )
+
+    @field_validator("schema_version", mode="before", check_fields=False)
+    @classmethod
+    def integer_version(cls, value: object) -> object:
+        # Literal[1] compares equal to True and 1.0; version types are part of
+        # the external contract, not values to coerce into a supported version.
+        if type(value) is not int:
+            raise ValueError("schema_version must be integer 1.")
+        return value
 
 
 class Asset(Boundary):
@@ -87,7 +103,7 @@ class Config(Boundary):
     profile: str = "cichlid-rerun-unverified"
     units: str = Field(min_length=1)
     reference_id: str
-    donors: list[Donor] = Field(min_length=1)
+    donors: tuple[Donor, ...] = Field(min_length=1)
     generation: Generation = Field(default_factory=Generation)
     transfer: Transfer = Field(default_factory=Transfer)
 
@@ -121,6 +137,13 @@ class ParameterData(Boundary):
     rosy_cheeks_translation_y: float
     rosy_cheeks_translation_z: float
 
+    @field_validator("stripe_count", "rosy_cheeks_present", mode="before")
+    @classmethod
+    def integer_category(cls, value: object) -> object:
+        if type(value) is not int:
+            raise ValueError("Parameter categories must be integers.")
+        return value
+
     def to_internal(self) -> Parameters:
         """Numerical code consumes named tuples rather than serialization models."""
         return Parameters(**self.model_dump())
@@ -140,9 +163,21 @@ class ArchiveRow(ParameterData):
 
     @field_validator("stripe_count", "rosy_cheeks_present", mode="before")
     @classmethod
-    def csv_integer(cls, value: object) -> object:
-        """CSV stores categories as text; retain the parent enum restrictions."""
-        return int(value) if isinstance(value, str) else value
+    def csv_integer(cls, value: object, info: ValidationInfo) -> object:
+        # Literal categories need explicit conversion inside string-input mode;
+        # ordinary Python/JSON validation never opts into this legacy adapter.
+        if info.context and info.context.get("legacy_csv") and isinstance(value, str):
+            return int(value)
+        return value
+
+    @classmethod
+    def from_csv(cls, values: dict[str, str]) -> Self:
+        """Explicit legacy adapter: only CSV fields undergo string conversion."""
+        if any(not isinstance(value, str) for value in values.values()):
+            raise ValueError("CSV values must be strings.")
+        return cls.model_validate_strings(
+            values, strict=True, context={"legacy_csv": True}
+        )
 
 
 class Sample(Boundary):
@@ -161,7 +196,7 @@ class Manifest(Boundary):
     schema_version: Literal[1] = 1
     kind: Literal["generated", "atlas"]
     backend: Literal["generator", "interdeca", "legacy-atlas"]
-    samples: list[Sample] = Field(min_length=1)
+    samples: tuple[Sample, ...] = Field(min_length=1)
     atlas_mesh: Asset | None = None
     atlas_landmarks: Asset | None = None
 
@@ -200,11 +235,16 @@ class Evaluation(Boundary):
         return EvaluationOptions(**self.model_dump())
 
 
-class CompositionIdentity(BaseModel):
-    """Read only identity from stage metadata, ignoring stage-specific fields."""
+class CompositionIdentity(Boundary):
+    """Validate identity while projecting richer native/atlas stage metadata.
 
-    sample_ids: list[str]
-    donor_ids: list[str]
+    Extra fields intentionally belong to their producing stages. This projection
+    compares only sample/donor ordering; it does not validate those other fields.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+    sample_ids: tuple[Annotated[str, Field(pattern=r"^[A-Za-z0-9_-]+$")], ...]
+    donor_ids: tuple[Annotated[str, Field(pattern=r"^[A-Za-z0-9_-]+$")], ...]
 
     @model_validator(mode="after")
     def identities(self) -> Self:
@@ -220,8 +260,8 @@ class CompositionIdentity(BaseModel):
 class Labels(Boundary):
     """Extraction metadata; specimen identity travels with every numerical array."""
 
-    sample_ids: list[str]
-    donor_ids: list[str]
+    sample_ids: tuple[Annotated[str, Field(pattern=r"^[A-Za-z0-9_-]+$")], ...]
+    donor_ids: tuple[Annotated[str, Field(pattern=r"^[A-Za-z0-9_-]+$")], ...]
     topology_key: str
     backend: Literal["interdeca", "legacy-atlas"]
     sampling: str
@@ -543,7 +583,12 @@ class Documents:
         return record
 
     @staticmethod
-    def release_payload(path: Path, value: object) -> object:
+    def release_payload(
+        path: Path,
+        value: object,
+        *,
+        manifest_kind: Literal["bundle", "legacy-export"] | None = None,
+    ) -> object:
         """Validate owned release outputs without changing their historical layout."""
         schemas = {
             "bundle.json": BundleConfigData,
@@ -551,9 +596,17 @@ class Documents:
             ".building.json": BuildIdentityData,
         }
         if path.name == "manifest.json":
-            schema = (
-                BundleManifestData if "schema_version" in value else ExportManifestData
-            )
+            # The caller knows which contract it is writing. Missing versions
+            # must never silently reclassify a malformed bundle as legacy data.
+            schemas_by_kind = {
+                "bundle": BundleManifestData,
+                "legacy-export": ExportManifestData,
+            }
+            if manifest_kind not in schemas_by_kind:
+                raise ValueError(
+                    "Manifest output requires an explicit supported contract kind."
+                )
+            schema = schemas_by_kind[manifest_kind]
             return schema.model_validate_json(
                 json.dumps(value, allow_nan=False)
             ).model_dump(mode="json", exclude_unset=True)

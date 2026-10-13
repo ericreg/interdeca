@@ -4,7 +4,9 @@ Pydantic lives in serde.py. These records need neither NumPy nor the core, so
 paper metadata can be inspected before the scientific environment is installed.
 """
 
-from typing import NamedTuple
+import math
+from numbers import Real
+from typing import NamedTuple, Self
 
 
 class Parameters(NamedTuple):
@@ -27,6 +29,37 @@ class Parameters(NamedTuple):
     rosy_cheeks_strength: float
     rosy_cheeks_translation_y: float
     rosy_cheeks_translation_z: float
+
+    def validated(self) -> Self:
+        """Check direct numerical callers; construction remains lightweight."""
+        for name, value in self._asdict().items():
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, Real)
+                or not math.isfinite(value)
+            ):
+                raise ValueError(f"{name} must be a finite real number.")
+        if type(self.stripe_count) is not int or self.stripe_count not in (4, 5):
+            raise ValueError("stripe_count must be integer 4 or 5.")
+        if type(
+            self.rosy_cheeks_present
+        ) is not int or self.rosy_cheeks_present not in (0, 1):
+            raise ValueError("rosy_cheeks_present must be integer 0 or 1.")
+        for name in ("base_color_hue", "belly_hue", "tail_hue", "rosy_cheeks_hue"):
+            if not 0 <= getattr(self, name) < 1:
+                raise ValueError(f"{name} must lie in [0, 1).")
+        for name in (
+            "base_color_sat",
+            "base_color_val",
+            "belly_strength",
+            "tail_strength",
+            "rosy_cheeks_strength",
+        ):
+            if not 0 <= getattr(self, name) <= 1:
+                raise ValueError(f"{name} must lie in [0, 1].")
+        if self.stripe_width <= 0:
+            raise ValueError("stripe_width must be positive.")
+        return self
 
 
 class EvaluationOptions(NamedTuple):

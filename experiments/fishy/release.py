@@ -12,7 +12,9 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Literal
 
+from experiments.fishy.cli import CLI
 from experiments.fishy.paper import ANALYSES, FIGURES, Paper
 from experiments.fishy.serde import Documents
 
@@ -21,11 +23,18 @@ class Release:
     """Keep bundle inputs immutable and generated runs in explicit directories."""
 
     @staticmethod
-    def write(path: Path, value: object) -> None:
+    def write(
+        path: Path,
+        value: object,
+        *,
+        manifest_kind: Literal["bundle", "legacy-export"] | None = None,
+    ) -> None:
         """Write readable strict JSON using the runner's atomic replacement."""
         # Persisted owned documents validate before the atomic writer creates a
         # temporary file. Export manifests deliberately retain their legacy shape.
-        Paper.write(path, Documents.release_payload(path, value))
+        Paper.write(
+            path, Documents.release_payload(path, value, manifest_kind=manifest_kind)
+        )
 
     @staticmethod
     def inside(root: Path, relative: str) -> Path:
@@ -122,6 +131,8 @@ class Release:
             "experiments/fishy/smoke.py",
             "experiments/fishy/RELEASE.md",
             "experiments/fishy/records.py",
+            "experiments/fishy/cli.py",
+            "experiments/fishy/inference.py",
             "experiments/fishy/requirements-tooling.txt",
         ]
         for relative in sorted(set(paths)):
@@ -258,6 +269,7 @@ class Release:
         Release.write(
             output / "manifest.json",
             {"schema_version": 1, "source_tree_sha256": source_digest, "files": files},
+            manifest_kind="bundle",
         )
         (output / "manifest.sha256").write_text(
             Paper.digest(output / "manifest.json") + "  manifest.json\n"
@@ -327,6 +339,7 @@ class Release:
                     raise ValueError(f"Install pinned requirement {name}=={version}.")
 
 
+@CLI.command
 def main(bundle: Path | None = None) -> None:
     """Expose build, integrity, smoke, full-run, comparison and export commands."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -391,36 +404,17 @@ def main(bundle: Path | None = None) -> None:
             else "reference/local-2026-10-06/results"
         )
         current = output / "source/paper_synth/results"
+        # Use the same explicit required JSON/array policy as the comparison
+        # CLI: undefined values and unsafe objects cannot certify full parity.
         report = {
             "reference": args.reference,
-            "relative_tolerance": 1e-6,
-            "json": {},
-            "arrays": {},
-            "array_scope": "Numeric arrays compared with pickle disabled; object arrays unverified.",
+            **comparison.Compare.results(
+                reference, current, 1e-6, reference_arrays=reference
+            ),
         }
-        for name in comparison.REQUIRED_JSON:
-            report["json"][name] = (
-                comparison.Compare.json(reference / name, current / name, 1e-6)
-                if ((reference / name).is_file() and (current / name).is_file())
-                else {"status": "MISSING"}
-            )
-        for name in comparison.REQUIRED_ARRAYS:
-            report["arrays"][name] = (
-                comparison.Compare.arrays(reference / name, current / name, 1e-6)
-                if ((reference / name).is_file() and (current / name).is_file())
-                else {"__file__": {"status": "MISSING"}}
-            )
-        failed = any(
-            r["status"] not in ("IDENTICAL", "CLOSE") for r in report["json"].values()
-        ) or any(
-            r["status"] not in ("IDENTICAL", "CLOSE", "UNVERIFIED_OBJECT_ARRAY")
-            for fields in report["arrays"].values()
-            for r in fields.values()
-        )
-        report["numerical_parity"] = "DIFFERS" if failed else "PASS"
         Release.write(output / f"comparison-{args.reference}.json", report)
         print(f"{args.reference} numerical comparison: {report['numerical_parity']}")
-        raise SystemExit(1 if failed else 0)
+        raise SystemExit(0 if report["numerical_parity"] == "PASS" else 1)
     elif args.command == "smoke":
         Documents.legacy_specimens(root / "specimens.json")
         if output.exists():
@@ -535,6 +529,7 @@ def main(bundle: Path | None = None) -> None:
                 "bundle_manifest_sha256": Paper.digest(root / "manifest.json"),
                 "files": inventory,
             },
+            manifest_kind="legacy-export",
         )
 
 

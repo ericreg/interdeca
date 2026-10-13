@@ -7,6 +7,15 @@ committed author reference. Execution success and numerical parity are separate
 verdicts: the run has observable differences and must not be described as an
 exact reproduction of every paper number.
 
+This page's numerical table describes the **October 6 run**. The later package
+clean run has its own [published evidence and campaign summary](evidence/2026-10-13/README.md):
+702/8,110 JSON leaves and 37/146 array fields differ from the author under the
+historical comparison policy, versus 714/8,110 and 38/146 here. The later run
+also differs from October 6 in 178 JSON leaves and 9 array fields. These are
+distinct executions, not interchangeable counts. The current comparator has a
+[separate elementwise policy](comparison-policy.md); preserved historical counts
+have not been relabelled as results from that new policy.
+
 ## Execution and strict comparison
 
 All **11 required analysis stages** and **8 figure stages (Figures 6–13)** exited
@@ -117,13 +126,18 @@ observations, rather than values corrected to match the paper.
   matched-palette descriptors differ by at most 5.76e-11. Both author E2 verification
   programs exit successfully. Their execution does not imply all historical scores
   match or certify the statistical interpretation of overlapping CV folds.
+  The archived repeated-fold p values and SEM intervals are not accepted as
+  calibrated population inference. An [authored donor-held-out supplement](inference.md)
+  reports paired, descriptive scores without inferential p values or intervals.
 - **Execution contracts:** disposable fixtures reject existing runs, same-size
   input edits, mismatched exact-ID joins and missing donor pairs. Invalid joins
   allocate no output; invalid attachments leave the run record unchanged. Donor
   attachment preserves prior stage status and refuses replacement.
 - **Code checks:** Ruff and formatting for authored experiment modules, Python
   compilation, CLI help in the appropriate environment, and Git whitespace checks.
-  No permanent test suite was added under the repository's initial-test policy.
+  This historical campaign used disposable checks under the initial test policy.
+  The subsequent review added [committed behavioral tests and CI](../../tests/README.md);
+  those checks exercise the current integration, independently of this old run.
 
 The upstream exploratory SigClust field contains an undefined NaN. The strict
 comparison represents undefined observations explicitly and does not replace

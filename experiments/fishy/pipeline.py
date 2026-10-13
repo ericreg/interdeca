@@ -187,7 +187,9 @@ class Pipeline:
                     }
                 )
                 stream.flush()
-        manifest = Manifest(kind="generated", backend="generator", samples=samples)
+        manifest = Manifest(
+            kind="generated", backend="generator", samples=tuple(samples)
+        )
         Artifacts.write(output / "manifest.json", manifest.model_dump(mode="json"))
         Artifacts.complete(output)
 
@@ -308,7 +310,7 @@ class Pipeline:
         result_manifest = Manifest(
             kind="atlas",
             backend="interdeca",
-            samples=result,
+            samples=tuple(result),
             atlas_mesh=Artifacts.asset(output / "atlas.obj", output),
             atlas_landmarks=Artifacts.asset(output / "atlas.mrk.json", output),
         )

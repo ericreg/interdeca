@@ -17,6 +17,7 @@ import sys
 import time
 from pathlib import Path
 
+from experiments.fishy.cli import CLI
 from experiments.fishy.records import InputFile, StageRun
 from experiments.fishy.serde import Documents, PaperRunData
 
@@ -465,6 +466,7 @@ class Paper:
             )
 
 
+@CLI.command
 def main() -> None:
     """Provide source staging and explicit paper stages without loading the core."""
     parser = argparse.ArgumentParser(description=__doc__)

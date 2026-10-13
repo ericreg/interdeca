@@ -1,0 +1,70 @@
+{
+  "near_zero": {
+    "status": "DIFFERS",
+    "leaves": 1,
+    "outside_tolerance": 1,
+    "differences": [
+      {
+        "path": ".score",
+        "reference": 0.0,
+        "current": 1e-10,
+        "absolute_difference": 1e-10,
+        "relative_difference": 1.0,
+        "within_tolerance": false,
+        "reference_present": true,
+        "current_present": true
+      }
+    ]
+  },
+  "empty_structure": {
+    "status": "IDENTICAL",
+    "leaves": 0,
+    "outside_tolerance": 0,
+    "differences": []
+  },
+  "bool_vs_integer": {
+    "status": "IDENTICAL",
+    "leaves": 1,
+    "outside_tolerance": 0,
+    "differences": []
+  },
+  "integer_identity": {
+    "status": "CLOSE",
+    "leaves": 1,
+    "outside_tolerance": 0,
+    "differences": [
+      {
+        "path": ".count",
+        "reference": 1000000,
+        "current": 1000001,
+        "absolute_difference": 1,
+        "relative_difference": 9.99999000001e-07,
+        "within_tolerance": true,
+        "reference_present": true,
+        "current_present": true
+      }
+    ]
+  },
+  "masked_small_array_element": {
+    "values": {
+      "status": "CLOSE",
+      "shape": [
+        2
+      ],
+      "max_absolute_difference": 1.0,
+      "relative_to_reference_magnitude": 1e-09,
+      "same_nonfinite_pattern": true
+    }
+  },
+  "integer_array_identity": {
+    "ids": {
+      "status": "CLOSE",
+      "shape": [
+        2
+      ],
+      "max_absolute_difference": 1.0,
+      "relative_to_reference_magnitude": 1e-09,
+      "same_nonfinite_pattern": true
+    }
+  }
+}
