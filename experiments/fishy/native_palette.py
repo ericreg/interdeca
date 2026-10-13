@@ -23,7 +23,8 @@ class NativePalette:
         required to claim equality to the manuscript's reported scores.
         """
         manifest = Artifacts.manifest(manifest_path)
-        options = Evaluation.model_validate_json(config_path.read_text())
+        boundary_options = Evaluation.model_validate_json(config_path.read_text())
+        options = boundary_options.to_internal()
         if manifest.kind != "generated":
             raise ValueError("Native palette requires a native-space input manifest.")
         if output.exists():
@@ -98,6 +99,6 @@ class NativePalette:
             output / "input-manifest.json", manifest.model_dump(mode="json")
         )
         Artifacts.write(
-            output / "evaluation-config.json", options.model_dump(mode="json")
+            output / "evaluation-config.json", boundary_options.model_dump(mode="json")
         )
         Artifacts.complete(output)

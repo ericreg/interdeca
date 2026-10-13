@@ -42,14 +42,19 @@ Install `uv` using its official installation instructions, then:
 ```sh
 uv python install 3.12.8
 uv venv --python 3.12.8 .venv
-uv pip install --python .venv/bin/python -r source/experiments/fishy/reference/paper_synth/requirements-paper.txt
+uv pip install --python .venv/bin/python \
+  -r source/experiments/fishy/reference/paper_synth/requirements-paper.txt \
+  -r source/experiments/fishy/requirements-tooling.txt
 export PYTHONNOUSERSITE=1
 .venv/bin/python reproduce.py verify
 ```
 
 On Windows use `.venv\Scripts\python.exe` in place of `.venv/bin/python`.
 In PowerShell set `$env:PYTHONNOUSERSITE = "1"` instead of `export`.
-Python and every numerical dependency are pinned. Blender, Slicer, the InterDeCA
+Python and every numerical dependency are pinned. The unchanged 29 author
+scientific pins are separate from the five integration validation pins in
+`requirements-tooling.txt`. Pydantic validates metadata in the runner; archived
+numerical scripts retain their original imports and dependencies. Blender, Slicer, the InterDeCA
 core's environment and a Rust compiler are unnecessary for these analyses.
 Creating the environment needs package-index access unless its wheels are cached.
 The datasets themselves are all included. `manifest.sha256` records the manifest
@@ -173,3 +178,28 @@ result blobs and prior local numerical evidence. It excludes environments, cache
 and unrelated `docs/paper/` manuscript files. `--data-only` supports an early data
 transfer; repeat without that flag to finish an interrupted package. Completed
 bundles are immutable and require a new output path for rebuilding.
+
+## Metadata compatibility
+
+The integration runner validates version 1 explicitly for `run.json`, `bundle.json`
+and bundle `manifest.json`. Missing, boolean, string and unsupported versions fail
+before stage/output allocation. Historical unversioned completion, interrupted
+build, input inventory, specimen, provenance and export documents have explicit
+legacy readers. They are not silently treated as version-one bundle manifests.
+Old optional run timestamps, analysis metadata and thread-environment entries
+retain their values and field presence when run state is rewritten. Hash checks
+remain independent of these schema checks, and the source-list digest uses the
+same historical JSON representation.
+
+Existing immutable bundles retain their original sources and environments.
+To consume their version-one metadata with the current runner, install the
+current checkout's `experiments/fishy/requirements-tooling.txt` beside the bundle's
+unchanged author requirements, then invoke the current checkout:
+
+```sh
+/path/to/python -m experiments.fishy.release --bundle /path/to/old/bundle verify
+```
+
+New builds include the records module, serde and tooling requirement pins in the
+inventoried source snapshot. Do not edit a finished bundle to add these files;
+build a fresh bundle when distributing the current runner.

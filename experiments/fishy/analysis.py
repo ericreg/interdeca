@@ -20,7 +20,8 @@ from sklearn.preprocessing import StandardScaler
 
 from experiments.fishy.archived_uv import ArchivedUV
 from experiments.fishy.artifacts import Artifacts
-from experiments.fishy.serde import Evaluation, Labels
+from experiments.fishy.records import EvaluationOptions, FoldScore, SchemeScore
+from experiments.fishy.serde import Documents, Evaluation, Labels
 from interdeca import MeshIO, TextureIO
 
 
@@ -194,9 +195,21 @@ class Analysis:
         features: np.ndarray,
         labels: np.ndarray,
         donors: np.ndarray,
-        options: Evaluation,
-    ) -> dict:
+        options: EvaluationOptions,
+    ) -> dict[str, SchemeScore]:
         """Balanced logistic recovery and shuffled-label null with saved fold IDs."""
+        if not isinstance(options, EvaluationOptions):
+            raise TypeError("Score requires validated internal EvaluationOptions.")
+        if (
+            features.ndim != 2
+            or len(features) != len(labels)
+            or labels.ndim != 1
+            or donors.shape != labels.shape
+            or not np.isfinite(features).all()
+        ):
+            raise ValueError(
+                "Score needs finite feature rows and paired labels/donors."
+            )
         _, counts = np.unique(labels, return_counts=True)
         if len(counts) != 2 or counts.min() < options.folds:
             raise ValueError(
@@ -254,23 +267,21 @@ class Analysis:
                         )
                     )
                 rows.append(
-                    {
-                        "fold": fold_index,
-                        "train_indices": train.tolist(),
-                        "test_indices": test.tolist(),
-                        "null_train_indices": null_train.tolist(),
-                        "null_test_indices": null_test.tolist(),
-                        "balanced_accuracy": scores[0],
-                        "shuffled_accuracy": scores[1],
-                        "null_corrected": None
-                        if None in scores
-                        else scores[0] - scores[1],
-                    }
+                    FoldScore(
+                        fold_index,
+                        tuple(train.tolist()),
+                        tuple(test.tolist()),
+                        tuple(null_train.tolist()),
+                        tuple(null_test.tolist()),
+                        scores[0],
+                        scores[1],
+                        None if None in scores else scores[0] - scores[1],
+                    )
                 )
-            result[name] = {
-                "folds": rows,
-                "note": "Nulls and scores are omitted for single-class train/test folds.",
-            }
+            result[name] = SchemeScore(
+                tuple(rows),
+                "Nulls and scores are omitted for single-class train/test folds.",
+            )
         return result
 
     @staticmethod
@@ -284,7 +295,8 @@ class Analysis:
         """Compute the baseline using supplied labels and their declared protocol."""
         import_json = (extraction / "samples.json").read_text()
         samples = Labels.model_validate_json(import_json)
-        options = Evaluation.model_validate_json(config_path.read_text())
+        boundary_options = Evaluation.model_validate_json(config_path.read_text())
+        options = boundary_options.to_internal()
         if not (extraction / "complete.json").exists():
             raise ValueError("Extraction has no completion marker.")
         colors = np.load(extraction / "colors.npy", mmap_mode="r", allow_pickle=False)
@@ -328,6 +340,24 @@ class Analysis:
         ):
             if by_id[sample_id]["donor_id"] != donor_id:
                 raise ValueError(f"Donor mismatch for {sample_id}")
+        supplied_palette = (
+            None if palette_path is None else np.load(palette_path, allow_pickle=False)
+        )
+        if (
+            not np.isfinite(colors).all()
+            or not np.isfinite(areas).all()
+            or areas.ndim != 1
+            or np.any(areas < 0)
+            or areas.sum() <= 0
+        ):
+            raise ValueError(
+                "Composition needs finite colors and nonnegative, nonzero areas."
+            )
+        if supplied_palette is not None and (
+            supplied_palette.shape != (options.palette_bins, 3)
+            or not np.isfinite(supplied_palette).all()
+        ):
+            raise ValueError("Palette must contain bins finite Lab triples.")
         Artifacts.start(
             output,
             "evaluate-composition",
@@ -346,7 +376,7 @@ class Analysis:
             areas,
             options.palette_bins,
             options.seed,
-            None if palette_path is None else np.load(palette_path, allow_pickle=False),
+            supplied_palette,
         )
         np.save(output / "composition.npy", vectors)
         np.save(output / "palette_lab.npy", palette)
@@ -354,7 +384,7 @@ class Analysis:
         model = PCA(n_components=2, svd_solver="full").fit(vectors)
         np.save(output / "pca_scores.npy", model.transform(vectors))
         Artifacts.write(
-            output / "evaluation-config.json", options.model_dump(mode="json")
+            output / "evaluation-config.json", boundary_options.model_dump(mode="json")
         )
         report = {
             "backend": samples.backend,
@@ -368,7 +398,9 @@ class Analysis:
             "donor_ids": samples.donor_ids,
             "explained_variance_ratio": model.explained_variance_ratio_.tolist(),
             "factors": {
-                name: Analysis.score(vectors, y, np.array(samples.donor_ids), options)
+                name: Documents.scores(
+                    Analysis.score(vectors, y, np.array(samples.donor_ids), options)
+                )
                 for name, y in responses.items()
             },
             "scope": "Baseline reproduction building block, not certification of Figures 7–13.",

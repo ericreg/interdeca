@@ -1,0 +1,6 @@
+# Integration metadata validation only. Never edit the 29 author scientific pins.
+pydantic==2.13.4
+pydantic-core==2.46.4
+annotated-types==0.8.0
+typing-extensions==4.16.0
+typing-inspection==0.4.4

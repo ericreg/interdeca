@@ -7,7 +7,7 @@ import numpy as np
 
 from experiments.fishy.analysis import Analysis
 from experiments.fishy.artifacts import Artifacts
-from experiments.fishy.serde import CompositionIdentity, Evaluation
+from experiments.fishy.serde import CompositionIdentity, Documents, Evaluation
 
 
 class Comparison:
@@ -28,10 +28,11 @@ class Comparison:
         ]
         if identities[0] != identities[1]:
             raise ValueError("Native and atlas sample/donor order must match.")
-        options = [
+        boundary_options = [
             Evaluation.model_validate_json((p / "evaluation-config.json").read_text())
             for p in (native, atlas)
         ]
+        options = [item.to_internal() for item in boundary_options]
         if options[0] != options[1]:
             raise ValueError("Native and atlas evaluation configurations differ.")
         arrays, palettes = [], []
@@ -114,9 +115,9 @@ class Comparison:
                         )
                         for values in [
                             [
-                                r[metric]
-                                for r in details["folds"]
-                                if r[metric] is not None
+                                getattr(r, metric)
+                                for r in details.folds
+                                if getattr(r, metric) is not None
                             ]
                         ]
                     }
@@ -124,9 +125,15 @@ class Comparison:
             output / "comparison.json",
             {
                 **identity.model_dump(mode="json"),
-                "configuration": options[0].model_dump(mode="json"),
+                "configuration": boundary_options[0].model_dump(mode="json"),
                 "summary": summaries,
-                "folds": reports,
+                "folds": {
+                    space: {
+                        factor: Documents.scores(schemes)
+                        for factor, schemes in factors.items()
+                    }
+                    for space, factors in reports.items()
+                },
                 "scope": "Shared native palette; transductive unsupervised fit. Native and atlas face areas differ. Not a transfer-fidelity or full paper reproduction claim.",
             },
         )

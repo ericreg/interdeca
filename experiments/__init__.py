@@ -1,1 +1,1 @@
-"""Paper reproduction workflows shipped with the Interdeca repository."""
+"""Research reproduction workflows outside the numerical core."""

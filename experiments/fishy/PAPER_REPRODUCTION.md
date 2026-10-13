@@ -21,8 +21,15 @@ package versions without changing the InterDeCA core's environment:
 uv python install 3.12.8
 uv venv --python 3.12.8 data/fishy/paper-env
 uv pip install --python data/fishy/paper-env/bin/python \
-  -r experiments/fishy/reference/paper_synth/requirements-paper.txt
+  -r experiments/fishy/reference/paper_synth/requirements-paper.txt \
+  -r experiments/fishy/requirements-tooling.txt
 ```
+
+The 29 author scientific pins remain unchanged. `requirements-tooling.txt`
+separately pins Pydantic and its four validation dependencies for the integration
+runner. The runner's records and serde import no NumPy or InterDeCA core, so
+`python -m experiments.fishy.paper --help` works with only tooling installed.
+Archived scripts remain independent of Pydantic and run directly as before.
 
 Run commands from the repository root. The runner executes the scripts directly,
 so a separate `fishy-research` package installation is unnecessary. It verifies

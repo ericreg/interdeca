@@ -17,6 +17,9 @@ import sys
 import time
 from pathlib import Path
 
+from experiments.fishy.records import InputFile, StageRun
+from experiments.fishy.serde import Documents, PaperRunData
+
 REFERENCE = Path(__file__).with_name("reference")
 ANALYSES = (
     "build_cache",
@@ -123,22 +126,28 @@ class Paper:
             or donor_scans.is_relative_to(output)
         ):
             raise ValueError("Input and output directories must be disjoint.")
-        record = json.loads((output / "run.json").read_text())
-        if record["donor_scans"]:
+        record = Documents.run(output / "run.json")
+        if record.donor_scans:
             raise ValueError("Donor scans are already attached to this run.")
-        assets = Paper.donor_inputs(Path(record["source"]), donor_scans)
-        record["inputs"].extend(
-            {
-                "path": str(path),
-                "bytes": path.stat().st_size,
-                "sha256": Paper.digest(path),
-                "mtime_ns": path.stat().st_mtime_ns,
-            }
+        assets = Paper.donor_inputs(Path(record.source), donor_scans)
+        additions = tuple(
+            InputFile(
+                str(path),
+                path.stat().st_size,
+                Paper.digest(path),
+                path.stat().st_mtime_ns,
+                frozenset(("path", "bytes", "sha256", "mtime_ns")),
+            )
             for path in assets
         )
-        record["donor_scans"] = str(donor_scans)
-        record["donor_scans_attached_unix_seconds"] = time.time()
-        Paper.write(output / "run.json", record)
+        record = record._replace(
+            inputs=record.inputs + additions,
+            donor_scans=str(donor_scans),
+            donor_scans_attached_unix_seconds=time.time(),
+            present_fields=record.present_fields
+            | {"donor_scans_attached_unix_seconds"},
+        )
+        Paper.write(output / "run.json", Documents.run_payload(record))
 
     @staticmethod
     def prepare(
@@ -229,6 +238,28 @@ class Paper:
             }
             for p in required
         ]
+        packages = {
+            p.metadata["Name"]: p.version for p in importlib.metadata.distributions()
+        }
+        record = PaperRunData.model_validate_json(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "upstream_revision": provenance["revision"],
+                    "source": str(source),
+                    "module_run": str(module_run),
+                    "donor_scans": str(donor_scans) if donor_scans else None,
+                    "python": sys.version,
+                    "platform": platform.platform(),
+                    "packages": packages,
+                    "inputs": inputs,
+                    "stages": {},
+                    "scope": "Archived 250-specimen analysis; does not rerun atlas construction.",
+                },
+                allow_nan=False,
+            )
+        ).to_internal()
+
         output.mkdir(parents=True)
         shutil.copytree(REFERENCE, output / "source")
         work = output / "source/paper_synth"
@@ -237,31 +268,13 @@ class Paper:
         (work / "results").mkdir()
         (work / "figures").mkdir()
         (output / "logs").mkdir()
-        packages = {
-            p.metadata["Name"]: p.version for p in importlib.metadata.distributions()
-        }
-        Paper.write(
-            output / "run.json",
-            {
-                "schema_version": 1,
-                "upstream_revision": provenance["revision"],
-                "source": str(source),
-                "module_run": str(module_run),
-                "donor_scans": str(donor_scans) if donor_scans else None,
-                "python": sys.version,
-                "platform": platform.platform(),
-                "packages": packages,
-                "inputs": inputs,
-                "stages": {},
-                "scope": "Archived 250-specimen analysis; does not rerun atlas construction.",
-            },
-        )
+        Paper.write(output / "run.json", Documents.run_payload(record))
 
     @staticmethod
     def run(output: Path, stage: str) -> None:
         """Execute a named upstream stage and retain its log and exit status."""
         output = output.expanduser().resolve()
-        record = json.loads((output / "run.json").read_text())
+        record = Documents.run(output / "run.json")
         reference = json.loads((output / "source/upstream.json").read_text())
         for item in reference["files"]:
             # The staged original results were deliberately moved to results_ref.
@@ -286,8 +299,12 @@ class Paper:
                 )
         if sys.version_info[:3] != (3, 12, 8):
             raise ValueError("Use the paper's Python 3.12.8 environment.")
-        record["analysis_python"] = sys.version
-        record["analysis_packages"] = expected
+        record = record._replace(
+            analysis_python=sys.version,
+            analysis_packages=expected,
+            present_fields=record.present_fields
+            | {"analysis_python", "analysis_packages"},
+        )
         stages = (
             ANALYSES
             if stage == "analyses"
@@ -301,7 +318,7 @@ class Paper:
             stages = FIGURES[1:]
         work = output / "source/paper_synth"
         for name in stages:
-            if name == "fig1_dataset" and not record["donor_scans"]:
+            if name == "fig1_dataset" and not record.donor_scans:
                 raise ValueError(
                     "Figure 6 requires original donor scan textures; supply --donor-scans."
                 )
@@ -311,18 +328,27 @@ class Paper:
             if name != "build_cache":
                 required_stages += ("build_cache",)
             for dependency in required_stages:
-                if record["stages"].get(dependency, {}).get("exit_code") != 0:
+                if (
+                    record.stages.get(dependency) is None
+                    or record.stages[dependency].exit_code != 0
+                ):
                     raise ValueError(f"Run {dependency} before {name}.")
             # Modification time catches same-size edits. Hash changed inputs and
             # refuse altered bytes rather than silently accepting a stale cache.
-            for item in record["inputs"]:
-                path = Path(item["path"])
-                if not path.is_file() or path.stat().st_size != item["bytes"]:
+            refreshed_inputs = []
+            for item in record.inputs:
+                path = Path(item.path)
+                if not path.is_file() or path.stat().st_size != item.bytes:
                     raise ValueError(f"Input missing or changed: {path}")
-                if path.stat().st_mtime_ns != item.get("mtime_ns"):
-                    if Paper.digest(path) != item["sha256"]:
+                if path.stat().st_mtime_ns != item.mtime_ns:
+                    if Paper.digest(path) != item.sha256:
                         raise ValueError(f"Input checksum changed: {path}")
-                    item["mtime_ns"] = path.stat().st_mtime_ns
+                    item = item._replace(
+                        mtime_ns=path.stat().st_mtime_ns,
+                        present_fields=item.present_fields | {"mtime_ns"},
+                    )
+                refreshed_inputs.append(item)
+            record = record._replace(inputs=tuple(refreshed_inputs))
             # Starting a rerun replaces the evidence for this stage. Old success
             # records for its consumers cannot certify the newly computed data,
             # and an interrupted or failed rerun must leave no completion marker.
@@ -344,10 +370,14 @@ class Paper:
                     break
                 affected.update(additions)
             for stale in affected:
-                record["stages"].pop(stale, None)
-            record["stages"][name] = {"exit_code": None, "status": "running"}
+                record.stages.pop(stale, None)
+            record.stages[name] = StageRun(
+                None,
+                status="running",
+                present_fields=frozenset(("exit_code", "status")),
+            )
             (output / "completed.json").unlink(missing_ok=True)
-            Paper.write(output / "run.json", record)
+            Paper.write(output / "run.json", Documents.run_payload(record))
             # E6 resumes completed sections from its own checkpoint, including
             # the hole-exclusion analysis derived from E1. A new upstream run
             # must discard that checkpoint before it can certify fresh results.
@@ -369,13 +399,13 @@ class Paper:
             ):
                 environment.pop(key, None)
             environment.update(
-                SYNTH_SRC=record["source"],
-                SYNTH_MODULE_RUN=record["module_run"],
+                SYNTH_SRC=record.source,
+                SYNTH_MODULE_RUN=record.module_run,
                 MPLBACKEND="Agg",
                 PYTHONUNBUFFERED="1",
             )
-            if record["donor_scans"]:
-                environment["SYNTH_DONOR_SCANS"] = record["donor_scans"]
+            if record.donor_scans:
+                environment["SYNTH_DONOR_SCANS"] = record.donor_scans
             if name in ("e4_byoa_descriptors", "e5b_expert_repr"):
                 for key in (
                     "OMP_NUM_THREADS",
@@ -394,10 +424,10 @@ class Paper:
                     stderr=subprocess.STDOUT,
                     check=False,
                 )
-            record["stages"][name] = {
-                "exit_code": process.returncode,
-                "elapsed_seconds": time.time() - start,
-                "thread_environment": {
+            record.stages[name] = StageRun(
+                exit_code=process.returncode,
+                elapsed_seconds=time.time() - start,
+                thread_environment={
                     k: v
                     for k, v in environment.items()
                     if k
@@ -410,8 +440,11 @@ class Paper:
                         "BLIS_NUM_THREADS",
                     )
                 },
-            }
-            Paper.write(output / "run.json", record)
+                present_fields=frozenset(
+                    ("exit_code", "elapsed_seconds", "thread_environment")
+                ),
+            )
+            Paper.write(output / "run.json", Documents.run_payload(record))
             print(
                 f"{name}: exit {process.returncode}; log {output / 'logs' / (name + '.log')}",
                 flush=True,
@@ -420,14 +453,14 @@ class Paper:
                 raise RuntimeError(f"Stage {name} failed; inspect its log.")
         # A full completion marker is reserved for a fully successful figure run.
         if all(
-            record["stages"].get(s, {}).get("exit_code") == 0
+            record.stages.get(s) is not None and record.stages[s].exit_code == 0
             for s in ANALYSES + FIGURES
         ):
             Paper.write(
                 output / "completed.json",
                 {
-                    "upstream_revision": record["upstream_revision"],
-                    "scope": record["scope"],
+                    "upstream_revision": record.upstream_revision,
+                    "scope": record.scope,
                 },
             )
 
