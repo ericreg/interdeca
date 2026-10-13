@@ -70,6 +70,17 @@ then run `--stage fig1_dataset`. Existing run directories are refused during
 preparation; failed stages retain logs. A zero exit status records execution;
 strict numerical parity is a separate check below.
 
+Starting a stage again removes the old completion marker and invalidates the
+success records of its dependent analyses, figures and verifiers. Their old
+files remain available for inspection, but must be regenerated before the run
+can regain its completion marker. A failed or interrupted rerun cannot inherit
+the earlier run's success.
+
+Restarting `e1_fidelity` or `build_cache` also discards E6's internal partial
+checkpoints, so its bake-hole analysis cannot reuse the previous E1 result.
+Restarting E6 directly keeps its checkpoint for recovery with the same inputs.
+Previously generated result files and figures remain available for inspection.
+
 The runner follows the author's thread policy: e4/e5b receive four explicit BLAS
 threads, e2/e6 retain their own defaults, and other scripts use library defaults.
 It clears inherited global BLAS settings. Operating system and BLAS implementation

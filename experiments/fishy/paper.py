@@ -43,6 +43,24 @@ FIGURES = (
 )
 VERIFICATIONS = ("verify_e2_preservation", "verify_e2_followup")
 STAGES = ANALYSES + FIGURES + VERIFICATIONS
+DEPENDENCIES = {
+    "e2b_donorblocked": ("e2_preservation",),
+    "e2c_landmark_baseline": ("e1b_correspondence", "e2_preservation"),
+    "e6_negative_results": ("e1_fidelity",),
+    "fig2_fidelity": ("e1_fidelity",),
+    "fig2b_correspondence": ("e1b_correspondence",),
+    "fig3_preservation": (
+        "e2_preservation",
+        "e2b_donorblocked",
+        "e2c_landmark_baseline",
+    ),
+    "fig4_module_eda": ("e3_module_eda",),
+    "fig5_byoa": ("e4_byoa_descriptors",),
+    "fig6_expert": ("e5b_expert_repr",),
+    "fig7_limits": ("e6_negative_results", "e6b_limits"),
+    "verify_e2_preservation": ("e2_preservation",),
+    "verify_e2_followup": ("e2_preservation",),
+}
 
 
 class Paper:
@@ -289,25 +307,7 @@ class Paper:
                 )
             if name not in STAGES:
                 raise ValueError(f"Unknown stage {name}")
-            dependencies = {
-                "e2b_donorblocked": ("e2_preservation",),
-                "e2c_landmark_baseline": ("e1b_correspondence", "e2_preservation"),
-                "e6_negative_results": ("e1_fidelity",),
-                "fig2_fidelity": ("e1_fidelity",),
-                "fig2b_correspondence": ("e1b_correspondence",),
-                "fig3_preservation": (
-                    "e2_preservation",
-                    "e2b_donorblocked",
-                    "e2c_landmark_baseline",
-                ),
-                "fig4_module_eda": ("e3_module_eda",),
-                "fig5_byoa": ("e4_byoa_descriptors",),
-                "fig6_expert": ("e5b_expert_repr",),
-                "fig7_limits": ("e6_negative_results", "e6b_limits"),
-                "verify_e2_preservation": ("e2_preservation",),
-                "verify_e2_followup": ("e2_preservation",),
-            }
-            required_stages = dependencies.get(name, ())
+            required_stages = DEPENDENCIES.get(name, ())
             if name != "build_cache":
                 required_stages += ("build_cache",)
             for dependency in required_stages:
@@ -323,6 +323,41 @@ class Paper:
                     if Paper.digest(path) != item["sha256"]:
                         raise ValueError(f"Input checksum changed: {path}")
                     item["mtime_ns"] = path.stat().st_mtime_ns
+            # Starting a rerun replaces the evidence for this stage. Old success
+            # records for its consumers cannot certify the newly computed data,
+            # and an interrupted or failed rerun must leave no completion marker.
+            affected = {name}
+            while True:
+                additions = {
+                    candidate
+                    for candidate in STAGES
+                    if candidate not in affected
+                    and (
+                        "build_cache" in affected
+                        or any(
+                            dependency in affected
+                            for dependency in DEPENDENCIES.get(candidate, ())
+                        )
+                    )
+                }
+                if not additions:
+                    break
+                affected.update(additions)
+            for stale in affected:
+                record["stages"].pop(stale, None)
+            record["stages"][name] = {"exit_code": None, "status": "running"}
+            (output / "completed.json").unlink(missing_ok=True)
+            Paper.write(output / "run.json", record)
+            # E6 resumes completed sections from its own checkpoint, including
+            # the hole-exclusion analysis derived from E1. A new upstream run
+            # must discard that checkpoint before it can certify fresh results.
+            # Rerunning E6 itself retains same-input interrupted-run recovery.
+            if name in ("build_cache", "e1_fidelity"):
+                for filename in (
+                    "e6_negative_results_partial.json",
+                    "e6_negative_results_partial_arrays.npz",
+                ):
+                    (work / "cache" / filename).unlink(missing_ok=True)
             environment = os.environ.copy()
             # Full paper execution must not inherit a smoke-test loop count.
             environment.pop("E6_QUICK", None)
