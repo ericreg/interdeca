@@ -26,3 +26,9 @@ even when published by a later commit.
 Core `src/interdeca/`, Slicer adapters, the original `../3d_color_package/`, and
 the paper's numerical reference are outside this review fix's modification scope.
 No formal proof, production certification, or strict author parity is claimed.
+
+Generated JSON, logs and figures are marked as generated in `.gitattributes`,
+so GitHub can collapse their bulk during review. Expand individual files when
+checking a specific result; the files and their integrity checks remain present.
+The reference snapshot is marked as vendored. Authored implementation, tests,
+comparison policy and narrative scope documents remain ordinary review files.
