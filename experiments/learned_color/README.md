@@ -1,5 +1,11 @@
 # Frozen I-JEPA surface-appearance experiment
 
+For a complete portable local package containing source, native data, checkpoint
+weights, environment pins, historical numerical references, and executable clean
+reproduction commands, see [the bundle guide](BUNDLE_README.md). The reusable
+`reproduce.py build` command creates a new release directory and verifies the
+native input hashes against the recovered 32-specimen handoff.
+
 This experiment lives inside InterDeCA. It implements the frozen inference
 protocol documented by Eric Regina in
 [`learned-color-space` at `b30c495`](https://github.com/bshi42/3d_color_package/tree/b30c495c701093e456231ec8a035012266ccef74/learned_color_space).
@@ -116,6 +122,19 @@ an incomplete stage rather than mixing artifacts from different settings.
 For populations of two or three specimens, the documented PCA-coordinate fallback
 is labeled explicitly instead of presenting it as a fitted UMAP. The paper
 profile uses 32 specimens.
+
+New completion markers hash the saved configuration as well as coordinate,
+neighbor, PCA-transform and figure files. The figure exporter verifies these
+hashes, the exact ordered specimen IDs and the recorded profile/checkpoint
+before creating its output directory. For archived runs missing either the
+configuration or analysis hashes, explicitly pass
+`--allow-legacy-unverified`; the export still checks cohort IDs, crop count and
+the recorded profile/checkpoint,
+but records each missing integrity check in its provenance. The October 6 runs
+record `legacy_without_config_and_analysis_hashes`. This option
+does not certify historical coordinates or the original experiment's results.
+Figure headings use “specimens” because the configured pipeline can also be
+used for another explicitly recorded collection.
 
 `reference/upstream.json` records source hashes and the two import/typing
 adaptations to Eric's numerical helpers. The original technical description is

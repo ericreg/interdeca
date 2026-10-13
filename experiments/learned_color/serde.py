@@ -7,6 +7,47 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
+class FigureCoordinate(BaseModel):
+    """One identified row in a saved population coordinate table."""
+
+    model_config = ConfigDict(extra="forbid", allow_inf_nan=False)
+    specimen_id: str = Field(min_length=1)
+    PC1: float
+    PC2: float
+    UMAP1: float
+    UMAP2: float
+
+
+class FigureSummary(BaseModel):
+    """The completion fields needed to identify and verify a figure export."""
+
+    model_config = ConfigDict(extra="ignore", allow_inf_nan=False)
+    profile: str
+    specimens: int = Field(ge=2)
+    crops_per_specimen: int = Field(ge=1)
+    PCA_explained_variance_ratio: tuple[float, float]
+    UMAP_method: str
+    scope: str
+    checkpoint_revision: str = Field(pattern=r"^[0-9a-f]{40}$")
+    config_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+    analysis_sha256: dict[str, str] = Field(default_factory=dict)
+
+
+class RecordedFigureSpecimen(BaseModel):
+    """The cohort identity retained in a prepared run's input manifest."""
+
+    model_config = ConfigDict(extra="ignore")
+    specimen_id: str = Field(min_length=1)
+
+
+class FigureRunRecord(BaseModel):
+    """Require a completed run, rather than accepting a copied marker alone."""
+
+    model_config = ConfigDict(extra="ignore")
+    status: Literal["completed"]
+    inputs: tuple[RecordedFigureSpecimen, ...]
+
+
 class Config(BaseModel):
     """Visible protocol choices; paths resolve relative to this configuration.
 

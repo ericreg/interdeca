@@ -608,7 +608,22 @@ class Appearance:
             "scope": record["scope"],
             "supervised_performance_claim": False,
             "checkpoint_revision": config.model_revision,
+            # The configuration controls figure labels and the camera reference,
+            # so bind its exact saved bytes to the completed numerical results.
+            "config_sha256": Appearance.digest(output / "config.json"),
             "population_plot_sha256": Appearance.digest(directory / "population.png"),
+            # A later export must verify the saved numerical outputs, not merely
+            # trust that another coordinate table has the same number of rows.
+            "analysis_sha256": {
+                name: Appearance.digest(directory / name)
+                for name in (
+                    "coordinates.csv",
+                    "neighbors.csv",
+                    "pca_transform.npz",
+                    "population.png",
+                    "population.pdf",
+                )
+            },
         }
         Appearance.write(directory / "summary.json", summary)
         record["status"] = "completed"

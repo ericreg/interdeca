@@ -73,6 +73,7 @@ MPLBACKEND=Agg data/learned-color/env/bin/python -m experiments.learned_color \
   --config data/learned-color/slack-32.json --stage all
 MPLBACKEND=Agg data/learned-color/env/bin/python -m experiments.learned_color.plot \
   --run data/learned-color/runs/2026-10-06-slack-32 \
+  --allow-legacy-unverified \
   --output data/learned-color/exports/2026-10-06-slack-32
 ```
 
@@ -81,6 +82,23 @@ example now carries the recovered specimen list. Complete local artifacts are
 in `data/learned-color/runs/2026-10-06-slack-32/`.
 
 ## Source and method identity
+
+Export validation updated October 8: new runs retain completion hashes for
+numerical analysis outputs. The October 6 archives predate that change and
+remain untouched, so re-exporting them requires `--allow-legacy-unverified`.
+Their original independent checks remain valid historical evidence; the new
+exporter records the absence of a completion-time coordinate hash instead of
+retroactively certifying it. Exact specimen order, cohort size and protocol
+identity are checked even on this explicit legacy path. Figure headings now
+say “specimens” so a separately configured fish cohort cannot be mislabeled
+as mussels.
+
+Export validation updated October 12: completion markers also bind the exact
+saved configuration, so changing the PCA standardization setting or camera
+reference cannot silently relabel an already completed analysis. Exports reject
+a changed configuration before creating output. Older runs missing configuration
+or analysis hashes require `--allow-legacy-unverified`; provenance lists the
+missing checks. The October 6 archives lack both and remain untouched.
 
 - Author source: `bshi42/3d_color_package`, `learned-color-space` at
   `b30c495c701093e456231ec8a035012266ccef74`, October 3.
