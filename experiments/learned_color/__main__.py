@@ -22,7 +22,7 @@ from experiments.learned_color.serde import Config
 )
 def main(config_path: Path, stage: str) -> None:
     """Run one stage or a complete new run with an explicitly selected cohort."""
-    config = Config.load(config_path)
+    config = Config.load(config_path).to_internal()
     selected = (
         ("prepare", "render", "sample", "embed", "analyze")
         if stage == "all"

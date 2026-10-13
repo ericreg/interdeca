@@ -1,1 +1,1 @@
-"""Reproducible paper experiments outside the numerical core."""
+"""Research reproduction workflows outside the numerical core."""

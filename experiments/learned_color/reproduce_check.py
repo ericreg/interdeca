@@ -1,7 +1,6 @@
 """Bounded numerical and environment checks for a packaged reconstruction."""
 
 import argparse
-import csv
 import hashlib
 import importlib.metadata
 import itertools
@@ -15,8 +14,9 @@ import pyvista as pv
 import torch
 from PIL import Image
 
+from experiments.learned_color.models import AppearanceOptions, RunRecord
 from experiments.learned_color.reproduce import Reproduction
-from experiments.learned_color.serde import Config
+from experiments.learned_color.serde import StageData
 
 
 class Checks:
@@ -86,7 +86,7 @@ class Checks:
         return report
 
     @staticmethod
-    def identity(bundle: Path, config: Config, record: dict) -> str:
+    def identity(bundle: Path, config: AppearanceOptions, record: RunRecord) -> str:
         """Bind a run to a shipped protocol, complete source, and native cohort."""
         # Only declared execution/location choices may differ after relocation.
         overrides = {
@@ -97,13 +97,23 @@ class Checks:
             "allow_cpu",
             "batch_size",
         }
-        protocol = config.model_dump(mode="json", exclude=overrides)
+        protocol = {
+            name: value
+            for name, value in config._asdict().items()
+            if name not in overrides
+        }
         profiles = [
             name
             for name in ("smoke", "full")
-            if Config.load(bundle / "configs" / f"{name}.json").model_dump(
-                mode="json", exclude=overrides
-            )
+            if {
+                field: value
+                for field, value in StageData.load_options(
+                    bundle / "configs" / f"{name}.json"
+                )
+                ._asdict()
+                .items()
+                if field not in overrides
+            }
             == protocol
         ]
         if len(profiles) != 1 or config.allow_cpu != (config.device == "cpu"):
@@ -121,12 +131,12 @@ class Checks:
             for name, row in files.items()
             if name.startswith(prefix) and name.endswith(".py")
         }
-        if not sources or record["source_sha256"] != sources:
+        if not sources or record.source_sha256 != sources:
             raise ValueError("Run source inventory differs from packaged source")
         for name, value in sources.items():
             if Reproduction.digest(bundle / prefix / name) != value:
                 raise ValueError(f"Packaged source checksum changed: {name}")
-        ids = [row["specimen_id"] for row in record["inputs"]]
+        ids = [row.specimen_id for row in record.inputs]
         if len(ids) != config.expected_pair_count or ids != sorted(config.specimen_ids):
             raise ValueError("Run cohort differs from packaged profile")
         provenance = {
@@ -135,28 +145,30 @@ class Checks:
                 "specimens"
             ]
         }
-        for row in record["inputs"]:
+        for row in record.inputs:
             for kind in ("mesh", "texture"):
-                expected = provenance[row["specimen_id"]][f"{kind}_sha256"]
+                expected = provenance[row.specimen_id][f"{kind}_sha256"]
                 if (
-                    row[f"{kind}_sha256"] != expected
-                    or Reproduction.digest(Path(row[kind])) != expected
+                    getattr(row, f"{kind}_sha256") != expected
+                    or Reproduction.digest(getattr(row, kind)) != expected
                 ):
                     raise ValueError(
-                        f"Input differs from bundled cohort: {row['specimen_id']} {kind}"
+                        f"Input differs from bundled cohort: {row.specimen_id} {kind}"
                     )
         return profiles[0]
 
     @staticmethod
     def validate(bundle: Path, run: Path) -> dict:
-        config = Config.load(run / "config.json")
-        summary = json.loads((run / "completed.json").read_text())
-        record = json.loads((run / "run.json").read_text())
-        if record["status"] != "completed" or summary.get(
-            "config_sha256"
-        ) != Reproduction.digest(run / "config.json"):
+        config = StageData.load_options(run / "config.json")
+        summary = StageData.read_completion(run / "completed.json")
+        record = StageData.read_run(run / "run.json")
+        if record.status != "completed" or summary.config_sha256 != Reproduction.digest(
+            run / "config.json"
+        ):
             raise ValueError("Run lacks matching current completion/config evidence")
-        if summary != json.loads((run / "analysis/summary.json").read_text()):
+        if not StageData.matching_completion(
+            run / "analysis/summary.json", run / "completed.json"
+        ):
             raise ValueError("Completion marker and analysis summary differ")
         required_analysis = {
             "coordinates.csv",
@@ -165,16 +177,21 @@ class Checks:
             "population.png",
             "population.pdf",
         }
-        if set(summary["analysis_sha256"]) != required_analysis:
+        if (
+            summary.analysis_sha256 is None
+            or set(summary.analysis_sha256) != required_analysis
+        ):
             raise ValueError("Run lacks the complete analysis checksum inventory")
-        for name, value in summary["analysis_sha256"].items():
+        for name, value in summary.analysis_sha256.items():
             if Reproduction.digest(run / "analysis" / name) != value:
                 raise ValueError(f"Analysis checksum changed: {name}")
         profile = Checks.identity(bundle, config, record)
-        ids = [row["specimen_id"] for row in record["inputs"]]
-        metadata = json.loads((run / "embedding_metadata.json").read_text())
+        ids = [row.specimen_id for row in record.inputs]
+        metadata = StageData.read_embedding(run / "embedding_metadata.json")
         for name in ("crop_embeddings", "specimen_embeddings"):
-            if Reproduction.digest(run / f"{name}.npz") != metadata[f"{name}_sha256"]:
+            if Reproduction.digest(run / f"{name}.npz") != getattr(
+                metadata, f"{name}_sha256"
+            ):
                 raise ValueError(f"Embedding checksum changed: {name}")
         with np.load(run / "crop_embeddings.npz", allow_pickle=False) as data:
             crops = data["vectors"].astype(np.float64)
@@ -203,17 +220,14 @@ class Checks:
         aggregation_error = float(np.max(np.abs(means - vectors)))
         if aggregation_error > 2e-6:
             raise ValueError("Raw mean then single normalization contract failed")
-        with (run / "analysis/coordinates.csv").open() as stream:
-            coordinates = list(csv.DictReader(stream))
-        if [r["specimen_id"] for r in coordinates] != ids:
+        coordinates = StageData.read_coordinates(run / "analysis/coordinates.csv")
+        if [r.specimen_id for r in coordinates] != ids:
             raise ValueError("Coordinate cohort mismatch")
-        saved_pca = np.array([[float(r["PC1"]), float(r["PC2"])] for r in coordinates])
-        saved_umap = np.array(
-            [[float(r["UMAP1"]), float(r["UMAP2"])] for r in coordinates]
-        )
+        saved_pca = np.array([[r.PC1, r.PC2] for r in coordinates])
+        saved_umap = np.array([[r.UMAP1, r.UMAP2] for r in coordinates])
         if not np.isfinite(saved_pca).all() or not np.isfinite(saved_umap).all():
             raise ValueError("Nonfinite population coordinates")
-        if len(ids) < 4 or summary["UMAP_method"] != "UMAP cosine":
+        if len(ids) < 4 or summary.UMAP_method != "UMAP cosine":
             raise ValueError("Packaged smoke/full runs require a genuine UMAP fit")
         with np.load(
             run / "analysis/pca_transform.npz", allow_pickle=False
@@ -239,37 +253,36 @@ class Checks:
                 ]
             )
         ]
-        with (run / "analysis/neighbors.csv").open() as stream:
-            actual = [
-                (r["specimen_id"], int(r["rank"]), r["neighbor_id"])
-                for r in csv.DictReader(stream)
-            ]
+        actual = [
+            (row.specimen_id, row.rank, row.neighbor_id)
+            for row in StageData.read_neighbors(run / "analysis/neighbors.csv")
+        ]
         if expected != actual:
             raise ValueError("Independent cosine ranking differs")
-        manifest = json.loads((run / "patch_manifest.json").read_text())
+        manifest = StageData.read_patches(run / "patch_manifest.json")
         if (
             Reproduction.digest(run / "patch_manifest.json")
-            != metadata["patch_manifest_sha256"]
+            != metadata.patch_manifest_sha256
         ):
             raise ValueError("Patch manifest checksum changed")
         maximum_iou = 0.0
         for name in ids:
-            rows = [row for row in manifest if row["specimen_id"] == name]
+            rows = [row for row in manifest if row.specimen_id == name]
             if len(rows) != config.patches_per_specimen:
                 raise ValueError("Patch count mismatch")
-            with Image.open(rows[0]["source_render"]) as image:
+            with Image.open(rows[0].source_render) as image:
                 pixels = np.asarray(image.convert("RGBA"))
             distinct = set()
             for row in rows:
-                left, top, size = row["left"], row["top"], row["size"]
+                left, top, size = row.left, row.top, row.size
                 if not (
                     pixels[top : top + size, left : left + size, 3]
                     > config.patch_alpha_tolerance
                 ).all():
                     raise ValueError("Patch includes background pixels")
-                if Reproduction.digest(Path(row["path"])) != row["sha256"]:
+                if Reproduction.digest(Path(row.path)) != row.sha256:
                     raise ValueError("Saved crop checksum changed")
-                with Image.open(row["path"]) as image:
+                with Image.open(row.path) as image:
                     crop = np.asarray(image)
                 if not np.array_equal(
                     crop, pixels[top : top + size, left : left + size, :3]
@@ -279,9 +292,9 @@ class Checks:
             if len(distinct) != config.patches_per_specimen:
                 raise ValueError("Duplicate pixel crops")
             for first, second in itertools.combinations(rows, 2):
-                size = first["size"]
-                overlap = max(0, size - abs(first["left"] - second["left"])) * max(
-                    0, size - abs(first["top"] - second["top"])
+                size = first.size
+                overlap = max(0, size - abs(first.left - second.left)) * max(
+                    0, size - abs(first.top - second.top)
                 )
                 maximum_iou = max(maximum_iou, overlap / (2 * size * size - overlap))
         if maximum_iou > config.max_overlap_iou:
@@ -306,7 +319,7 @@ class Checks:
             "packaged_profile": profile,
             "packaged_protocol_source_and_inputs_match": True,
             "source_manifest_sha256": Reproduction.digest(bundle / "manifest.json"),
-            "config_sha256": summary["config_sha256"],
+            "config_sha256": summary.config_sha256,
             "aggregation_max_error": aggregation_error,
             "pca_transform_max_error": pca_error,
             "cosine_neighbor_rows_verified": len(actual),

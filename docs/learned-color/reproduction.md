@@ -100,6 +100,24 @@ a changed configuration before creating output. Older runs missing configuration
 or analysis hashes require `--allow-legacy-unverified`; provenance lists the
 missing checks. The October 6 archives lack both and remain untouched.
 
+Boundary validation updated October 13: configuration now rejects nonfinite
+values and quoted numerical/boolean scalars before output allocation, and the
+CLI converts validated settings to immutable internal options. Run, render,
+patch, embedding, completion and coordinate/neighbor contracts are validated in
+`serde.py` and shared by the pipeline, figure exporter and independent checker.
+The numerical pooling, seeds, specimen order and fit operations are unchanged.
+Historical JSON and CSV records roundtrip byte-for-byte; existing noncanonical
+JSON spacing is also preserved when the data has not changed. Archived runs,
+reference helpers and previously frozen bundles retain their original bytes
+and source identities. New bundles must be built to ship these boundary changes.
+The standard-library bootstrap still runs before Pydantic or ML installation.
+
+The focused boundary checks exercised real preparation/verification, rejected
+malformed stage documents before creating outputs, exported an explicitly
+unverified historical figure, and reran the independent four-specimen smoke
+checker without writing to its archive. These checks establish boundary and
+historical-format compatibility; a new full scientific rerun is separate evidence.
+
 - Author source: `bshi42/3d_color_package`, `learned-color-space` at
   `b30c495c701093e456231ec8a035012266ccef74`, October 3.
 - Its parent is the requested `demo` head

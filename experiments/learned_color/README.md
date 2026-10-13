@@ -97,6 +97,32 @@ MPLBACKEND=Agg data/learned-color/env/bin/python -m experiments.learned_color.pl
   --run /path/to/completed-run --output /path/to/new-export-directory
 ```
 
+Configuration is validated as strict JSON before any stage allocates output:
+numeric and boolean strings are rejected, all numerical choices must be finite,
+and validated settings cannot be assigned new values. JSON path strings and
+specimen-ID arrays remain supported, including the portable bundle profiles.
+The CLI converts the boundary model once into an immutable `AppearanceOptions`
+record; numerical operations consume that record rather than Pydantic models.
+
+The version-1 stage wire format is unchanged. `serde.py` validates complete run,
+render, patch, embedding and completion documents and coordinate/neighbor CSVs,
+then returns named internal records shared by the pipeline, exporter and checker.
+Run records require `documented-ijepa-reconstruction-1`; historical lists inherit
+that containing run's version. Configuration, source and artifact identity checks
+remain separate from schema validation. Unchanged JSON is left byte-for-byte
+intact, and historical completion hashes remain absent rather than being invented.
+External processor/model maps retain standard JSON key semantics: integer label
+IDs become string keys before strict metadata validation, and keys that collide
+after that normalization are rejected. Nested numerical values remain finite.
+The independent checker still recalculates aggregation, PCA transforms, cosine
+ranks and patch pixels using its own numerical operations.
+
+The portable `reproduce.py` installer stays standard-library-only before the
+research environment is installed. Its bundle maps and transport documents stay
+at that bootstrap boundary; installed stages perform the full Pydantic validation.
+Existing frozen bundles retain their original source identities. Build a new
+bundle to ship this refactor; historical archives and evidence are not rewritten.
+
 Stages are also selectable individually: `prepare`, `render`, `sample`, `embed`,
 and `analyze`. Preparation refuses an existing output directory. Source/config
 changes and input checksum changes are rejected before downstream work. Render,

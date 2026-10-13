@@ -5,10 +5,8 @@ missing upstream pipeline, and a new population run is not evidence of equality
 to the original 32-mussel experiment.
 """
 
-import csv
 import hashlib
 import importlib.metadata
-import json
 import platform
 from pathlib import Path
 
@@ -23,12 +21,23 @@ from sklearn.preprocessing import StandardScaler
 from transformers import AutoImageProcessor, AutoModel
 from umap import UMAP
 
-from experiments.learned_color.models import Frame, Specimen
+from experiments.learned_color.models import (
+    AppearanceOptions,
+    Completion,
+    Coordinate,
+    EmbeddingMetadata,
+    Frame,
+    InputRecord,
+    Neighbor,
+    PatchRecord,
+    RenderRecord,
+    RunRecord,
+    Specimen,
+)
 from experiments.learned_color.reference import patch_sampling as S
 from experiments.learned_color.reference import render_clam as R
-from experiments.learned_color.serde import Config
+from experiments.learned_color.serde import VERSION, StageData
 
-VERSION = "documented-ijepa-reconstruction-1"
 matplotlib.use("Agg")
 
 
@@ -45,14 +54,7 @@ class Appearance:
         return value.hexdigest()
 
     @staticmethod
-    def write(path: Path, value: object) -> None:
-        """Atomically write strict JSON so interrupted stages cannot look complete."""
-        temporary = path.with_suffix(path.suffix + ".tmp")
-        temporary.write_text(json.dumps(value, indent=2, allow_nan=False) + "\n")
-        temporary.replace(path)
-
-    @staticmethod
-    def pairs(config: Config) -> tuple[Specimen, ...]:
+    def pairs(config: AppearanceOptions) -> tuple[Specimen, ...]:
         """Pair exact stems and enforce the selected cohort before any writes."""
         models = {p.stem: p for p in sorted(config.models_dir.glob("*.obj"))}
         textures = {}
@@ -75,7 +77,7 @@ class Appearance:
         return tuple(Specimen(i, models[i], textures[i]) for i in identifiers)
 
     @staticmethod
-    def prepare(config: Config) -> None:
+    def prepare(config: AppearanceOptions) -> None:
         """Freeze configuration and input hashes without copying large assets."""
         specimens = Appearance.pairs(config)
         output = config.output_dir
@@ -88,58 +90,56 @@ class Appearance:
                 raise ValueError("Input and output directories must be disjoint")
         if output.exists():
             raise FileExistsError(output)
-        inputs = [
-            {
-                "specimen_id": s.identifier,
-                "mesh": str(s.mesh),
-                "texture": str(s.texture),
-                "mesh_sha256": Appearance.digest(s.mesh),
-                "texture_sha256": Appearance.digest(s.texture),
-            }
+        inputs = tuple(
+            InputRecord(
+                s.identifier,
+                s.mesh,
+                s.texture,
+                Appearance.digest(s.mesh),
+                Appearance.digest(s.texture),
+            )
             for s in specimens
-        ]
+        )
         code = Path(__file__).parent
         sources = {
             str(p.relative_to(code)): Appearance.digest(p)
             for p in sorted(code.rglob("*.py"))
         }
-        output.mkdir(parents=True)
-        Appearance.write(output / "config.json", config.model_dump(mode="json"))
-        Appearance.write(
-            output / "run.json",
-            {
-                "pipeline_version": VERSION,
-                "status": "prepared",
-                "inputs": inputs,
-                "source_sha256": sources,
-                "platform": platform.platform(),
-                "packages": {
-                    p.metadata["Name"]: p.version
-                    for p in importlib.metadata.distributions()
-                },
-                "scope": "Documented method reconstruction; original 32-specimen run not certified.",
-            },
+        # Serialize the validated config before allocation; invalid internal
+        # callers must not leave behind an apparently prepared run directory.
+        config_value = StageData.config_value(config)
+        record = RunRecord(
+            VERSION,
+            "prepared",
+            inputs,
+            sources,
+            platform.platform(),
+            {p.metadata["Name"]: p.version for p in importlib.metadata.distributions()},
+            "Documented method reconstruction; original 32-specimen run not certified.",
         )
+        output.mkdir(parents=True)
+        StageData.write_json(output / "config.json", config_value)
+        StageData.write_run(output / "run.json", record)
 
     @staticmethod
-    def verify(config: Config) -> dict:
+    def verify(config: AppearanceOptions) -> RunRecord:
         """Reject edited inputs, configuration or code before reusing stage output."""
         output = config.output_dir
-        if json.loads((output / "config.json").read_text()) != config.model_dump(
-            mode="json"
+        if StageData.config_value(config) != StageData.read_config_value(
+            output / "config.json"
         ):
             raise ValueError("Configuration differs from the prepared run")
-        record = json.loads((output / "run.json").read_text())
-        if record["pipeline_version"] != VERSION:
-            raise ValueError("Pipeline version mismatch")
+        record = StageData.read_run(output / "run.json")
         identifiers = [s.identifier for s in Appearance.pairs(config)]
-        if identifiers != [s["specimen_id"] for s in record["inputs"]]:
+        if identifiers != [s.specimen_id for s in record.inputs]:
             raise ValueError("Prepared cohort changed")
-        for item in record["inputs"]:
+        for item in record.inputs:
             for kind in ("mesh", "texture"):
-                if Appearance.digest(Path(item[kind])) != item[f"{kind}_sha256"]:
-                    raise ValueError(f"Changed {kind}: {item['specimen_id']}")
-        for path, digest in record["source_sha256"].items():
+                if Appearance.digest(getattr(item, kind)) != getattr(
+                    item, f"{kind}_sha256"
+                ):
+                    raise ValueError(f"Changed {kind}: {item.specimen_id}")
+        for path, digest in record.source_sha256.items():
             if Appearance.digest(Path(__file__).parent / path) != digest:
                 raise ValueError(f"Changed implementation: {path}")
         return record
@@ -174,6 +174,8 @@ class Appearance:
                 reference.direction,
             )
         )
+        # PCA eigenvectors have arbitrary signs. Score all four right-handed
+        # choices in a fixed order, so ties preserve deterministic orientation.
         candidates = []
         for up_sign in (-1, 1):
             for direction_sign in (-1, 1):
@@ -194,7 +196,7 @@ class Appearance:
         return max(candidates, key=lambda c: c.score)
 
     @staticmethod
-    def normalize_canvas(image: Image.Image, config: Config) -> Image.Image:
+    def normalize_canvas(image: Image.Image, config: AppearanceOptions) -> Image.Image:
         """Crop alpha content, pad, and apply the explicit square-normalization rule."""
         mask = np.asarray(image.convert("RGBA"))[:, :, 3] > config.crop_alpha_tolerance
         yy, xx = np.nonzero(mask)
@@ -219,7 +221,7 @@ class Appearance:
         )
 
     @staticmethod
-    def render(config: Config) -> None:
+    def render(config: AppearanceOptions) -> None:
         """Render native textured surfaces in a shared group-PCA camera orientation."""
         Appearance.verify(config)
         specimens = Appearance.pairs(config)
@@ -276,36 +278,45 @@ class Appearance:
             )
             path = output / f"{specimen.identifier}_exterior.png"
             image.save(path)
-            item = {
-                "specimen_id": specimen.identifier,
-                "path": str(path),
-                "sha256": Appearance.digest(path),
-                "direction": frame.direction.tolist(),
-                "up": frame.up.tolist(),
-                "skewness": frame.skewness.tolist(),
-                "orientation_score": frame.score,
-                "reference_id": config.orientation_reference_id,
-            }
-            Appearance.write(path.with_suffix(".json"), item)
+            item = RenderRecord(
+                specimen.identifier,
+                path,
+                Appearance.digest(path),
+                tuple(frame.direction),
+                tuple(frame.up),
+                tuple(frame.skewness),
+                frame.score,
+                config.orientation_reference_id,
+            )
+            StageData.write_render(path.with_suffix(".json"), item)
             manifest.append(item)
             print(
                 f"Rendered {index + 1}/{len(specimens)}: {specimen.identifier}",
                 flush=True,
             )
-        Appearance.write(config.output_dir / "renders.json", manifest)
+        StageData.write_renders(config.output_dir / "renders.json", tuple(manifest))
 
     @staticmethod
-    def sample(config: Config) -> None:
+    def sample(config: AppearanceOptions) -> None:
         """Save exactly the required unaugmented, distinct, all-surface crops."""
         Appearance.verify(config)
-        renders = json.loads((config.output_dir / "renders.json").read_text())
+        renders = StageData.read_renders(config.output_dir / "renders.json")
+        # Validate the entire cohort and every source hash before creating any
+        # patch output, including malformed records late in the manifest.
+        if [row.specimen_id for row in renders] != [
+            s.identifier for s in Appearance.pairs(config)
+        ]:
+            raise ValueError("Render manifest has an incomplete or reordered cohort")
+        if any(row.reference_id != config.orientation_reference_id for row in renders):
+            raise ValueError("Render reference differs from the protocol")
+        for row in renders:
+            if Appearance.digest(row.path) != row.sha256:
+                raise ValueError(f"Render checksum changed: {row.path}")
         output = config.output_dir / "patches"
         output.mkdir()
         manifest = []
         for item in renders:
-            path = Path(item["path"])
-            if Appearance.digest(path) != item["sha256"]:
-                raise ValueError(f"Render checksum changed: {path}")
+            path = item.path
             with Image.open(path) as image:
                 mask = (
                     np.asarray(image.convert("RGBA"))[:, :, 3]
@@ -326,12 +337,15 @@ class Appearance:
                     fractions,
                     spec,
                     np.random.default_rng(
-                        S.specimen_seed(config.patch_sample_seed, item["specimen_id"])
+                        S.specimen_seed(config.patch_sample_seed, item.specimen_id)
                     ),
                 )
+                # Upstream selection enforces alpha coverage and overlap. Exact
+                # RGB duplicates are discarded without reseeding or resampling;
+                # the required count then rejects an insufficient candidate set.
                 seen = set()
                 rows = []
-                directory = output / item["specimen_id"]
+                directory = output / item.specimen_id
                 directory.mkdir()
                 for left, top, fraction in selected:
                     crop = image.crop(
@@ -343,43 +357,35 @@ class Appearance:
                     if pixel_hash in seen:
                         continue
                     seen.add(pixel_hash)
-                    destination = (
-                        directory / f"{item['specimen_id']}_p{len(rows):04d}.png"
-                    )
+                    destination = directory / f"{item.specimen_id}_p{len(rows):04d}.png"
                     crop.save(destination)
                     rows.append(
-                        {
-                            "specimen_id": item["specimen_id"],
-                            "patch_index": len(rows),
-                            "path": str(destination),
-                            "sha256": Appearance.digest(destination),
-                            "source_render": str(path),
-                            "source_render_sha256": item["sha256"],
-                            "left": left,
-                            "top": top,
-                            "size": spec.patch_size,
-                            "background_fraction": fraction,
-                        }
+                        PatchRecord(
+                            item.specimen_id,
+                            len(rows),
+                            destination,
+                            Appearance.digest(destination),
+                            path,
+                            item.sha256,
+                            left,
+                            top,
+                            spec.patch_size,
+                            fraction,
+                        )
                     )
             if len(rows) != config.patches_per_specimen:
                 raise ValueError(
-                    f"{item['specimen_id']}: only {len(rows)} distinct surface patches"
+                    f"{item.specimen_id}: only {len(rows)} distinct surface patches"
                 )
             manifest.extend(rows)
             print(
-                f"Sampled {item['specimen_id']}: {len(rows)} full-surface patches",
+                f"Sampled {item.specimen_id}: {len(rows)} full-surface patches",
                 flush=True,
             )
-        Appearance.write(config.output_dir / "patch_manifest.json", manifest)
-        Appearance.table(config.output_dir / "patch_manifest.csv", manifest)
-
-    @staticmethod
-    def table(path: Path, rows: list[dict]) -> None:
-        """Write an ordered, named-column CSV without implicit row indices."""
-        with path.open("w", newline="") as stream:
-            writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
-            writer.writeheader()
-            writer.writerows(rows)
+        StageData.write_patches(
+            config.output_dir / "patch_manifest.json", tuple(manifest)
+        )
+        StageData.write_table(config.output_dir / "patch_manifest.csv", tuple(manifest))
 
     @staticmethod
     def aggregate(crops: np.ndarray, count: int) -> np.ndarray:
@@ -401,24 +407,24 @@ class Appearance:
         return result.astype(np.float32)
 
     @staticmethod
-    def embed(config: Config) -> None:
+    def embed(config: AppearanceOptions) -> None:
         """Load immutable pretrained weights and mean-pool all spatial tokens."""
         Appearance.verify(config)
         output = config.output_dir
         if (output / "specimen_embeddings.npz").exists():
             raise FileExistsError(output / "specimen_embeddings.npz")
-        rows = json.loads((output / "patch_manifest.json").read_text())
+        rows = StageData.read_patches(output / "patch_manifest.json")
         specimens = Appearance.pairs(config)
         expected = [
             (s.identifier, j)
             for s in specimens
             for j in range(config.patches_per_specimen)
         ]
-        if [(r["specimen_id"], r["patch_index"]) for r in rows] != expected:
+        if [(r.specimen_id, r.patch_index) for r in rows] != expected:
             raise ValueError("Patch manifest has an incomplete or reordered cohort")
         for row in rows:
-            if Appearance.digest(Path(row["path"])) != row["sha256"]:
-                raise ValueError(f"Patch checksum changed: {row['path']}")
+            if Appearance.digest(Path(row.path)) != row.sha256:
+                raise ValueError(f"Patch checksum changed: {row.path}")
         available = {
             "cuda": torch.cuda.is_available(),
             "mps": torch.backends.mps.is_available(),
@@ -444,7 +450,7 @@ class Appearance:
             for start in range(0, len(rows), config.batch_size):
                 images = []
                 for row in rows[start : start + config.batch_size]:
-                    with Image.open(row["path"]) as image:
+                    with Image.open(row.path) as image:
                         images.append(image.convert("RGB"))
                 inputs = processor(images=images, return_tensors="pt").to(config.device)
                 hidden = model(**inputs).last_hidden_state
@@ -459,47 +465,51 @@ class Appearance:
                 )
         crops = np.concatenate(vectors).astype(np.float32)
         embeddings = Appearance.aggregate(crops, config.patches_per_specimen)
-        metadata = {
-            "checkpoint": config.checkpoint,
-            "revision": config.model_revision,
-            "device": config.device,
-            "dtype": "float32",
-            "pooling": "all-spatial-token-mean",
-            "aggregation": "raw-crop-mean-then-single-L2",
-            "processor": processor.to_dict(),
-            "model": model.config.to_dict(),
-            "patch_manifest_sha256": Appearance.digest(output / "patch_manifest.json"),
-        }
         np.savez_compressed(
             output / "crop_embeddings.npz",
             vectors=crops,
-            specimen_ids=np.array([r["specimen_id"] for r in rows]),
+            specimen_ids=np.array([r.specimen_id for r in rows]),
         )
         np.savez_compressed(
             output / "specimen_embeddings.npz",
             vectors=embeddings,
             specimen_ids=np.array([s.identifier for s in specimens]),
         )
-        metadata["specimen_embeddings_sha256"] = Appearance.digest(
-            output / "specimen_embeddings.npz"
+        metadata = EmbeddingMetadata(
+            config.checkpoint,
+            config.model_revision,
+            config.device,
+            "float32",
+            "all-spatial-token-mean",
+            "raw-crop-mean-then-single-L2",
+            processor.to_dict(),
+            model.config.to_dict(),
+            Appearance.digest(output / "patch_manifest.json"),
+            Appearance.digest(output / "specimen_embeddings.npz"),
+            Appearance.digest(output / "crop_embeddings.npz"),
         )
-        metadata["crop_embeddings_sha256"] = Appearance.digest(
-            output / "crop_embeddings.npz"
-        )
-        Appearance.write(output / "embedding_metadata.json", metadata)
+        StageData.write_embedding(output / "embedding_metadata.json", metadata)
 
     @staticmethod
-    def analyze(config: Config) -> None:
+    def analyze(config: AppearanceOptions) -> None:
         """Fit descriptive PCA/UMAP and cosine neighbors to the recorded population."""
         record = Appearance.verify(config)
         output = config.output_dir
-        metadata = json.loads((output / "embedding_metadata.json").read_text())
+        metadata = StageData.read_embedding(output / "embedding_metadata.json")
+        if (metadata.checkpoint, metadata.revision, metadata.device) != (
+            config.checkpoint,
+            config.model_revision,
+            config.device,
+        ):
+            raise ValueError("Embedding protocol differs from the prepared run")
         for name in ("specimen_embeddings", "crop_embeddings"):
-            if Appearance.digest(output / f"{name}.npz") != metadata[f"{name}_sha256"]:
+            if Appearance.digest(output / f"{name}.npz") != getattr(
+                metadata, f"{name}_sha256"
+            ):
                 raise ValueError(f"Embedding checksum changed: {name}")
         if (
             Appearance.digest(output / "patch_manifest.json")
-            != metadata["patch_manifest_sha256"]
+            != metadata.patch_manifest_sha256
         ):
             raise ValueError("Patch manifest checksum changed")
         with np.load(output / "specimen_embeddings.npz", allow_pickle=False) as data:
@@ -537,17 +547,11 @@ class Appearance:
             or not np.isfinite(umap_coordinates).all()
         ):
             raise ValueError("Nonfinite population coordinates")
-        rows = [
-            {
-                "specimen_id": str(i),
-                "PC1": float(p[0]),
-                "PC2": float(p[1]),
-                "UMAP1": float(u[0]),
-                "UMAP2": float(u[1]),
-            }
+        rows = tuple(
+            Coordinate(str(i), float(p[0]), float(p[1]), float(u[0]), float(u[1]))
             for i, p, u in zip(identifiers, coordinates, umap_coordinates, strict=True)
-        ]
-        Appearance.table(directory / "coordinates.csv", rows)
+        )
+        StageData.write_table(directory / "coordinates.csv", rows)
         similarity = vectors @ vectors.T
         np.fill_diagonal(similarity, -np.inf)
         neighbors = []
@@ -556,15 +560,15 @@ class Appearance:
                 : min(config.nearest_neighbors, len(vectors) - 1)
             ]
             neighbors.extend(
-                {
-                    "specimen_id": str(identifier),
-                    "rank": rank + 1,
-                    "neighbor_id": str(identifiers[j]),
-                    "cosine_similarity": float(similarity[index, j]),
-                }
+                Neighbor(
+                    str(identifier),
+                    rank + 1,
+                    str(identifiers[j]),
+                    float(similarity[index, j]),
+                )
                 for rank, j in enumerate(selected)
             )
-        Appearance.table(directory / "neighbors.csv", neighbors)
+        StageData.write_table(directory / "neighbors.csv", tuple(neighbors))
         np.savez_compressed(
             directory / "pca_transform.npz",
             components=pca.components_,
@@ -598,23 +602,21 @@ class Appearance:
         figure.savefig(directory / "population.png", dpi=180)
         figure.savefig(directory / "population.pdf")
         plt.close(figure)
-        summary = {
-            "profile": config.profile,
-            "specimens": len(vectors),
-            "crops_per_specimen": config.patches_per_specimen,
-            "embedding_features": vectors.shape[1],
-            "PCA_explained_variance_ratio": pca.explained_variance_ratio_.tolist(),
-            "UMAP_method": umap_method,
-            "scope": record["scope"],
-            "supervised_performance_claim": False,
-            "checkpoint_revision": config.model_revision,
-            # The configuration controls figure labels and the camera reference,
-            # so bind its exact saved bytes to the completed numerical results.
-            "config_sha256": Appearance.digest(output / "config.json"),
-            "population_plot_sha256": Appearance.digest(directory / "population.png"),
-            # A later export must verify the saved numerical outputs, not merely
-            # trust that another coordinate table has the same number of rows.
-            "analysis_sha256": {
+        summary = Completion(
+            config.profile,
+            len(vectors),
+            config.patches_per_specimen,
+            vectors.shape[1],
+            tuple(pca.explained_variance_ratio_.tolist()),
+            umap_method,
+            record.scope,
+            False,
+            config.model_revision,
+            # Bind exact saved bytes: these choices control the figure labels
+            # and camera reference as well as the numerical population fit.
+            Appearance.digest(output / "config.json"),
+            Appearance.digest(directory / "population.png"),
+            {
                 name: Appearance.digest(directory / name)
                 for name in (
                     "coordinates.csv",
@@ -624,8 +626,7 @@ class Appearance:
                     "population.pdf",
                 )
             },
-        }
-        Appearance.write(directory / "summary.json", summary)
-        record["status"] = "completed"
-        Appearance.write(output / "run.json", record)
-        Appearance.write(output / "completed.json", summary)
+        )
+        StageData.write_completion(directory / "summary.json", summary)
+        StageData.write_run(output / "run.json", record._replace(status="completed"))
+        StageData.write_completion(output / "completed.json", summary)

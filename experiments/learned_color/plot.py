@@ -4,7 +4,6 @@ Dense specimen labels remain in the coordinate table; the plot highlights only
 the camera-reference specimen so adjacent points do not obscure one another.
 """
 
-import csv
 import hashlib
 import json
 from pathlib import Path
@@ -13,12 +12,7 @@ import click
 import matplotlib.pyplot as plt
 import numpy as np
 
-from experiments.learned_color.serde import (
-    Config,
-    FigureCoordinate,
-    FigureRunRecord,
-    FigureSummary,
-)
+from experiments.learned_color.serde import StageData
 
 
 @click.command()
@@ -34,19 +28,18 @@ from experiments.learned_color.serde import (
 def main(run_path: Path, output: Path, allow_legacy_unverified: bool) -> None:
     """Export PNG and PDF to a new directory, retaining source-table provenance."""
     run_path = run_path.expanduser().resolve()
-    config = Config.load(run_path / "config.json")
-    summary = FigureSummary.model_validate_json(
-        (run_path / "completed.json").read_text()
-    )
+    config = StageData.load_options(run_path / "config.json")
+    summary = StageData.read_completion(run_path / "completed.json")
     # Coordinates alone cannot certify the labels: the saved configuration also
     # determines PCA standardization and which specimen is the camera reference.
     config_digest = hashlib.sha256((run_path / "config.json").read_bytes()).hexdigest()
     if summary.config_sha256 and summary.config_sha256 != config_digest:
         raise ValueError("Configuration checksum changed")
-    record = FigureRunRecord.model_validate_json((run_path / "run.json").read_text())
+    record = StageData.read_run(run_path / "run.json")
+    if record.status != "completed":
+        raise ValueError("Run is not completed")
     table = run_path / "analysis/coordinates.csv"
-    with table.open(newline="") as stream:
-        rows = [FigureCoordinate.model_validate(row) for row in csv.DictReader(stream)]
+    rows = StageData.read_coordinates(table)
     identifiers = [row.specimen_id for row in rows]
     recorded_ids = [specimen.specimen_id for specimen in record.inputs]
     # Count alone cannot distinguish 32 mussels from another 32-specimen table.
@@ -66,8 +59,8 @@ def main(run_path: Path, output: Path, allow_legacy_unverified: bool) -> None:
         or config.orientation_reference_id not in identifiers
     ):
         raise ValueError("Figure summary does not match the recorded protocol")
-    if json.loads((run_path / "analysis/summary.json").read_text()) != json.loads(
-        (run_path / "completed.json").read_text()
+    if not StageData.matching_completion(
+        run_path / "analysis/summary.json", run_path / "completed.json"
     ):
         raise ValueError("Completion marker differs from the analysis summary")
     # Historical runs predate these hashes. Explicit opt-in preserves access to
