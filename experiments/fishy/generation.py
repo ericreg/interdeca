@@ -10,6 +10,7 @@ import numpy as np
 from sklearn.datasets import make_blobs
 
 from experiments.fishy.models import (
+    KERNEL_EPSILON,
     Brush,
     CanonicalFrame,
     GeneratorData,
@@ -347,7 +348,11 @@ class Generation:
                 )
             alpha = np.exp(
                 -0.5
-                * (np.maximum(distance - brush.radius, 0) / (brush.sigma + 1e-12)) ** 2
+                * (
+                    np.maximum(distance - brush.radius, 0)
+                    / (brush.sigma + KERNEL_EPSILON)
+                )
+                ** 2
             )
             alpha = np.clip(alpha * brush.strength, 0, 1)[:, None]
             colors = colors * (1 - alpha) + np.asarray(brush.color) * alpha

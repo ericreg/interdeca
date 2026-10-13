@@ -16,14 +16,14 @@ test_sampling_keeps_global_rng_isolated_and_python_categories (test_boundaries.G
 test_spline_rejects_nonfinite_and_negative_controls (test_boundaries.GenerationTests.test_spline_rejects_nonfinite_and_negative_controls) ... ok
 test_valid_affine_spline_and_world_roundtrip (test_boundaries.GenerationTests.test_valid_affine_spline_and_world_roundtrip) ... ok
 test_failed_child_persists_failure_without_stale_success (test_boundaries.StageResumeTests.test_failed_child_persists_failure_without_stale_success) ... author numerical comparison: INCOMPLETE
-e1_fidelity: exit 7; log /private/var/folders/fq/_5gvgntj52n_64dm5j9b9yvc0000gn/T/tmp6nh2402d/run/logs/e1_fidelity.log
+e1_fidelity: exit 7; log /private/var/folders/fq/_5gvgntj52n_64dm5j9b9yvc0000gn/T/tmpngexi2kd/run/logs/e1_fidelity.log
 ok
 test_interrupted_e6_preserves_same_input_resume_checkpoint (test_boundaries.StageResumeTests.test_interrupted_e6_preserves_same_input_resume_checkpoint) ... ok
 test_metadata_or_input_tamper_stops_before_child_and_state_changes (test_boundaries.StageResumeTests.test_metadata_or_input_tamper_stops_before_child_and_state_changes) ... ok
 test_missing_prerequisite_rejects_before_state_change (test_boundaries.StageResumeTests.test_missing_prerequisite_rejects_before_state_change) ... ok
-test_same_bytes_timestamp_refresh_allows_rerun (test_boundaries.StageResumeTests.test_same_bytes_timestamp_refresh_allows_rerun) ... e1_fidelity: exit 0; log /private/var/folders/fq/_5gvgntj52n_64dm5j9b9yvc0000gn/T/tmpifpml905/run/logs/e1_fidelity.log
+test_same_bytes_timestamp_refresh_allows_rerun (test_boundaries.StageResumeTests.test_same_bytes_timestamp_refresh_allows_rerun) ... e1_fidelity: exit 0; log /private/var/folders/fq/_5gvgntj52n_64dm5j9b9yvc0000gn/T/tmp9z2ie7_g/run/logs/e1_fidelity.log
 ok
-test_upstream_rerun_invalidates_consumers_completion_and_partial_cache (test_boundaries.StageResumeTests.test_upstream_rerun_invalidates_consumers_completion_and_partial_cache) ... e1_fidelity: exit 0; log /private/var/folders/fq/_5gvgntj52n_64dm5j9b9yvc0000gn/T/tmpx2hk_2sl/run/logs/e1_fidelity.log
+test_upstream_rerun_invalidates_consumers_completion_and_partial_cache (test_boundaries.StageResumeTests.test_upstream_rerun_invalidates_consumers_completion_and_partial_cache) ... e1_fidelity: exit 0; log /private/var/folders/fq/_5gvgntj52n_64dm5j9b9yvc0000gn/T/tmpk2xd35p6/run/logs/e1_fidelity.log
 ok
 test_boundary_error_is_concise_and_keeps_library_exception_contract (test_cli.CLITests.test_boundary_error_is_concise_and_keeps_library_exception_contract) ... ok
 test_paper_entrypoint_rejects_bad_run_before_stage_execution (test_cli.CLITests.test_paper_entrypoint_rejects_bad_run_before_stage_execution) ... ok
@@ -73,6 +73,6 @@ test_small_group_and_nonfinite_input_rejected (test_inference.InferenceTests.tes
 test_undefined_class_support_is_explicit (test_inference.InferenceTests.test_undefined_class_support_is_explicit) ... ok
 
 ----------------------------------------------------------------------
-Ran 69 tests in 0.646s
+Ran 69 tests in 0.569s
 
 OK

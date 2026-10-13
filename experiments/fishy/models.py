@@ -93,6 +93,12 @@ class Spline(NamedTuple):
         return self
 
 
+# The author's brush kernel divides by sigma + 1e-12, so this named constant is the
+# only shift used by both validation and painting. Signed and zero sigma are kept as
+# drawn; only the exact sigma that makes this denominator zero is a singular brush.
+KERNEL_EPSILON = 1e-12
+
+
 class Brush(NamedTuple):
     """Sphere when endpoints coincide, capsule otherwise; radii are world units."""
 
@@ -111,7 +117,11 @@ class Brush(NamedTuple):
                 raise ValueError("Brush endpoints must have length three.")
         for name in ("radius", "sigma", "strength"):
             GeneratorData.scalar(getattr(self, name), name)
-        if self.radius < 0 or self.sigma + 1e-12 == 0 or not 0 <= self.strength <= 1:
+        if (
+            self.radius < 0
+            or self.sigma + KERNEL_EPSILON == 0
+            or not 0 <= self.strength <= 1
+        ):
             raise ValueError("Brush radius/width/strength is outside its valid range.")
         if len(self.color) != 3:
             raise ValueError("Brush RGB color must have length three.")

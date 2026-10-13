@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import warnings
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
@@ -15,7 +16,7 @@ from pydantic import ValidationError
 
 from experiments.fishy.artifacts import Artifacts
 from experiments.fishy.generation import Generation
-from experiments.fishy.models import Brush, CanonicalFrame
+from experiments.fishy.models import KERNEL_EPSILON, Brush, CanonicalFrame
 from experiments.fishy.paper import ANALYSES, FIGURES, Paper
 from experiments.fishy.paper_compare import REQUIRED_ARRAYS, REQUIRED_JSON
 from experiments.fishy.release import Release
@@ -428,13 +429,22 @@ class GenerationTests(unittest.TestCase):
         brush = Brush(np.zeros(3), np.ones(3), 0.1, 0.03, (0.0, 0.0, 0.0), 1.0)
         for invalid in (
             brush._replace(sigma=float("nan")),
-            brush._replace(sigma=-1e-12),
+            brush._replace(sigma=-KERNEL_EPSILON),
             brush._replace(start=np.array([0.0, float("inf"), 0.0])),
         ):
             with self.subTest(brush=invalid), self.assertRaises(ValueError):
                 Generation.paint(POINTS, (invalid,), 0.1, 8.0)
         with self.assertRaises(ValueError):
             Generation.paint(POINTS, (brush,), float("nan"), 8.0)
+        for invalid_width in (None, "0.1", 1j):
+            with (
+                self.subTest(stripe_width=invalid_width),
+                warnings.catch_warnings(record=True) as caught,
+            ):
+                warnings.simplefilter("always")
+                with self.assertRaises(ValueError):
+                    parameters._replace(stripe_width=invalid_width).validated()
+                self.assertEqual(caught, [])
 
     def test_negative_width_draw_flows_through_brush_warp_and_paint(self):
         with self.assertWarnsRegex(RuntimeWarning, "non-positive"):

@@ -37,12 +37,6 @@ class Parameters(NamedTuple):
         Stripe width sign is not a domain rule: the author's normal draw can be
         non-positive, so it is flagged with a warning and kept exactly as drawn.
         """
-        if self.stripe_width <= 0:
-            warnings.warn(
-                "stripe_width is non-positive; returned as drawn.",
-                RuntimeWarning,
-                stacklevel=2,
-            )
         for name, value in self._asdict().items():
             if (
                 isinstance(value, bool)
@@ -68,6 +62,12 @@ class Parameters(NamedTuple):
         ):
             if not 0 <= getattr(self, name) <= 1:
                 raise ValueError(f"{name} must lie in [0, 1].")
+        if self.stripe_width <= 0:
+            warnings.warn(
+                "stripe_width is non-positive; returned as drawn.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
         return self
 
 
