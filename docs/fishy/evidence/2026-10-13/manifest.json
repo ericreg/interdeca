@@ -24,8 +24,8 @@
     },
     {
       "path": "current-validation.json",
-      "bytes": 5200,
-      "sha256": "1279faeace203d2274f2ce759145aecc66daff8a3d07d0da22f5a00cbf83893b"
+      "bytes": 5541,
+      "sha256": "14907e86c9a07ed6eb4f46b0491e12e8cd235157b1f5122517521aece73e77a4"
     },
     {
       "path": "elementwise-author-atol-1e-08.json",

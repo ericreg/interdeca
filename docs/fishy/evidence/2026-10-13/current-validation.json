@@ -93,6 +93,7 @@
       "typing_extensions": "4.16.0",
       "umap-learn": "0.5.12"
     },
-    "environment_created_for_review": true
+    "environment_created_for_review": true,
+    "environment_provenance": "The pinned venv at /private/tmp/interdeca-research-grade-2026-10-13/venv was created from scratch earlier in this review (environment_created_for_review=true) and reused for this post-CI receipt rerun, so fresh_virtualenv=false means not newly created for this invocation, not that it preexisted the review."
   }
 }
