@@ -10,4 +10,4 @@
 - Throughout the package, add plain-English line comments above logically related statements explaining why the group is needed. Cover assumptions, choices, and invariants; do not merely restate the operations or comment every trivial line. Keep comments accurate when code changes.
 - Preserve mesh correspondence: vertex order, triangle order, and per-corner UVs matter.
 - The original implementation in `../3d_color_package/` is reference material; do not modify it.
-- Tests are deferred for this initial implementation at the user's request.
+- Keep executable regression tests for the research integration and run its CI checks.

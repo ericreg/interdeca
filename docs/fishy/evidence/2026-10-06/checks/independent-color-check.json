@@ -1,0 +1,5 @@
+{
+  "CIEDE2000_reference": "skimage.color.deltaE_ciede2000",
+  "samples": 200,
+  "max_absolute_difference": 7.105427357601002e-14
+}

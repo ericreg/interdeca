@@ -7,7 +7,20 @@ The numerical core and shared MVC controller do not import Slicer, Qt, or the ol
 `3d_color_package` repository. A serial task executor and a separate
 **InterDeCANext** Slicer presentation package provide the active ATLAS, Mesh
 Selection, and MultiRecolor workflows. See [Slicer setup and parity](docs/slicer.md).
-An automated test suite and exhaustive numerical parity testing remain deferred.
+The core has no automated test suite, and exhaustive numerical parity testing remains deferred.
+The research integration has its own [behavioral tests](tests/README.md).
+
+## Fishy paper reproduction
+
+The [fishy reproduction bundle](experiments/fishy/README.md) lives in this repository.
+It provides the cichlid generator, a runner through this core, archived-atlas input
+contracts, and composition-baseline evaluation. The [source-pinned paper runner](experiments/fishy/PAPER_REPRODUCTION.md)
+adds Alek's October 5 analyses and Figure 6–13 mapping, isolated environments,
+input hashes, stage logs and numerical comparisons. See the
+[execution verdict](docs/fishy/paper-reproduction.md) and
+[provenance](docs/fishy/provenance.md) before claiming exact paper reproduction.
+The [completed 250-fish archive baseline](docs/fishy/results.md) includes matched
+native/atlas composition scores, validation evidence and reproducible commands.
 
 ## Installation
 
@@ -286,7 +299,7 @@ results; display changes do not. Morphospace requests keep only the latest pendi
 coordinates. Fitted estimators remain live, read-only session objects and are not
 made restorable by the JSON snapshot format.
 
-The automated suite remains deferred as requested. Focused core, Blender, and
+The core automated suite remains deferred as requested. Focused core, Blender, and
 Slicer smoke checks are recorded in [the parity checklist](docs/slicer.md).
 Exhaustive numerical comparisons, broader Blender versions, and large datasets
 still need separate validation.

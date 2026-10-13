@@ -1,0 +1,25 @@
+{
+  "pre_spatial": {
+    "specimens": 250,
+    "same_direction_matches_at_1e-8": 213,
+    "reversed_direction_matches_at_1e-8": 37,
+    "unexplained_after_allowing_reversal": 0,
+    "maximum_residual_after_allowing_reversal": 1.0302869668521453e-13
+  },
+  "post_axial": {
+    "specimens": 250,
+    "same_direction_matches_at_1e-8": 0,
+    "reversed_direction_matches_at_1e-8": 250,
+    "unexplained_after_allowing_reversal": 0,
+    "maximum_residual_after_allowing_reversal": 1.2079226507921703e-13
+  },
+  "pre_spatial_canon": {
+    "specimens": 250,
+    "same_direction_matches_at_1e-8": 250,
+    "reversed_direction_matches_at_1e-8": 0,
+    "unexplained_after_allowing_reversal": 0,
+    "maximum_residual_after_allowing_reversal": 1.0302869668521453e-13
+  },
+  "flipped_flags_differ": 37,
+  "interpretation": "Raw axial arrays differ only by longitudinal bin reversal. This diagnoses an orientation-sign difference in saved observations; it does not establish the author original input/environment identity."
+}

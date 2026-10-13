@@ -1,0 +1,8 @@
+# Keep generated scientific evidence available while collapsing its bulk in PRs.
+docs/fishy/evidence/**/*.json linguist-generated=true
+docs/fishy/evidence/**/*.log linguist-generated=true
+docs/fishy/evidence/**/*.png linguist-generated=true
+docs/fishy/evidence/**/*.pdf linguist-generated=true
+
+# This attributed snapshot is reviewed as a pinned dependency, not new code.
+experiments/fishy/reference/** linguist-vendored=true

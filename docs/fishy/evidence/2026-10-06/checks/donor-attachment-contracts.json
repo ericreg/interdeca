@@ -1,0 +1,8 @@
+{
+  "fixtures": "Non-image byte fixtures; input attachment contract only",
+  "missing_exact_pair_rejected": true,
+  "invalid_attachment_leaves_record_unchanged": true,
+  "fourteen_asset_hashes_valid": true,
+  "prior_analysis_status_preserved": true,
+  "duplicate_attachment_rejected": true
+}

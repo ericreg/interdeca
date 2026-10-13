@@ -1,0 +1,1837 @@
+{
+  "schema_version": 1,
+  "source_sha256": "24444763c43729fef977be439ded2f9b6ba53243642fed271949fd087c1f2a14",
+  "input_sha256": "627b7cf52c5a69078e11a6126be806368d8516b96b0bd13d6bc0bb898acc99a3",
+  "analysis_config_sha256": "cbcc619846edaf57d586ec72c65f2de188f55d2f5743acb2765259b87906964d",
+  "n_specimens": 250,
+  "donor_ids": [
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+  ],
+  "protocol": {
+    "feature_construction": "saved E2 descriptors reused unchanged; some were derived from the full 250-specimen cohort, so only classifier fitting and scaling hold out donors",
+    "split": "LeaveOneGroupOut; all donor scans; same splits for both descriptors",
+    "scaling": "StandardScaler fitted on training specimens only",
+    "scaler_with_mean": true,
+    "scaler_with_std": true,
+    "classifier": "LogisticRegression",
+    "c": 1.0,
+    "l1_ratio": 0.0,
+    "solver": "lbfgs",
+    "tol": 0.0001,
+    "fit_intercept": true,
+    "class_weight": "balanced",
+    "max_iter": 4000,
+    "random_state": 0,
+    "metric": "binary balanced accuracy on each held-out donor",
+    "aggregation": "unweighted mean of donor scores; each donor has equal weight",
+    "inference": "descriptive only; no calibrated population p-values or intervals"
+  },
+  "contrasts": [
+    {
+      "post": "post_axial",
+      "pre": "pre_spatial_canon",
+      "factor": "stripe",
+      "donor_scores": [
+        {
+          "donor_id": "0",
+          "train_donors": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 210,
+          "n_test": 40,
+          "train_label_counts": {
+            "0": 166,
+            "1": 44
+          },
+          "test_label_counts": {
+            "0": 32,
+            "1": 8
+          },
+          "train_indices_sha256": "6095efda0e7cf9a4879a4b6fa8f7eeb8269358cb7b1c6a5aba8cef4fd162acef",
+          "test_indices_sha256": "e38a3b55be6489a183094f48ed53f33baa5726dbe94d231ecb650626d3279b6f",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.59375,
+          "post_balanced_accuracy": 0.9375,
+          "post_minus_pre": 0.34375
+        },
+        {
+          "donor_id": "1",
+          "train_donors": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 219,
+          "n_test": 31,
+          "train_label_counts": {
+            "0": 173,
+            "1": 46
+          },
+          "test_label_counts": {
+            "0": 25,
+            "1": 6
+          },
+          "train_indices_sha256": "b91b79c58c8344c9b69c0f7e55de5f7e2115d082f63d8c8cc434f155f1453e56",
+          "test_indices_sha256": "eea4a65f9dd7471ba8692b7b94b87abfae4bc483184029949c86e1affb0b6b80",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.7566666666666667,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.2433333333333333
+        },
+        {
+          "donor_id": "2",
+          "train_donors": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 202,
+          "n_test": 48,
+          "train_label_counts": {
+            "0": 162,
+            "1": 40
+          },
+          "test_label_counts": {
+            "0": 36,
+            "1": 12
+          },
+          "train_indices_sha256": "16197668e18a6ef004c511a41e4840afc12adb55f316af22dc60c95928347a28",
+          "test_indices_sha256": "65340854b230a14eb1ebe105f3b726d891eb5b72aa0ba041bbcafa0959672d5c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.7638888888888888,
+          "post_balanced_accuracy": 0.8611111111111112,
+          "post_minus_pre": 0.09722222222222232
+        },
+        {
+          "donor_id": "3",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 213,
+          "n_test": 37,
+          "train_label_counts": {
+            "0": 170,
+            "1": 43
+          },
+          "test_label_counts": {
+            "0": 28,
+            "1": 9
+          },
+          "train_indices_sha256": "eeb362cd5eed083cb476eb5e12b622eb24f34a53db5c6989120c99358cbf51b2",
+          "test_indices_sha256": "763610fa9417b73cc429bb9ff02899fc5416384dbd0d9184b4964fb3c6e2ca4c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.7222222222222222,
+          "post_balanced_accuracy": 0.7599206349206349,
+          "post_minus_pre": 0.037698412698412676
+        },
+        {
+          "donor_id": "4",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "5",
+            "6"
+          ],
+          "n_train": 214,
+          "n_test": 36,
+          "train_label_counts": {
+            "0": 171,
+            "1": 43
+          },
+          "test_label_counts": {
+            "0": 27,
+            "1": 9
+          },
+          "train_indices_sha256": "7afaa16b3d80096211b540b876597edd1ed6a842c1f267f7e02431931f88bae4",
+          "test_indices_sha256": "985d3eae13ec70a03a3289dbe49381b193a05a3a6e7642f87c28fd98315e81f4",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.8333333333333333,
+          "post_balanced_accuracy": 0.8333333333333333,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "5",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "n_train": 222,
+          "n_test": 28,
+          "train_label_counts": {
+            "0": 175,
+            "1": 47
+          },
+          "test_label_counts": {
+            "0": 23,
+            "1": 5
+          },
+          "train_indices_sha256": "572fc31ec4e542630f513afe876181084f381c96259910b374c4465e6d0afa38",
+          "test_indices_sha256": "a80b6c93465e83c72cf6b61e6e34927d2630b0a8a03e8e3eaa00ed30526a0b72",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.8913043478260869,
+          "post_balanced_accuracy": 0.7,
+          "post_minus_pre": -0.19130434782608696
+        },
+        {
+          "donor_id": "6",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "n_train": 220,
+          "n_test": 30,
+          "train_label_counts": {
+            "0": 171,
+            "1": 49
+          },
+          "test_label_counts": {
+            "0": 27,
+            "1": 3
+          },
+          "train_indices_sha256": "cf44096b4886612f0fd14935b554ef0fc6414d6d479b8b3cbbf708256c3186a3",
+          "test_indices_sha256": "3971fd83e7459b11faef72c313b75064a6b95d4cf86d3b22ea15e31f5924b89d",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.7037037037037037,
+          "post_balanced_accuracy": 0.8888888888888888,
+          "post_minus_pre": 0.18518518518518512
+        }
+      ],
+      "n_scored_donors": 7,
+      "macro_pre_balanced_accuracy": 0.7521241660915575,
+      "macro_post_balanced_accuracy": 0.854393424036281,
+      "macro_post_minus_pre": 0.10226925794472377
+    },
+    {
+      "post": "post_axial",
+      "pre": "pre_spatial_canon",
+      "factor": "cheeks",
+      "donor_scores": [
+        {
+          "donor_id": "0",
+          "train_donors": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 210,
+          "n_test": 40,
+          "train_label_counts": {
+            "0": 109,
+            "1": 101
+          },
+          "test_label_counts": {
+            "0": 25,
+            "1": 15
+          },
+          "train_indices_sha256": "6095efda0e7cf9a4879a4b6fa8f7eeb8269358cb7b1c6a5aba8cef4fd162acef",
+          "test_indices_sha256": "e38a3b55be6489a183094f48ed53f33baa5726dbe94d231ecb650626d3279b6f",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5,
+          "post_balanced_accuracy": 0.5,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "1",
+          "train_donors": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 219,
+          "n_test": 31,
+          "train_label_counts": {
+            "0": 119,
+            "1": 100
+          },
+          "test_label_counts": {
+            "0": 15,
+            "1": 16
+          },
+          "train_indices_sha256": "b91b79c58c8344c9b69c0f7e55de5f7e2115d082f63d8c8cc434f155f1453e56",
+          "test_indices_sha256": "eea4a65f9dd7471ba8692b7b94b87abfae4bc483184029949c86e1affb0b6b80",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.7145833333333333,
+          "post_balanced_accuracy": 0.75,
+          "post_minus_pre": 0.03541666666666665
+        },
+        {
+          "donor_id": "2",
+          "train_donors": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 202,
+          "n_test": 48,
+          "train_label_counts": {
+            "0": 102,
+            "1": 100
+          },
+          "test_label_counts": {
+            "0": 32,
+            "1": 16
+          },
+          "train_indices_sha256": "16197668e18a6ef004c511a41e4840afc12adb55f316af22dc60c95928347a28",
+          "test_indices_sha256": "65340854b230a14eb1ebe105f3b726d891eb5b72aa0ba041bbcafa0959672d5c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6875,
+          "post_balanced_accuracy": 0.703125,
+          "post_minus_pre": 0.015625
+        },
+        {
+          "donor_id": "3",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 213,
+          "n_test": 37,
+          "train_label_counts": {
+            "0": 120,
+            "1": 93
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 23
+          },
+          "train_indices_sha256": "eeb362cd5eed083cb476eb5e12b622eb24f34a53db5c6989120c99358cbf51b2",
+          "test_indices_sha256": "763610fa9417b73cc429bb9ff02899fc5416384dbd0d9184b4964fb3c6e2ca4c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6055900621118012,
+          "post_balanced_accuracy": 0.6475155279503106,
+          "post_minus_pre": 0.041925465838509424
+        },
+        {
+          "donor_id": "4",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "5",
+            "6"
+          ],
+          "n_train": 214,
+          "n_test": 36,
+          "train_label_counts": {
+            "0": 115,
+            "1": 99
+          },
+          "test_label_counts": {
+            "0": 19,
+            "1": 17
+          },
+          "train_indices_sha256": "7afaa16b3d80096211b540b876597edd1ed6a842c1f267f7e02431931f88bae4",
+          "test_indices_sha256": "985d3eae13ec70a03a3289dbe49381b193a05a3a6e7642f87c28fd98315e81f4",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5294117647058824,
+          "post_balanced_accuracy": 0.5588235294117647,
+          "post_minus_pre": 0.02941176470588236
+        },
+        {
+          "donor_id": "5",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "n_train": 222,
+          "n_test": 28,
+          "train_label_counts": {
+            "0": 120,
+            "1": 102
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 14
+          },
+          "train_indices_sha256": "572fc31ec4e542630f513afe876181084f381c96259910b374c4465e6d0afa38",
+          "test_indices_sha256": "a80b6c93465e83c72cf6b61e6e34927d2630b0a8a03e8e3eaa00ed30526a0b72",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5714285714285714,
+          "post_balanced_accuracy": 0.6428571428571429,
+          "post_minus_pre": 0.07142857142857151
+        },
+        {
+          "donor_id": "6",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "n_train": 220,
+          "n_test": 30,
+          "train_label_counts": {
+            "0": 119,
+            "1": 101
+          },
+          "test_label_counts": {
+            "0": 15,
+            "1": 15
+          },
+          "train_indices_sha256": "cf44096b4886612f0fd14935b554ef0fc6414d6d479b8b3cbbf708256c3186a3",
+          "test_indices_sha256": "3971fd83e7459b11faef72c313b75064a6b95d4cf86d3b22ea15e31f5924b89d",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5333333333333333,
+          "post_balanced_accuracy": 0.6,
+          "post_minus_pre": 0.06666666666666665
+        }
+      ],
+      "n_scored_donors": 7,
+      "macro_pre_balanced_accuracy": 0.591692437844703,
+      "macro_post_balanced_accuracy": 0.6289030286027454,
+      "macro_post_minus_pre": 0.037210590758042374
+    },
+    {
+      "post": "post_spectral",
+      "pre": "pre_spatial_canon",
+      "factor": "cheeks",
+      "donor_scores": [
+        {
+          "donor_id": "0",
+          "train_donors": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 210,
+          "n_test": 40,
+          "train_label_counts": {
+            "0": 109,
+            "1": 101
+          },
+          "test_label_counts": {
+            "0": 25,
+            "1": 15
+          },
+          "train_indices_sha256": "6095efda0e7cf9a4879a4b6fa8f7eeb8269358cb7b1c6a5aba8cef4fd162acef",
+          "test_indices_sha256": "e38a3b55be6489a183094f48ed53f33baa5726dbe94d231ecb650626d3279b6f",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5,
+          "post_balanced_accuracy": 0.5,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "1",
+          "train_donors": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 219,
+          "n_test": 31,
+          "train_label_counts": {
+            "0": 119,
+            "1": 100
+          },
+          "test_label_counts": {
+            "0": 15,
+            "1": 16
+          },
+          "train_indices_sha256": "b91b79c58c8344c9b69c0f7e55de5f7e2115d082f63d8c8cc434f155f1453e56",
+          "test_indices_sha256": "eea4a65f9dd7471ba8692b7b94b87abfae4bc483184029949c86e1affb0b6b80",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.7145833333333333,
+          "post_balanced_accuracy": 0.56875,
+          "post_minus_pre": -0.14583333333333337
+        },
+        {
+          "donor_id": "2",
+          "train_donors": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 202,
+          "n_test": 48,
+          "train_label_counts": {
+            "0": 102,
+            "1": 100
+          },
+          "test_label_counts": {
+            "0": 32,
+            "1": 16
+          },
+          "train_indices_sha256": "16197668e18a6ef004c511a41e4840afc12adb55f316af22dc60c95928347a28",
+          "test_indices_sha256": "65340854b230a14eb1ebe105f3b726d891eb5b72aa0ba041bbcafa0959672d5c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6875,
+          "post_balanced_accuracy": 0.6875,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "3",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 213,
+          "n_test": 37,
+          "train_label_counts": {
+            "0": 120,
+            "1": 93
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 23
+          },
+          "train_indices_sha256": "eeb362cd5eed083cb476eb5e12b622eb24f34a53db5c6989120c99358cbf51b2",
+          "test_indices_sha256": "763610fa9417b73cc429bb9ff02899fc5416384dbd0d9184b4964fb3c6e2ca4c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6055900621118012,
+          "post_balanced_accuracy": 0.4782608695652174,
+          "post_minus_pre": -0.1273291925465838
+        },
+        {
+          "donor_id": "4",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "5",
+            "6"
+          ],
+          "n_train": 214,
+          "n_test": 36,
+          "train_label_counts": {
+            "0": 115,
+            "1": 99
+          },
+          "test_label_counts": {
+            "0": 19,
+            "1": 17
+          },
+          "train_indices_sha256": "7afaa16b3d80096211b540b876597edd1ed6a842c1f267f7e02431931f88bae4",
+          "test_indices_sha256": "985d3eae13ec70a03a3289dbe49381b193a05a3a6e7642f87c28fd98315e81f4",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5294117647058824,
+          "post_balanced_accuracy": 0.6749226006191951,
+          "post_minus_pre": 0.1455108359133127
+        },
+        {
+          "donor_id": "5",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "n_train": 222,
+          "n_test": 28,
+          "train_label_counts": {
+            "0": 120,
+            "1": 102
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 14
+          },
+          "train_indices_sha256": "572fc31ec4e542630f513afe876181084f381c96259910b374c4465e6d0afa38",
+          "test_indices_sha256": "a80b6c93465e83c72cf6b61e6e34927d2630b0a8a03e8e3eaa00ed30526a0b72",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5714285714285714,
+          "post_balanced_accuracy": 0.6071428571428571,
+          "post_minus_pre": 0.0357142857142857
+        },
+        {
+          "donor_id": "6",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "n_train": 220,
+          "n_test": 30,
+          "train_label_counts": {
+            "0": 119,
+            "1": 101
+          },
+          "test_label_counts": {
+            "0": 15,
+            "1": 15
+          },
+          "train_indices_sha256": "cf44096b4886612f0fd14935b554ef0fc6414d6d479b8b3cbbf708256c3186a3",
+          "test_indices_sha256": "3971fd83e7459b11faef72c313b75064a6b95d4cf86d3b22ea15e31f5924b89d",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5333333333333333,
+          "post_balanced_accuracy": 0.9333333333333333,
+          "post_minus_pre": 0.4
+        }
+      ],
+      "n_scored_donors": 7,
+      "macro_pre_balanced_accuracy": 0.591692437844703,
+      "macro_post_balanced_accuracy": 0.6357013800943718,
+      "macro_post_minus_pre": 0.044008942249668746
+    },
+    {
+      "post": "post_axial",
+      "pre": "pre_spatial_canon",
+      "factor": "belly",
+      "donor_scores": [
+        {
+          "donor_id": "0",
+          "train_donors": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 210,
+          "n_test": 40,
+          "train_label_counts": {
+            "0": 96,
+            "1": 114
+          },
+          "test_label_counts": {
+            "0": 27,
+            "1": 13
+          },
+          "train_indices_sha256": "6095efda0e7cf9a4879a4b6fa8f7eeb8269358cb7b1c6a5aba8cef4fd162acef",
+          "test_indices_sha256": "e38a3b55be6489a183094f48ed53f33baa5726dbe94d231ecb650626d3279b6f",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5,
+          "post_balanced_accuracy": 0.5,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "1",
+          "train_donors": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 219,
+          "n_test": 31,
+          "train_label_counts": {
+            "0": 107,
+            "1": 112
+          },
+          "test_label_counts": {
+            "0": 16,
+            "1": 15
+          },
+          "train_indices_sha256": "b91b79c58c8344c9b69c0f7e55de5f7e2115d082f63d8c8cc434f155f1453e56",
+          "test_indices_sha256": "eea4a65f9dd7471ba8692b7b94b87abfae4bc483184029949c86e1affb0b6b80",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "2",
+          "train_donors": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 202,
+          "n_test": 48,
+          "train_label_counts": {
+            "0": 105,
+            "1": 97
+          },
+          "test_label_counts": {
+            "0": 18,
+            "1": 30
+          },
+          "train_indices_sha256": "16197668e18a6ef004c511a41e4840afc12adb55f316af22dc60c95928347a28",
+          "test_indices_sha256": "65340854b230a14eb1ebe105f3b726d891eb5b72aa0ba041bbcafa0959672d5c",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "3",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 213,
+          "n_test": 37,
+          "train_label_counts": {
+            "0": 102,
+            "1": 111
+          },
+          "test_label_counts": {
+            "0": 21,
+            "1": 16
+          },
+          "train_indices_sha256": "eeb362cd5eed083cb476eb5e12b622eb24f34a53db5c6989120c99358cbf51b2",
+          "test_indices_sha256": "763610fa9417b73cc429bb9ff02899fc5416384dbd0d9184b4964fb3c6e2ca4c",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "4",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "5",
+            "6"
+          ],
+          "n_train": 214,
+          "n_test": 36,
+          "train_label_counts": {
+            "0": 106,
+            "1": 108
+          },
+          "test_label_counts": {
+            "0": 17,
+            "1": 19
+          },
+          "train_indices_sha256": "7afaa16b3d80096211b540b876597edd1ed6a842c1f267f7e02431931f88bae4",
+          "test_indices_sha256": "985d3eae13ec70a03a3289dbe49381b193a05a3a6e7642f87c28fd98315e81f4",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.9411764705882353,
+          "post_balanced_accuracy": 0.9411764705882353,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "5",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "n_train": 222,
+          "n_test": 28,
+          "train_label_counts": {
+            "0": 111,
+            "1": 111
+          },
+          "test_label_counts": {
+            "0": 12,
+            "1": 16
+          },
+          "train_indices_sha256": "572fc31ec4e542630f513afe876181084f381c96259910b374c4465e6d0afa38",
+          "test_indices_sha256": "a80b6c93465e83c72cf6b61e6e34927d2630b0a8a03e8e3eaa00ed30526a0b72",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "6",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "n_train": 220,
+          "n_test": 30,
+          "train_label_counts": {
+            "0": 111,
+            "1": 109
+          },
+          "test_label_counts": {
+            "0": 12,
+            "1": 18
+          },
+          "train_indices_sha256": "cf44096b4886612f0fd14935b554ef0fc6414d6d479b8b3cbbf708256c3186a3",
+          "test_indices_sha256": "3971fd83e7459b11faef72c313b75064a6b95d4cf86d3b22ea15e31f5924b89d",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        }
+      ],
+      "n_scored_donors": 7,
+      "macro_pre_balanced_accuracy": 0.9201680672268908,
+      "macro_post_balanced_accuracy": 0.9201680672268908,
+      "macro_post_minus_pre": 0.0
+    },
+    {
+      "post": "post_axial",
+      "pre": "pre_spatial_canon",
+      "factor": "tail",
+      "donor_scores": [
+        {
+          "donor_id": "0",
+          "train_donors": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 210,
+          "n_test": 40,
+          "train_label_counts": {
+            "0": 105,
+            "1": 105
+          },
+          "test_label_counts": {
+            "0": 16,
+            "1": 24
+          },
+          "train_indices_sha256": "6095efda0e7cf9a4879a4b6fa8f7eeb8269358cb7b1c6a5aba8cef4fd162acef",
+          "test_indices_sha256": "e38a3b55be6489a183094f48ed53f33baa5726dbe94d231ecb650626d3279b6f",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.71875,
+          "post_balanced_accuracy": 0.59375,
+          "post_minus_pre": -0.125
+        },
+        {
+          "donor_id": "1",
+          "train_donors": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 219,
+          "n_test": 31,
+          "train_label_counts": {
+            "0": 101,
+            "1": 118
+          },
+          "test_label_counts": {
+            "0": 20,
+            "1": 11
+          },
+          "train_indices_sha256": "b91b79c58c8344c9b69c0f7e55de5f7e2115d082f63d8c8cc434f155f1453e56",
+          "test_indices_sha256": "eea4a65f9dd7471ba8692b7b94b87abfae4bc483184029949c86e1affb0b6b80",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "2",
+          "train_donors": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 202,
+          "n_test": 48,
+          "train_label_counts": {
+            "0": 96,
+            "1": 106
+          },
+          "test_label_counts": {
+            "0": 25,
+            "1": 23
+          },
+          "train_indices_sha256": "16197668e18a6ef004c511a41e4840afc12adb55f316af22dc60c95928347a28",
+          "test_indices_sha256": "65340854b230a14eb1ebe105f3b726d891eb5b72aa0ba041bbcafa0959672d5c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.9782608695652174,
+          "post_balanced_accuracy": 0.9782608695652174,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "3",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 213,
+          "n_test": 37,
+          "train_label_counts": {
+            "0": 105,
+            "1": 108
+          },
+          "test_label_counts": {
+            "0": 16,
+            "1": 21
+          },
+          "train_indices_sha256": "eeb362cd5eed083cb476eb5e12b622eb24f34a53db5c6989120c99358cbf51b2",
+          "test_indices_sha256": "763610fa9417b73cc429bb9ff02899fc5416384dbd0d9184b4964fb3c6e2ca4c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.96875,
+          "post_balanced_accuracy": 0.9375,
+          "post_minus_pre": -0.03125
+        },
+        {
+          "donor_id": "4",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "5",
+            "6"
+          ],
+          "n_train": 214,
+          "n_test": 36,
+          "train_label_counts": {
+            "0": 107,
+            "1": 107
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 22
+          },
+          "train_indices_sha256": "7afaa16b3d80096211b540b876597edd1ed6a842c1f267f7e02431931f88bae4",
+          "test_indices_sha256": "985d3eae13ec70a03a3289dbe49381b193a05a3a6e7642f87c28fd98315e81f4",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.9318181818181819,
+          "post_balanced_accuracy": 0.9415584415584416,
+          "post_minus_pre": 0.009740259740259716
+        },
+        {
+          "donor_id": "5",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "n_train": 222,
+          "n_test": 28,
+          "train_label_counts": {
+            "0": 107,
+            "1": 115
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 14
+          },
+          "train_indices_sha256": "572fc31ec4e542630f513afe876181084f381c96259910b374c4465e6d0afa38",
+          "test_indices_sha256": "a80b6c93465e83c72cf6b61e6e34927d2630b0a8a03e8e3eaa00ed30526a0b72",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.8928571428571428,
+          "post_balanced_accuracy": 0.9285714285714286,
+          "post_minus_pre": 0.03571428571428581
+        },
+        {
+          "donor_id": "6",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "n_train": 220,
+          "n_test": 30,
+          "train_label_counts": {
+            "0": 105,
+            "1": 115
+          },
+          "test_label_counts": {
+            "0": 16,
+            "1": 14
+          },
+          "train_indices_sha256": "cf44096b4886612f0fd14935b554ef0fc6414d6d479b8b3cbbf708256c3186a3",
+          "test_indices_sha256": "3971fd83e7459b11faef72c313b75064a6b95d4cf86d3b22ea15e31f5924b89d",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.96875,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.03125
+        }
+      ],
+      "n_scored_donors": 7,
+      "macro_pre_balanced_accuracy": 0.9227408848915061,
+      "macro_post_balanced_accuracy": 0.9113772485278696,
+      "macro_post_minus_pre": -0.011363636363636354
+    },
+    {
+      "post": "post_hist_matched",
+      "pre": "pre_hist",
+      "factor": "belly",
+      "donor_scores": [
+        {
+          "donor_id": "0",
+          "train_donors": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 210,
+          "n_test": 40,
+          "train_label_counts": {
+            "0": 96,
+            "1": 114
+          },
+          "test_label_counts": {
+            "0": 27,
+            "1": 13
+          },
+          "train_indices_sha256": "6095efda0e7cf9a4879a4b6fa8f7eeb8269358cb7b1c6a5aba8cef4fd162acef",
+          "test_indices_sha256": "e38a3b55be6489a183094f48ed53f33baa5726dbe94d231ecb650626d3279b6f",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "1",
+          "train_donors": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 219,
+          "n_test": 31,
+          "train_label_counts": {
+            "0": 107,
+            "1": 112
+          },
+          "test_label_counts": {
+            "0": 16,
+            "1": 15
+          },
+          "train_indices_sha256": "b91b79c58c8344c9b69c0f7e55de5f7e2115d082f63d8c8cc434f155f1453e56",
+          "test_indices_sha256": "eea4a65f9dd7471ba8692b7b94b87abfae4bc483184029949c86e1affb0b6b80",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "2",
+          "train_donors": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 202,
+          "n_test": 48,
+          "train_label_counts": {
+            "0": 105,
+            "1": 97
+          },
+          "test_label_counts": {
+            "0": 18,
+            "1": 30
+          },
+          "train_indices_sha256": "16197668e18a6ef004c511a41e4840afc12adb55f316af22dc60c95928347a28",
+          "test_indices_sha256": "65340854b230a14eb1ebe105f3b726d891eb5b72aa0ba041bbcafa0959672d5c",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "3",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 213,
+          "n_test": 37,
+          "train_label_counts": {
+            "0": 102,
+            "1": 111
+          },
+          "test_label_counts": {
+            "0": 21,
+            "1": 16
+          },
+          "train_indices_sha256": "eeb362cd5eed083cb476eb5e12b622eb24f34a53db5c6989120c99358cbf51b2",
+          "test_indices_sha256": "763610fa9417b73cc429bb9ff02899fc5416384dbd0d9184b4964fb3c6e2ca4c",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "4",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "5",
+            "6"
+          ],
+          "n_train": 214,
+          "n_test": 36,
+          "train_label_counts": {
+            "0": 106,
+            "1": 108
+          },
+          "test_label_counts": {
+            "0": 17,
+            "1": 19
+          },
+          "train_indices_sha256": "7afaa16b3d80096211b540b876597edd1ed6a842c1f267f7e02431931f88bae4",
+          "test_indices_sha256": "985d3eae13ec70a03a3289dbe49381b193a05a3a6e7642f87c28fd98315e81f4",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 0.9705882352941176,
+          "post_minus_pre": -0.02941176470588236
+        },
+        {
+          "donor_id": "5",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "n_train": 222,
+          "n_test": 28,
+          "train_label_counts": {
+            "0": 111,
+            "1": 111
+          },
+          "test_label_counts": {
+            "0": 12,
+            "1": 16
+          },
+          "train_indices_sha256": "572fc31ec4e542630f513afe876181084f381c96259910b374c4465e6d0afa38",
+          "test_indices_sha256": "a80b6c93465e83c72cf6b61e6e34927d2630b0a8a03e8e3eaa00ed30526a0b72",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "6",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "n_train": 220,
+          "n_test": 30,
+          "train_label_counts": {
+            "0": 111,
+            "1": 109
+          },
+          "test_label_counts": {
+            "0": 12,
+            "1": 18
+          },
+          "train_indices_sha256": "cf44096b4886612f0fd14935b554ef0fc6414d6d479b8b3cbbf708256c3186a3",
+          "test_indices_sha256": "3971fd83e7459b11faef72c313b75064a6b95d4cf86d3b22ea15e31f5924b89d",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        }
+      ],
+      "n_scored_donors": 7,
+      "macro_pre_balanced_accuracy": 1.0,
+      "macro_post_balanced_accuracy": 0.9957983193277311,
+      "macro_post_minus_pre": -0.004201680672268908
+    },
+    {
+      "post": "post_hist_matched",
+      "pre": "pre_hist",
+      "factor": "tail",
+      "donor_scores": [
+        {
+          "donor_id": "0",
+          "train_donors": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 210,
+          "n_test": 40,
+          "train_label_counts": {
+            "0": 105,
+            "1": 105
+          },
+          "test_label_counts": {
+            "0": 16,
+            "1": 24
+          },
+          "train_indices_sha256": "6095efda0e7cf9a4879a4b6fa8f7eeb8269358cb7b1c6a5aba8cef4fd162acef",
+          "test_indices_sha256": "e38a3b55be6489a183094f48ed53f33baa5726dbe94d231ecb650626d3279b6f",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 0.875,
+          "post_minus_pre": -0.125
+        },
+        {
+          "donor_id": "1",
+          "train_donors": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 219,
+          "n_test": 31,
+          "train_label_counts": {
+            "0": 101,
+            "1": 118
+          },
+          "test_label_counts": {
+            "0": 20,
+            "1": 11
+          },
+          "train_indices_sha256": "b91b79c58c8344c9b69c0f7e55de5f7e2115d082f63d8c8cc434f155f1453e56",
+          "test_indices_sha256": "eea4a65f9dd7471ba8692b7b94b87abfae4bc483184029949c86e1affb0b6b80",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "2",
+          "train_donors": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 202,
+          "n_test": 48,
+          "train_label_counts": {
+            "0": 96,
+            "1": 106
+          },
+          "test_label_counts": {
+            "0": 25,
+            "1": 23
+          },
+          "train_indices_sha256": "16197668e18a6ef004c511a41e4840afc12adb55f316af22dc60c95928347a28",
+          "test_indices_sha256": "65340854b230a14eb1ebe105f3b726d891eb5b72aa0ba041bbcafa0959672d5c",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 0.98,
+          "post_minus_pre": -0.020000000000000018
+        },
+        {
+          "donor_id": "3",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 213,
+          "n_test": 37,
+          "train_label_counts": {
+            "0": 105,
+            "1": 108
+          },
+          "test_label_counts": {
+            "0": 16,
+            "1": 21
+          },
+          "train_indices_sha256": "eeb362cd5eed083cb476eb5e12b622eb24f34a53db5c6989120c99358cbf51b2",
+          "test_indices_sha256": "763610fa9417b73cc429bb9ff02899fc5416384dbd0d9184b4964fb3c6e2ca4c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.96875,
+          "post_balanced_accuracy": 0.9449404761904762,
+          "post_minus_pre": -0.023809523809523836
+        },
+        {
+          "donor_id": "4",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "5",
+            "6"
+          ],
+          "n_train": 214,
+          "n_test": 36,
+          "train_label_counts": {
+            "0": 107,
+            "1": 107
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 22
+          },
+          "train_indices_sha256": "7afaa16b3d80096211b540b876597edd1ed6a842c1f267f7e02431931f88bae4",
+          "test_indices_sha256": "985d3eae13ec70a03a3289dbe49381b193a05a3a6e7642f87c28fd98315e81f4",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 0.9642857142857143,
+          "post_minus_pre": -0.0357142857142857
+        },
+        {
+          "donor_id": "5",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "n_train": 222,
+          "n_test": 28,
+          "train_label_counts": {
+            "0": 107,
+            "1": 115
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 14
+          },
+          "train_indices_sha256": "572fc31ec4e542630f513afe876181084f381c96259910b374c4465e6d0afa38",
+          "test_indices_sha256": "a80b6c93465e83c72cf6b61e6e34927d2630b0a8a03e8e3eaa00ed30526a0b72",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.9642857142857143,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0357142857142857
+        },
+        {
+          "donor_id": "6",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "n_train": 220,
+          "n_test": 30,
+          "train_label_counts": {
+            "0": 105,
+            "1": 115
+          },
+          "test_label_counts": {
+            "0": 16,
+            "1": 14
+          },
+          "train_indices_sha256": "cf44096b4886612f0fd14935b554ef0fc6414d6d479b8b3cbbf708256c3186a3",
+          "test_indices_sha256": "3971fd83e7459b11faef72c313b75064a6b95d4cf86d3b22ea15e31f5924b89d",
+          "status": "scored",
+          "pre_balanced_accuracy": 1.0,
+          "post_balanced_accuracy": 1.0,
+          "post_minus_pre": 0.0
+        }
+      ],
+      "n_scored_donors": 7,
+      "macro_pre_balanced_accuracy": 0.9904336734693878,
+      "macro_post_balanced_accuracy": 0.9663180272108843,
+      "macro_post_minus_pre": -0.024115646258503407
+    },
+    {
+      "post": "post_hist_matched",
+      "pre": "pre_hist",
+      "factor": "stripe",
+      "donor_scores": [
+        {
+          "donor_id": "0",
+          "train_donors": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 210,
+          "n_test": 40,
+          "train_label_counts": {
+            "0": 166,
+            "1": 44
+          },
+          "test_label_counts": {
+            "0": 32,
+            "1": 8
+          },
+          "train_indices_sha256": "6095efda0e7cf9a4879a4b6fa8f7eeb8269358cb7b1c6a5aba8cef4fd162acef",
+          "test_indices_sha256": "e38a3b55be6489a183094f48ed53f33baa5726dbe94d231ecb650626d3279b6f",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.65625,
+          "post_balanced_accuracy": 0.6875,
+          "post_minus_pre": 0.03125
+        },
+        {
+          "donor_id": "1",
+          "train_donors": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 219,
+          "n_test": 31,
+          "train_label_counts": {
+            "0": 173,
+            "1": 46
+          },
+          "test_label_counts": {
+            "0": 25,
+            "1": 6
+          },
+          "train_indices_sha256": "b91b79c58c8344c9b69c0f7e55de5f7e2115d082f63d8c8cc434f155f1453e56",
+          "test_indices_sha256": "eea4a65f9dd7471ba8692b7b94b87abfae4bc483184029949c86e1affb0b6b80",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6666666666666666,
+          "post_balanced_accuracy": 0.75,
+          "post_minus_pre": 0.08333333333333337
+        },
+        {
+          "donor_id": "2",
+          "train_donors": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 202,
+          "n_test": 48,
+          "train_label_counts": {
+            "0": 162,
+            "1": 40
+          },
+          "test_label_counts": {
+            "0": 36,
+            "1": 12
+          },
+          "train_indices_sha256": "16197668e18a6ef004c511a41e4840afc12adb55f316af22dc60c95928347a28",
+          "test_indices_sha256": "65340854b230a14eb1ebe105f3b726d891eb5b72aa0ba041bbcafa0959672d5c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.7638888888888888,
+          "post_balanced_accuracy": 0.7777777777777777,
+          "post_minus_pre": 0.01388888888888884
+        },
+        {
+          "donor_id": "3",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 213,
+          "n_test": 37,
+          "train_label_counts": {
+            "0": 170,
+            "1": 43
+          },
+          "test_label_counts": {
+            "0": 28,
+            "1": 9
+          },
+          "train_indices_sha256": "eeb362cd5eed083cb476eb5e12b622eb24f34a53db5c6989120c99358cbf51b2",
+          "test_indices_sha256": "763610fa9417b73cc429bb9ff02899fc5416384dbd0d9184b4964fb3c6e2ca4c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6388888888888888,
+          "post_balanced_accuracy": 0.6567460317460317,
+          "post_minus_pre": 0.017857142857142905
+        },
+        {
+          "donor_id": "4",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "5",
+            "6"
+          ],
+          "n_train": 214,
+          "n_test": 36,
+          "train_label_counts": {
+            "0": 171,
+            "1": 43
+          },
+          "test_label_counts": {
+            "0": 27,
+            "1": 9
+          },
+          "train_indices_sha256": "7afaa16b3d80096211b540b876597edd1ed6a842c1f267f7e02431931f88bae4",
+          "test_indices_sha256": "985d3eae13ec70a03a3289dbe49381b193a05a3a6e7642f87c28fd98315e81f4",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.8148148148148148,
+          "post_balanced_accuracy": 0.8518518518518519,
+          "post_minus_pre": 0.03703703703703709
+        },
+        {
+          "donor_id": "5",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "n_train": 222,
+          "n_test": 28,
+          "train_label_counts": {
+            "0": 175,
+            "1": 47
+          },
+          "test_label_counts": {
+            "0": 23,
+            "1": 5
+          },
+          "train_indices_sha256": "572fc31ec4e542630f513afe876181084f381c96259910b374c4465e6d0afa38",
+          "test_indices_sha256": "a80b6c93465e83c72cf6b61e6e34927d2630b0a8a03e8e3eaa00ed30526a0b72",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6,
+          "post_balanced_accuracy": 0.5782608695652174,
+          "post_minus_pre": -0.021739130434782594
+        },
+        {
+          "donor_id": "6",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "n_train": 220,
+          "n_test": 30,
+          "train_label_counts": {
+            "0": 171,
+            "1": 49
+          },
+          "test_label_counts": {
+            "0": 27,
+            "1": 3
+          },
+          "train_indices_sha256": "cf44096b4886612f0fd14935b554ef0fc6414d6d479b8b3cbbf708256c3186a3",
+          "test_indices_sha256": "3971fd83e7459b11faef72c313b75064a6b95d4cf86d3b22ea15e31f5924b89d",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6296296296296297,
+          "post_balanced_accuracy": 0.6666666666666666,
+          "post_minus_pre": 0.03703703703703698
+        }
+      ],
+      "n_scored_donors": 7,
+      "macro_pre_balanced_accuracy": 0.6814484126984127,
+      "macro_post_balanced_accuracy": 0.7098290282296494,
+      "macro_post_minus_pre": 0.028380615531236657
+    },
+    {
+      "post": "post_hist_matched",
+      "pre": "pre_hist",
+      "factor": "cheeks",
+      "donor_scores": [
+        {
+          "donor_id": "0",
+          "train_donors": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 210,
+          "n_test": 40,
+          "train_label_counts": {
+            "0": 109,
+            "1": 101
+          },
+          "test_label_counts": {
+            "0": 25,
+            "1": 15
+          },
+          "train_indices_sha256": "6095efda0e7cf9a4879a4b6fa8f7eeb8269358cb7b1c6a5aba8cef4fd162acef",
+          "test_indices_sha256": "e38a3b55be6489a183094f48ed53f33baa5726dbe94d231ecb650626d3279b6f",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5,
+          "post_balanced_accuracy": 0.5,
+          "post_minus_pre": 0.0
+        },
+        {
+          "donor_id": "1",
+          "train_donors": [
+            "0",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 219,
+          "n_test": 31,
+          "train_label_counts": {
+            "0": 119,
+            "1": 100
+          },
+          "test_label_counts": {
+            "0": 15,
+            "1": 16
+          },
+          "train_indices_sha256": "b91b79c58c8344c9b69c0f7e55de5f7e2115d082f63d8c8cc434f155f1453e56",
+          "test_indices_sha256": "eea4a65f9dd7471ba8692b7b94b87abfae4bc483184029949c86e1affb0b6b80",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6854166666666667,
+          "post_balanced_accuracy": 0.6458333333333333,
+          "post_minus_pre": -0.039583333333333415
+        },
+        {
+          "donor_id": "2",
+          "train_donors": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 202,
+          "n_test": 48,
+          "train_label_counts": {
+            "0": 102,
+            "1": 100
+          },
+          "test_label_counts": {
+            "0": 32,
+            "1": 16
+          },
+          "train_indices_sha256": "16197668e18a6ef004c511a41e4840afc12adb55f316af22dc60c95928347a28",
+          "test_indices_sha256": "65340854b230a14eb1ebe105f3b726d891eb5b72aa0ba041bbcafa0959672d5c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.546875,
+          "post_balanced_accuracy": 0.578125,
+          "post_minus_pre": 0.03125
+        },
+        {
+          "donor_id": "3",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "4",
+            "5",
+            "6"
+          ],
+          "n_train": 213,
+          "n_test": 37,
+          "train_label_counts": {
+            "0": 120,
+            "1": 93
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 23
+          },
+          "train_indices_sha256": "eeb362cd5eed083cb476eb5e12b622eb24f34a53db5c6989120c99358cbf51b2",
+          "test_indices_sha256": "763610fa9417b73cc429bb9ff02899fc5416384dbd0d9184b4964fb3c6e2ca4c",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.6257763975155279,
+          "post_balanced_accuracy": 0.6413043478260869,
+          "post_minus_pre": 0.01552795031055898
+        },
+        {
+          "donor_id": "4",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "5",
+            "6"
+          ],
+          "n_train": 214,
+          "n_test": 36,
+          "train_label_counts": {
+            "0": 115,
+            "1": 99
+          },
+          "test_label_counts": {
+            "0": 19,
+            "1": 17
+          },
+          "train_indices_sha256": "7afaa16b3d80096211b540b876597edd1ed6a842c1f267f7e02431931f88bae4",
+          "test_indices_sha256": "985d3eae13ec70a03a3289dbe49381b193a05a3a6e7642f87c28fd98315e81f4",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5773993808049536,
+          "post_balanced_accuracy": 0.6888544891640866,
+          "post_minus_pre": 0.11145510835913308
+        },
+        {
+          "donor_id": "5",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "6"
+          ],
+          "n_train": 222,
+          "n_test": 28,
+          "train_label_counts": {
+            "0": 120,
+            "1": 102
+          },
+          "test_label_counts": {
+            "0": 14,
+            "1": 14
+          },
+          "train_indices_sha256": "572fc31ec4e542630f513afe876181084f381c96259910b374c4465e6d0afa38",
+          "test_indices_sha256": "a80b6c93465e83c72cf6b61e6e34927d2630b0a8a03e8e3eaa00ed30526a0b72",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.5,
+          "post_balanced_accuracy": 0.5714285714285714,
+          "post_minus_pre": 0.0714285714285714
+        },
+        {
+          "donor_id": "6",
+          "train_donors": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "n_train": 220,
+          "n_test": 30,
+          "train_label_counts": {
+            "0": 119,
+            "1": 101
+          },
+          "test_label_counts": {
+            "0": 15,
+            "1": 15
+          },
+          "train_indices_sha256": "cf44096b4886612f0fd14935b554ef0fc6414d6d479b8b3cbbf708256c3186a3",
+          "test_indices_sha256": "3971fd83e7459b11faef72c313b75064a6b95d4cf86d3b22ea15e31f5924b89d",
+          "status": "scored",
+          "pre_balanced_accuracy": 0.4666666666666667,
+          "post_balanced_accuracy": 0.6,
+          "post_minus_pre": 0.1333333333333333
+        }
+      ],
+      "n_scored_donors": 7,
+      "macro_pre_balanced_accuracy": 0.5574477302362594,
+      "macro_post_balanced_accuracy": 0.6036493916788682,
+      "macro_post_minus_pre": 0.04620166144260905
+    }
+  ]
+}

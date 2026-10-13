@@ -1,0 +1,118 @@
+{
+  "execution": "ALL_REQUIRED_ANALYSES_AND_FIGURES_SUCCEEDED",
+  "numerical_parity": "DIFFERS_FROM_PINNED_REFERENCE",
+  "json_comparison": {
+    "cache_meta.json": {
+      "status": "IDENTICAL",
+      "leaves": 4,
+      "outside_tolerance": 0
+    },
+    "e1_fidelity.json": {
+      "status": "DIFFERS",
+      "leaves": 305,
+      "outside_tolerance": 165
+    },
+    "e1b_correspondence.json": {
+      "status": "CLOSE",
+      "leaves": 279,
+      "outside_tolerance": 0
+    },
+    "e2_preservation.json": {
+      "status": "DIFFERS",
+      "leaves": 582,
+      "outside_tolerance": 57
+    },
+    "e2b_donorblocked.json": {
+      "status": "DIFFERS",
+      "leaves": 188,
+      "outside_tolerance": 11
+    },
+    "e2c_landmark_baseline.json": {
+      "status": "DIFFERS",
+      "leaves": 515,
+      "outside_tolerance": 171
+    },
+    "e3_module_eda.json": {
+      "status": "DIFFERS",
+      "leaves": 567,
+      "outside_tolerance": 4
+    },
+    "e4_byoa_descriptors.json": {
+      "status": "DIFFERS",
+      "leaves": 1313,
+      "outside_tolerance": 106
+    },
+    "e5b_expert_repr.json": {
+      "status": "DIFFERS",
+      "leaves": 822,
+      "outside_tolerance": 25
+    },
+    "e6_negative_results.json": {
+      "status": "DIFFERS",
+      "leaves": 2936,
+      "outside_tolerance": 175
+    },
+    "e6b_limits.json": {
+      "status": "CLOSE",
+      "leaves": 599,
+      "outside_tolerance": 0
+    }
+  },
+  "array_comparison": {
+    "e1_fidelity_arrays.npz": {
+      "CLOSE": 6,
+      "DIFFERS": 3
+    },
+    "e1b_arrays.npz": {
+      "CLOSE": 5
+    },
+    "e2_preservation_arrays.npz": {
+      "CLOSE": 21,
+      "DIFFERS": 3,
+      "IDENTICAL": 2
+    },
+    "e2c_landmark_baseline_arrays.npz": {
+      "CLOSE": 10,
+      "DIFFERS": 13,
+      "IDENTICAL": 2
+    },
+    "e3_module_eda_arrays.npz": {
+      "CLOSE": 6,
+      "DIFFERS": 1
+    },
+    "e4_byoa_descriptors_arrays.npz": {
+      "CLOSE": 32,
+      "DIFFERS": 10,
+      "IDENTICAL": 4
+    },
+    "e5b_arrays.npz": {
+      "CLOSE": 5,
+      "DIFFERS": 4
+    },
+    "e6_negative_results_arrays.npz": {
+      "CLOSE": 15,
+      "DIFFERS": 4
+    }
+  },
+  "supporting_verifiers": {
+    "verify_e2_preservation": {
+      "exit_code": 0,
+      "elapsed_seconds": 260.3560109138489,
+      "command": [
+        "data/fishy/paper-env/bin/python",
+        "verify_e2_preservation.py"
+      ],
+      "scope": "Author independent numerical checks; separately executed against fresh local e2 results."
+    },
+    "verify_e2_followup": {
+      "exit_code": 0,
+      "elapsed_seconds": 36.79052472114563,
+      "command": [
+        "data/fishy/paper-env/bin/python",
+        "verify_e2_followup.py"
+      ],
+      "scope": "Author independent numerical checks; separately executed against fresh local e2 results."
+    }
+  },
+  "checks_are_separate_from_historical_numerical_parity": true
+}

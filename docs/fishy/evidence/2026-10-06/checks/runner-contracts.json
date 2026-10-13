@@ -1,0 +1,7 @@
+{
+  "fixtures": "Non-image byte fixtures exercise structural and integrity boundaries, not numerical analyses",
+  "existing_run_rejected": true,
+  "same_size_input_edit_rejected": true,
+  "mismatched_sample_join_rejected": true,
+  "invalid_join_creates_no_run": true
+}

@@ -1,0 +1,115 @@
+{
+  "fresh_platform": "macOS-26.6.1-arm64-arm-64bit",
+  "historical_platform": "macOS-26.5-arm64-arm-64bit-Mach-O",
+  "fresh_analysis_python": "3.12.8 (main, Jan 14 2025, 23:36:58) [Clang 19.1.6 ]",
+  "historical_analysis_python": "3.12.8 (main, Jan 14 2025, 23:36:58) [Clang 19.1.6 ]",
+  "historical_preparation_python": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "analysis_package_version_differences": [],
+  "fresh_thread_metadata": {
+    "build_cache": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "e1_fidelity": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "e1b_correspondence": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "e2_preservation": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "e2b_donorblocked": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "e3_module_eda": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "e4_byoa_descriptors": {
+      "VECLIB_MAXIMUM_THREADS": "4",
+      "OMP_NUM_THREADS": "4",
+      "OPENBLAS_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "NUMEXPR_NUM_THREADS": "4"
+    },
+    "e5b_expert_repr": {
+      "VECLIB_MAXIMUM_THREADS": "4",
+      "OMP_NUM_THREADS": "4",
+      "OPENBLAS_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "NUMEXPR_NUM_THREADS": "4"
+    },
+    "e6b_limits": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "e2c_landmark_baseline": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "e6_negative_results": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "fig1_dataset": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "fig2_fidelity": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "fig2b_correspondence": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "fig3_preservation": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "fig4_module_eda": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "fig5_byoa": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "fig6_expert": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "fig7_limits": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "verify_e2_preservation": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    },
+    "verify_e2_followup": {
+      "VECLIB_MAXIMUM_THREADS": "4"
+    }
+  },
+  "historical_thread_metadata": {
+    "build_cache": {},
+    "e1_fidelity": {},
+    "e1b_correspondence": {},
+    "e2_preservation": {},
+    "e2b_donorblocked": {},
+    "e3_module_eda": {},
+    "e4_byoa_descriptors": {
+      "OMP_NUM_THREADS": "4",
+      "OPENBLAS_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "NUMEXPR_NUM_THREADS": "4"
+    },
+    "e5b_expert_repr": {
+      "OMP_NUM_THREADS": "4",
+      "OPENBLAS_NUM_THREADS": "4",
+      "MKL_NUM_THREADS": "4",
+      "NUMEXPR_NUM_THREADS": "4"
+    },
+    "e6b_limits": {},
+    "e2c_landmark_baseline": {},
+    "e6_negative_results": {},
+    "fig1_dataset": {},
+    "fig2_fidelity": {},
+    "fig2b_correspondence": {},
+    "fig3_preservation": {},
+    "fig4_module_eda": {},
+    "fig5_byoa": {},
+    "fig6_expert": {},
+    "fig7_limits": {}
+  },
+  "fresh_blas": "NumPy reports Apple Accelerate; see receipts/numpy-config.txt",
+  "historical_blas": "No independent original run BLAS receipt available in this handoff",
+  "causal_limit": "Same Python/package versions do not establish matching operating-system numerical libraries or thread execution. No ablation was performed; these are observed environment differences, not a proven cause."
+}

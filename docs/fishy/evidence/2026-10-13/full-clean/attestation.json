@@ -1,0 +1,483 @@
+{
+  "attestation_version": 1,
+  "execution_verdict": "PASS",
+  "strict_local_numerical_parity": "FAIL / DIFFERS",
+  "strict_author_numerical_parity": "FAIL / DIFFERS",
+  "scope": "Fresh-environment re-execution of the pinned archived 250-specimen FISH analysis and eight figures, followed by two author diagnostic scripts. It does not reconstruct the July 16 atlas, regenerate the synthetic dataset, or exercise the current Rust atlas pipeline.",
+  "source_identity": {
+    "bundle_manifest_sha256": "52cc1a1605a54aeb3831c722242362297fb6666c27938b8b564ed1b2afc98b06",
+    "source_tree_sha256": "c9606297910b27325f0cc127f4f334bb8f59d118b149f2d3746550c000ded2fd",
+    "upstream_revision": "bf36233da21bb38e93ebe565fa99666c7ad2f51e",
+    "source_head": "7e862f3cdf1b6890456e03c2d8e75eecafed5afc",
+    "includes_current_dirty_fixes": true,
+    "shipped_files": 1763,
+    "shipped_bytes": 14154462018
+  },
+  "input_scope": {
+    "synthetic_specimens": 250,
+    "donors": 7,
+    "input_assets": 1517,
+    "input_bytes": 13957572818,
+    "archived_atlas_run": "2026_07-16_20_37_11",
+    "ordering_preserved": true,
+    "input_identity_bound_by_export": true
+  },
+  "clean_environment": {
+    "host": "macmini.taildd0e80.ts.net",
+    "cpu_architecture": "arm64",
+    "hardware_cpu_count": 8,
+    "ram_bytes": 17179869184,
+    "platform": "macOS-26.6.1-arm64-arm-64bit",
+    "python": "3.12.8 (main, Jan 14 2025, 23:36:58) [Clang 19.1.6 ]",
+    "fresh_downloaded_python_and_new_venv": true,
+    "fresh_os_image": false,
+    "package_count": 29,
+    "all_pinned_package_versions_match": true,
+    "packages": {
+      "contourpy": "1.3.3",
+      "cycler": "0.12.1",
+      "diptest": "0.11.0",
+      "fonttools": "4.63.0",
+      "hdbscan": "0.8.44",
+      "imageio": "2.37.3",
+      "joblib": "1.5.3",
+      "kiwisolver": "1.5.0",
+      "lazy-loader": "0.5",
+      "llvmlite": "0.47.0",
+      "matplotlib": "3.10.9",
+      "networkx": "3.6.1",
+      "numba": "0.65.1",
+      "numpy": "2.4.6",
+      "packaging": "26.2",
+      "pandas": "3.0.3",
+      "pillow": "12.2.0",
+      "psutil": "7.2.2",
+      "pynndescent": "0.6.0",
+      "pyparsing": "3.3.2",
+      "python-dateutil": "2.9.0.post0",
+      "scikit-image": "0.26.0",
+      "scikit-learn": "1.8.0",
+      "scipy": "1.17.1",
+      "six": "1.17.0",
+      "threadpoolctl": "3.6.0",
+      "tifffile": "2026.6.1",
+      "tqdm": "4.67.3",
+      "umap-learn": "0.5.12"
+    },
+    "isolated_cache_paths_recorded": "receipts/environment.json",
+    "user_site_enabled": false,
+    "blas": "Apple Accelerate",
+    "thread_policy": "Driver requests four threads. Wrapper clears OMP/OpenBLAS/MKL/NumExpr inheritance and retains the pinned per-stage author policy; e4/e5b explicitly receive four, e2/verifiers/e6 use their own defaults. VECLIB_MAXIMUM_THREADS=4 and NUMBA_NUM_THREADS=4 are retained. This is not an assertion of four total workers everywhere."
+  },
+  "cold_start": {
+    "results_entries": 0,
+    "cache_entries": 0,
+    "receipt": "receipts/cold-start.json"
+  },
+  "phases": [
+    {
+      "phase": "comparison-author",
+      "exit_code": 1,
+      "receipt": "receipts/comparison-author.exit"
+    },
+    {
+      "phase": "comparison-local",
+      "exit_code": 1,
+      "receipt": "receipts/comparison-local.exit"
+    },
+    {
+      "phase": "driver",
+      "exit_code": 0,
+      "receipt": "receipts/driver.exit"
+    },
+    {
+      "phase": "export",
+      "exit_code": 0,
+      "receipt": "receipts/export.exit",
+      "start_utc": "2026-10-13T03:06:49Z",
+      "end_utc": "2026-10-13T03:06:58Z",
+      "wall_seconds": 9.0
+    },
+    {
+      "phase": "final-integrity",
+      "exit_code": 0,
+      "receipt": "receipts/final-integrity.exit",
+      "start_utc": "2026-10-13T03:06:58Z",
+      "end_utc": "2026-10-13T03:07:08Z",
+      "wall_seconds": 10.0
+    },
+    {
+      "phase": "full",
+      "exit_code": 0,
+      "receipt": "receipts/full.exit",
+      "start_utc": "2026-10-13T02:35:41Z",
+      "end_utc": "2026-10-13T03:01:17Z",
+      "wall_seconds": 1536.0
+    },
+    {
+      "phase": "install",
+      "exit_code": 0,
+      "receipt": "receipts/install.exit"
+    },
+    {
+      "phase": "prepare",
+      "exit_code": 0,
+      "receipt": "receipts/prepare.exit",
+      "start_utc": "2026-10-13T02:35:24Z",
+      "end_utc": "2026-10-13T02:35:41Z",
+      "wall_seconds": 17.0
+    },
+    {
+      "phase": "smoke",
+      "exit_code": 0,
+      "receipt": "receipts/smoke.exit",
+      "start_utc": "2026-10-13T02:34:16Z",
+      "end_utc": "2026-10-13T02:35:24Z",
+      "wall_seconds": 68.0
+    },
+    {
+      "phase": "verify-e2-followup",
+      "exit_code": 0,
+      "receipt": "receipts/verify-e2-followup.exit",
+      "start_utc": "2026-10-13T03:05:45Z",
+      "end_utc": "2026-10-13T03:06:26Z",
+      "wall_seconds": 41.0
+    },
+    {
+      "phase": "verify-e2",
+      "exit_code": 0,
+      "receipt": "receipts/verify-e2.exit",
+      "start_utc": "2026-10-13T03:01:17Z",
+      "end_utc": "2026-10-13T03:05:45Z",
+      "wall_seconds": 268.0
+    },
+    {
+      "phase": "verify",
+      "exit_code": 0,
+      "receipt": "receipts/verify.exit",
+      "start_utc": "2026-10-13T02:34:06Z",
+      "end_utc": "2026-10-13T02:34:16Z",
+      "wall_seconds": 10.0
+    }
+  ],
+  "stages": [
+    {
+      "stage": "build_cache",
+      "exit_code": 0,
+      "elapsed_seconds": 92.0195939540863,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/build_cache.log"
+    },
+    {
+      "stage": "e1_fidelity",
+      "exit_code": 0,
+      "elapsed_seconds": 242.02253794670105,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/e1_fidelity.log"
+    },
+    {
+      "stage": "e1b_correspondence",
+      "exit_code": 0,
+      "elapsed_seconds": 83.22845792770386,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/e1b_correspondence.log"
+    },
+    {
+      "stage": "e2_preservation",
+      "exit_code": 0,
+      "elapsed_seconds": 252.5400960445404,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/e2_preservation.log"
+    },
+    {
+      "stage": "e2b_donorblocked",
+      "exit_code": 0,
+      "elapsed_seconds": 24.28778600692749,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/e2b_donorblocked.log"
+    },
+    {
+      "stage": "e3_module_eda",
+      "exit_code": 0,
+      "elapsed_seconds": 37.54797124862671,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/e3_module_eda.log"
+    },
+    {
+      "stage": "e4_byoa_descriptors",
+      "exit_code": 0,
+      "elapsed_seconds": 204.15641903877258,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4",
+        "OMP_NUM_THREADS": "4",
+        "OPENBLAS_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "NUMEXPR_NUM_THREADS": "4"
+      },
+      "log": "full/logs/e4_byoa_descriptors.log"
+    },
+    {
+      "stage": "e5b_expert_repr",
+      "exit_code": 0,
+      "elapsed_seconds": 31.368337154388428,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4",
+        "OMP_NUM_THREADS": "4",
+        "OPENBLAS_NUM_THREADS": "4",
+        "MKL_NUM_THREADS": "4",
+        "NUMEXPR_NUM_THREADS": "4"
+      },
+      "log": "full/logs/e5b_expert_repr.log"
+    },
+    {
+      "stage": "e6b_limits",
+      "exit_code": 0,
+      "elapsed_seconds": 40.907838344573975,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/e6b_limits.log"
+    },
+    {
+      "stage": "e2c_landmark_baseline",
+      "exit_code": 0,
+      "elapsed_seconds": 75.82566809654236,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/e2c_landmark_baseline.log"
+    },
+    {
+      "stage": "e6_negative_results",
+      "exit_code": 0,
+      "elapsed_seconds": 257.85589575767517,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/e6_negative_results.log"
+    },
+    {
+      "stage": "fig1_dataset",
+      "exit_code": 0,
+      "elapsed_seconds": 147.52449107170105,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/fig1_dataset.log"
+    },
+    {
+      "stage": "fig2_fidelity",
+      "exit_code": 0,
+      "elapsed_seconds": 6.168843984603882,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/fig2_fidelity.log"
+    },
+    {
+      "stage": "fig2b_correspondence",
+      "exit_code": 0,
+      "elapsed_seconds": 7.142493963241577,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/fig2b_correspondence.log"
+    },
+    {
+      "stage": "fig3_preservation",
+      "exit_code": 0,
+      "elapsed_seconds": 4.682235240936279,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/fig3_preservation.log"
+    },
+    {
+      "stage": "fig4_module_eda",
+      "exit_code": 0,
+      "elapsed_seconds": 4.947633743286133,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/fig4_module_eda.log"
+    },
+    {
+      "stage": "fig5_byoa",
+      "exit_code": 0,
+      "elapsed_seconds": 4.760929107666016,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/fig5_byoa.log"
+    },
+    {
+      "stage": "fig6_expert",
+      "exit_code": 0,
+      "elapsed_seconds": 4.505873918533325,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/fig6_expert.log"
+    },
+    {
+      "stage": "fig7_limits",
+      "exit_code": 0,
+      "elapsed_seconds": 4.602191209793091,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/fig7_limits.log"
+    },
+    {
+      "stage": "verify_e2_preservation",
+      "exit_code": 0,
+      "elapsed_seconds": 258.491149187088,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/verify_e2_preservation.log"
+    },
+    {
+      "stage": "verify_e2_followup",
+      "exit_code": 0,
+      "elapsed_seconds": 31.59012508392334,
+      "thread_environment": {
+        "VECLIB_MAXIMUM_THREADS": "4"
+      },
+      "log": "full/logs/verify_e2_followup.log"
+    }
+  ],
+  "stage_elapsed_seconds_total": 1816.176568031311,
+  "smoke": {
+    "execution": "PASS",
+    "local_numerical_parity": "PASS",
+    "specimens": 7,
+    "faces_per_specimen": 1024,
+    "computation_seconds": 7.087,
+    "max_independent_color_error": 9.325873406851315e-15,
+    "max_local_reference_error": 0.0,
+    "report": "smoke/smoke.json"
+  },
+  "comparisons": {
+    "local": {
+      "numerical_parity": "DIFFERS",
+      "exit_code": 1,
+      "relative_tolerance": 1e-06,
+      "json_files": 11,
+      "json_leaves": 8110,
+      "json_files_outside_tolerance": 6,
+      "json_leaves_outside_tolerance": 178,
+      "array_fields": 146,
+      "array_status_counts": {
+        "CLOSE": 129,
+        "IDENTICAL": 8,
+        "DIFFERS": 9
+      },
+      "missing_files_or_fields": false,
+      "nonfinite_patterns_match": true,
+      "raw_json_and_array_metrics_independently_recomputed": true
+    },
+    "author": {
+      "numerical_parity": "DIFFERS",
+      "exit_code": 1,
+      "relative_tolerance": 1e-06,
+      "json_files": 11,
+      "json_leaves": 8110,
+      "json_files_outside_tolerance": 8,
+      "json_leaves_outside_tolerance": 702,
+      "array_fields": 146,
+      "array_status_counts": {
+        "CLOSE": 101,
+        "DIFFERS": 37,
+        "IDENTICAL": 8
+      },
+      "missing_files_or_fields": false,
+      "nonfinite_patterns_match": true,
+      "raw_json_and_array_metrics_independently_recomputed": true
+    }
+  },
+  "independent_diagnostics": {
+    "e2": {
+      "execution_exit_code": 0,
+      "order_ok": true,
+      "ground_truth_join_ok": true,
+      "matched_classification_accuracy_count": 40,
+      "classification_accuracy_max_difference": 0.0,
+      "diagnostic_descriptor_max_errors": {
+        "native_pig_recheck_maxabs": 0.0,
+        "native_spatial_recompute_maxabs": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "post_area_vs_agent_maxabs": 0.0,
+        "post_axial_vs_agent_maxabs": 0.0,
+        "canon_vs_agent_maxabs": 0.0,
+        "hist_matched_vs_agent_maxabs": 5.7572502321079355e-11
+      },
+      "printed_error_fields": [],
+      "scope": "Diagnostic script, not a strict original-author parity gate; only these named checks independently assessed."
+    },
+    "followup": {
+      "execution_exit_code": 0,
+      "stripe_dimension_matched_gain": 0.16477709790209794,
+      "composition_cheek_change": 0.060779759692803206,
+      "ci_limitation": "Ordinary paired t-test and SEM use overlapping repeated CV folds; these are inherited exploratory statistics, not independently corrected confidence intervals."
+    },
+    "e2_twelve_categorical_headline_deltas_max_difference": {
+      "local": 0.0,
+      "author": 0.0
+    }
+  },
+  "export_integrity": {
+    "manifest_sha256": "d481c9a609dfbb1da9029ae0f99181e81eafad47b41d82b56d2a86897e0acb4b",
+    "files_independently_hash_checked": 64,
+    "all_match": true,
+    "original_bundle_final_integrity": "PASS, receipts/final-integrity.log"
+  },
+  "figure_review": {
+    "verdict": "PASS with inherited layout caveats; no missing figure/panel or material new rendering defect observed.",
+    "pngs_reviewed": 8,
+    "major_panels": 43,
+    "pixel_identical_to_oct6_reference": 6,
+    "report": "figure-review.json"
+  },
+  "limitations": [
+    "Execution completion and strict historical numerical parity are separate; both strict comparisons fail the predeclared 1e-6 tolerance. No tolerance was relaxed.",
+    "Pinned source and 29 package versions match; historical and fresh OS versions differ. No controlled ablation establishes a single cause for current-local discrepancies.",
+    "37 raw native and all atlas axial profile direction reversals relative to author arrays are independently verified; this does not explain every author mismatch.",
+    "Author input checksums, complete original platform/BLAS details and warm-cache provenance remain unavailable. Nearest-neighbor tie sensitivity was demonstrated in the previous audit, not proved as the full cause here.",
+    "The original paper understates matched-composition cheek improvement: current +0.060780 versus its stated maximum 0.012.",
+    "Inherited ordinary paired t-tests and SEM treat overlapping repeated CV folds as independent; their reported confidence intervals are not corrected estimates.",
+    "Hue groups are inferred from supplied values by the pinned author code; original applied-label membership is not independently certified.",
+    "Numeric arrays are compared with pickle disabled; no object-array fields occurred in this required comparison scope. Additional supporting archived files are outside the executed figure set.",
+    "Figures have inherited minor label overlap/axis-limit/legend-density caveats; PDFs were not independently rendered for visual review.",
+    "Native dataset public redistribution rights are unresolved; this delivery is a user-authorized local private research package, not a public dataset release."
+  ],
+  "supporting_files": {
+    "summary": "README.md",
+    "full_differences": "mismatch-summary.json",
+    "environment_comparison": "environment-comparison.json",
+    "source_contract": "package-contract/manifest.json",
+    "install_driver": "scripts/fish-clean-install.sh",
+    "run_driver": "scripts/fish-clean-run.sh",
+    "portable_instructions": "package-contract/README.md"
+  },
+  "script_sha256": {
+    "install": "37f7ca0d01edc735d2125276b3cb7b33bf3273acef18f090ab3e6feb3b6a3dc5",
+    "run": "8b2dc257f5b89f7c341571fd7421ea72e24b795d4563ba9c16dc6d78fc74992a",
+    "independent_characterization": "f2ea0d25c54ac3acff1ce9cb49393c1d0dd27bc1e04871c02c467901b8c8fcac"
+  }
+}

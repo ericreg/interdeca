@@ -9,3 +9,7 @@ wheels/
 # Virtual environments
 .venv
 .ruff_cache
+
+# Local research inputs, environments, and generated reproduction outputs.
+/data/fishy/
+/data/learned-color/

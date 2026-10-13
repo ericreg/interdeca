@@ -1,0 +1,46 @@
+{
+  "method": "Each generated PNG was opened with view_image and visually inspected after all source stages succeeded.",
+  "figures": [
+    {
+      "name": "fig1_dataset.png",
+      "sha256": "dd1957cbb0cf4f5e4c7b50052171f931a30d0e27fb31a9f6bccca3106f49ee86",
+      "review": "Complete panels, axes and legends visible; original author layout retained."
+    },
+    {
+      "name": "fig2_fidelity.png",
+      "sha256": "2ea36b89e555035075a01f808cb3025f49760c8bf85f32233dd16b0bb019927f",
+      "review": "Complete panels, axes and legends visible; original author layout retained."
+    },
+    {
+      "name": "fig2b_correspondence.png",
+      "sha256": "5e290b598cab01c0ab447cd233555e6c35250d7e0f79be97ce8427209fe7cf9a",
+      "review": "Complete panels, axes and legends visible; original author layout retained."
+    },
+    {
+      "name": "fig3_preservation.png",
+      "sha256": "c20d796109be1f86a082f968da0ea7605993d7387d9a8b6a30285e3efaf24ca4",
+      "review": "Complete panels, axes and legends visible; original author layout retained."
+    },
+    {
+      "name": "fig4_module_eda.png",
+      "sha256": "cb4e29ec85fc643d93ddfbfa2941dd1aec207f0a0a2527da6767542327a9e39b",
+      "review": "Complete panels, axes and legends visible; original author layout retained."
+    },
+    {
+      "name": "fig5_byoa.png",
+      "sha256": "8b79ddfdca92196e4f8cbe0a49c85bdf4c927c8333a7230ea71581cda5cea1e8",
+      "review": "Complete panels, axes and legends visible; original author layout retained."
+    },
+    {
+      "name": "fig6_expert.png",
+      "sha256": "fc6763d05e394ab17bfb15dd435ff75e503d5ea5bfe3d543aaf18af34e9b8b92",
+      "review": "Complete panels, axes and legends visible; original author layout retained."
+    },
+    {
+      "name": "fig7_limits.png",
+      "sha256": "bcece7bf43436343f805b1e344bfed9f32dceaa352dd22b13212d3703f8bda00",
+      "review": "Complete panels, axes and legends visible; original author layout retained."
+    }
+  ],
+  "layout_scope": "Reproduction of upstream typesetting. Some upstream legends occupy plotted data areas; these were retained rather than changing source figures."
+}
