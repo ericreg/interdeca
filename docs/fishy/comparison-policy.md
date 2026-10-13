@@ -68,8 +68,11 @@ Object arrays remain `UNVERIFIED_OBJECT_ARRAY`. Files are always loaded with
 comparison never executes an object payload. Undefined or unsafe-object evidence
 prevents the aggregate report from claiming complete parity: it is `INCOMPLETE`
 when there are no known differences, or `DIFFERS` when differences also exist.
-Both outcomes exit 1. `PASS` covers only the explicitly reported scope; without
-reference arrays that scope is required JSON only, and arrays are not assessed.
+Both outcomes exit 1. Overall `numerical_parity` is `PASS` only when both every
+required JSON file and every required reference array were assessed and agree.
+Without `--reference-arrays`, arrays are not assessed, so JSON-only agreement is
+reported separately as `json_parity: PASS` while the overall verdict is
+`INCOMPLETE` and the CLI exits 1. A known difference in either part is `DIFFERS`.
 
 ## Sensitivity and preserved historical evidence
 

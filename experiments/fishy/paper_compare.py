@@ -610,23 +610,34 @@ class Compare:
                         }
                     }
                 )
-        statuses = [row["status"] for row in report["json"].values()]
-        statuses += [
+        json_statuses = [row["status"] for row in report["json"].values()]
+        array_statuses = [
             row["status"]
             for fields in report["arrays"].values()
             for row in fields.values()
         ]
-        incomplete = any(
-            status in ("UNDEFINED", "UNVERIFIED_OBJECT_ARRAY") for status in statuses
-        )
-        failed = any(
+        report["json_parity"] = Compare.verdict(json_statuses)
+        verdict = Compare.verdict(json_statuses + array_statuses)
+        # Arrays are part of the complete-parity claim, so JSON agreement alone is
+        # at most INCOMPLETE; a known difference still reports DIFFERS.
+        if verdict == "PASS" and reference_arrays is None:
+            verdict = "INCOMPLETE"
+        report["numerical_parity"] = verdict
+        return report
+
+    @staticmethod
+    def verdict(statuses: list[str]) -> str:
+        """Aggregate row statuses: any difference beats undefined, which beats PASS."""
+        if any(
             status not in ("IDENTICAL", "CLOSE", "UNDEFINED", "UNVERIFIED_OBJECT_ARRAY")
             for status in statuses
-        )
-        report["numerical_parity"] = (
-            "DIFFERS" if failed else "INCOMPLETE" if incomplete else "PASS"
-        )
-        return report
+        ):
+            return "DIFFERS"
+        if any(
+            status in ("UNDEFINED", "UNVERIFIED_OBJECT_ARRAY") for status in statuses
+        ):
+            return "INCOMPLETE"
+        return "PASS"
 
 
 def main() -> None:
@@ -690,6 +701,7 @@ def main() -> None:
     Paper.write(destination, report)
     for name, row in report["json"].items():
         print(f"{name}: {row['status']}")
+    print(f"JSON parity: {report['json_parity']}")
     print(f"Numerical parity: {report['numerical_parity']}")
     raise SystemExit(0 if report["numerical_parity"] == "PASS" else 1)
 

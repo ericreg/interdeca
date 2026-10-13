@@ -117,23 +117,23 @@ class Config(Boundary):
 
 
 class ParameterData(Boundary):
-    """CSV/JSON parameter rows validated before entering numerical code."""
+    """CSV/JSON parameter rows; value domains are enforced by Parameters.validated."""
 
-    base_color_hue: float = Field(ge=0, lt=1)
-    base_color_sat: float = Field(ge=0, le=1)
-    base_color_val: float = Field(ge=0, le=1)
-    stripe_count: Literal[4, 5]
+    base_color_hue: float
+    base_color_sat: float
+    base_color_val: float
+    stripe_count: int
     stripe_spacing: float
-    stripe_width: float = Field(gt=0)
+    stripe_width: float
     stripe_longitudinal_offset: float
-    belly_hue: float = Field(ge=0, lt=1)
-    belly_strength: float = Field(ge=0, le=1)
+    belly_hue: float
+    belly_strength: float
     belly_translation: float
-    tail_hue: float = Field(ge=0, lt=1)
-    tail_strength: float = Field(ge=0, le=1)
-    rosy_cheeks_present: Literal[0, 1]
-    rosy_cheeks_hue: float = Field(ge=0, lt=1)
-    rosy_cheeks_strength: float = Field(ge=0, le=1)
+    tail_hue: float
+    tail_strength: float
+    rosy_cheeks_present: int
+    rosy_cheeks_hue: float
+    rosy_cheeks_strength: float
     rosy_cheeks_translation_y: float
     rosy_cheeks_translation_z: float
 
@@ -144,9 +144,15 @@ class ParameterData(Boundary):
             raise ValueError("Parameter categories must be integers.")
         return value
 
+    @model_validator(mode="after")
+    def domain(self) -> Self:
+        """Reuse the numerical domain rules so boundary and sampler cannot disagree."""
+        self.to_internal().validated()
+        return self
+
     def to_internal(self) -> Parameters:
         """Numerical code consumes named tuples rather than serialization models."""
-        return Parameters(**self.model_dump())
+        return Parameters(**self.model_dump(include=set(Parameters._fields)))
 
 
 class ArchiveRow(ParameterData):

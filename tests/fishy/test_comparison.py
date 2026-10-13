@@ -300,6 +300,21 @@ class ComparisonTests(unittest.TestCase):
             Compare.results(reference, current)["numerical_parity"], "INCOMPLETE"
         )
 
+    def test_json_only_agreement_is_incomplete_not_pass(self):
+        reference, current = self.root / "left", self.root / "right"
+        reference.mkdir()
+        current.mkdir()
+        for name in REQUIRED_JSON:
+            (reference / name).write_text('{"score": 1.0}')
+            (current / name).write_text('{"score": 1.0}')
+        report = Compare.results(reference, current)
+        self.assertEqual(report["json_parity"], "PASS")
+        self.assertEqual(report["numerical_parity"], "INCOMPLETE")
+        (current / REQUIRED_JSON[0]).write_text('{"score": 2.0}')
+        self.assertEqual(
+            Compare.results(reference, current)["numerical_parity"], "DIFFERS"
+        )
+
     def test_explicit_directory_cli_only_writes_external_report(self):
         reference, current = self.root / "left", self.root / "right"
         reference.mkdir()
@@ -332,11 +347,11 @@ class ComparisonTests(unittest.TestCase):
             self.assertRaises(SystemExit) as exit_value,
         ):
             main()
-        self.assertEqual(exit_value.exception.code, 0)
-        self.assertEqual(
-            json.loads(destination.read_text())["comparison_policy"],
-            "symmetric-elementwise-v2",
-        )
+        self.assertEqual(exit_value.exception.code, 1)
+        report = json.loads(destination.read_text())
+        self.assertEqual(report["comparison_policy"], "symmetric-elementwise-v2")
+        self.assertEqual(report["json_parity"], "PASS")
+        self.assertEqual(report["numerical_parity"], "INCOMPLETE")
         self.assertEqual(
             before,
             {

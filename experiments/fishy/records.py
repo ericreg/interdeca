@@ -31,7 +31,11 @@ class Parameters(NamedTuple):
     rosy_cheeks_translation_z: float
 
     def validated(self) -> Self:
-        """Check direct numerical callers; construction remains lightweight."""
+        """Single domain definition for parameter vectors; construction stays lightweight.
+
+        Stripe width sign is not a domain rule: the author's normal draw can be
+        non-positive, so sampling flags it rather than rejecting the vector.
+        """
         for name, value in self._asdict().items():
             if (
                 isinstance(value, bool)
@@ -57,8 +61,6 @@ class Parameters(NamedTuple):
         ):
             if not 0 <= getattr(self, name) <= 1:
                 raise ValueError(f"{name} must lie in [0, 1].")
-        if self.stripe_width <= 0:
-            raise ValueError("stripe_width must be positive.")
         return self
 
 
