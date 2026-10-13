@@ -5,6 +5,7 @@ paper metadata can be inspected before the scientific environment is installed.
 """
 
 import math
+import warnings
 from numbers import Real
 from typing import NamedTuple, Self
 
@@ -34,8 +35,14 @@ class Parameters(NamedTuple):
         """Single domain definition for parameter vectors; construction stays lightweight.
 
         Stripe width sign is not a domain rule: the author's normal draw can be
-        non-positive, so sampling flags it rather than rejecting the vector.
+        non-positive, so it is flagged with a warning and kept exactly as drawn.
         """
+        if self.stripe_width <= 0:
+            warnings.warn(
+                "stripe_width is non-positive; returned as drawn.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
         for name, value in self._asdict().items():
             if (
                 isinstance(value, bool)

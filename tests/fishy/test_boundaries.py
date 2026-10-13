@@ -428,13 +428,35 @@ class GenerationTests(unittest.TestCase):
         brush = Brush(np.zeros(3), np.ones(3), 0.1, 0.03, (0.0, 0.0, 0.0), 1.0)
         for invalid in (
             brush._replace(sigma=float("nan")),
-            brush._replace(sigma=-1.0),
+            brush._replace(sigma=-1e-12),
             brush._replace(start=np.array([0.0, float("inf"), 0.0])),
         ):
             with self.subTest(brush=invalid), self.assertRaises(ValueError):
                 Generation.paint(POINTS, (invalid,), 0.1, 8.0)
         with self.assertRaises(ValueError):
             Generation.paint(POINTS, (brush,), float("nan"), 8.0)
+
+    def test_negative_width_draw_flows_through_brush_warp_and_paint(self):
+        with self.assertWarnsRegex(RuntimeWarning, "non-positive"):
+            row = Generation.sample_labeled(250, 11725)[156]
+        width = row.parameters.stripe_width
+        self.assertEqual(width, -0.0008502049605016274)
+        with self.assertWarnsRegex(RuntimeWarning, "non-positive"):
+            parameters = ParameterData.model_validate(
+                row.parameters._asdict()
+            ).to_internal()
+        with self.assertWarnsRegex(RuntimeWarning, "non-positive"):
+            brushes = Generation.brushes(parameters)
+        stripes = [brush for brush in brushes if brush.sigma == width]
+        self.assertEqual(len(stripes), 2 * parameters.stripe_count)
+        spline = Generation.fit(POINTS, POINTS, 1e-6)
+        frame = CanonicalFrame(np.eye(3), np.zeros(3), 1.0, np.zeros(3))
+        warped = Generation.warp((stripes[0],), spline, frame)[0]
+        np.testing.assert_allclose(warped.sigma, width, rtol=1e-5)
+        dot = Brush(np.zeros(3), np.zeros(3), 0.0, width, (1.0, 1.0, 1.0), 1.0)
+        painted = Generation.paint(np.array([[width, 0.0, 0.0]]), (dot,), 0.0, 8.0)
+        expected = np.exp(-0.5 * (abs(width) / (width + 1e-12)) ** 2)
+        np.testing.assert_allclose(painted[0], expected, atol=1e-9)
 
     def test_sampling_keeps_global_rng_isolated_and_python_categories(self):
         np.random.seed(817)

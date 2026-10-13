@@ -20538,5 +20538,6 @@
   },
   "array_scope": "Required arrays; unsafe objects remain unverified",
   "excluded_supporting_reference_arrays": [],
+  "json_parity": "DIFFERS",
   "numerical_parity": "DIFFERS"
 }

@@ -29,13 +29,13 @@
     },
     {
       "path": "elementwise-author-atol-1e-08.json",
-      "bytes": 1514634,
-      "sha256": "d78e72af2de2a035c867d7df05daede4cb77683e79a7e020ae86c6ce37808871"
+      "bytes": 1514662,
+      "sha256": "01f1e165dfdd69280cc71b9338ca0f940b888450d03535c50b614d98b34f7172"
     },
     {
       "path": "elementwise-local-atol-1e-08.json",
-      "bytes": 835472,
-      "sha256": "1ae3d16e701b25f975a2fd0f9d3621cb520ed443127c17c1332beb55bb0da3e7"
+      "bytes": 835500,
+      "sha256": "8b34155b57f2b6eab765238e633bfb09affef5781e75106889b4d0a6d50167b3"
     },
     {
       "path": "focused-boundary/fidelity-hashes.json",
@@ -120,7 +120,7 @@
     {
       "path": "sensitivity.json",
       "bytes": 12077,
-      "sha256": "5a51f192a72ef8a765be62f7295d68768bf820e5ff8281f690fb2ec8c87b1f95"
+      "sha256": "67c414c85e391dcebba9eed98d69799e0d708496bb8be5bb3984a5cc07dc6805"
     },
     {
       "path": "summary.json",

@@ -1,7 +1,7 @@
 {
   "scope": "Recomparison of existing fullclean outputs, not new scientific execution",
   "policy": "symmetric-elementwise-v2",
-  "comparator_sha256": "ec37f26b1fd2cf044607cc23480da1d59fd7cfd8c0017d94bb72f8cf9192122a",
+  "comparator_sha256": "69123a8d8a248398a5369a6f165a710bb581623019014679e36449b8fed7b442",
   "python": "3.12.8 (main, Jan 14 2025, 23:36:58) [Clang 19.1.6 ]",
   "platform": "macOS-26.6.1-arm64-arm-64bit",
   "packages": {
@@ -40,7 +40,7 @@
       },
       "array_elements_outside_tolerance": 2369856,
       "numerical_parity": "DIFFERS",
-      "wall_seconds": 3.405
+      "wall_seconds": 3.154
     },
     {
       "reference": "author",
@@ -57,7 +57,7 @@
       },
       "array_elements_outside_tolerance": 2369771,
       "numerical_parity": "DIFFERS",
-      "wall_seconds": 2.977
+      "wall_seconds": 3.103
     },
     {
       "reference": "author",
@@ -74,7 +74,7 @@
       },
       "array_elements_outside_tolerance": 2369738,
       "numerical_parity": "DIFFERS",
-      "wall_seconds": 3.087
+      "wall_seconds": 3.035
     },
     {
       "reference": "local",
@@ -91,7 +91,7 @@
       },
       "array_elements_outside_tolerance": 1012,
       "numerical_parity": "DIFFERS",
-      "wall_seconds": 3.083
+      "wall_seconds": 3.093
     },
     {
       "reference": "local",
@@ -108,7 +108,7 @@
       },
       "array_elements_outside_tolerance": 1012,
       "numerical_parity": "DIFFERS",
-      "wall_seconds": 2.907
+      "wall_seconds": 3.031
     },
     {
       "reference": "local",
@@ -125,7 +125,7 @@
       },
       "array_elements_outside_tolerance": 1012,
       "numerical_parity": "DIFFERS",
-      "wall_seconds": 2.977
+      "wall_seconds": 2.996
     }
   ],
   "input_files": {

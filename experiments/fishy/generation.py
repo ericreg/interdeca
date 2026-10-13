@@ -5,7 +5,6 @@ See docs/fishy/provenance.md for preserved behavior and unresolved paper differe
 """
 
 import colorsys
-import warnings
 
 import numpy as np
 from sklearn.datasets import make_blobs
@@ -52,16 +51,6 @@ class Generation:
         stripes = rng.choice([4, 5], count, p=[0.8, 0.2])
         spacing = rng.normal(-0.08, 0.01, count)
         width = rng.normal(0.025, 0.005, count)
-        # Non-positive widths are kept exactly as drawn so seeded samples match the
-        # author's protocol; they are flagged here rather than resampled or clamped.
-        non_positive_width = int(np.count_nonzero(width <= 0))
-        if non_positive_width:
-            warnings.warn(
-                f"{non_positive_width} sampled stripe_width value(s) are non-positive;"
-                " returned as drawn.",
-                RuntimeWarning,
-                stacklevel=2,
-            )
         offset = rng.normal(0, 0.01, count)
         belly_blob, belly_group = make_blobs(
             count,

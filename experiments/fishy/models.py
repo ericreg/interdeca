@@ -111,7 +111,7 @@ class Brush(NamedTuple):
                 raise ValueError("Brush endpoints must have length three.")
         for name in ("radius", "sigma", "strength"):
             GeneratorData.scalar(getattr(self, name), name)
-        if self.radius < 0 or self.sigma <= 0 or not 0 <= self.strength <= 1:
+        if self.radius < 0 or self.sigma + 1e-12 == 0 or not 0 <= self.strength <= 1:
             raise ValueError("Brush radius/width/strength is outside its valid range.")
         if len(self.color) != 3:
             raise ValueError("Brush RGB color must have length three.")
