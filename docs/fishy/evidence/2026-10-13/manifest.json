@@ -19,13 +19,13 @@
     },
     {
       "path": "current-tests.log",
-      "bytes": 9965,
-      "sha256": "fc1ad266caf1d42a5f758a610839a449e7e8e12754796609a89ecf51d9aefb40"
+      "bytes": 10263,
+      "sha256": "adf6105d88801b26ba1cb49711009fcaa2c90e0c084bf1cddfd8f6db4f1ee6f7"
     },
     {
       "path": "current-validation.json",
       "bytes": 5074,
-      "sha256": "5a9e36f01e31119f720a62eeac86c7cde6721563222bf15d6e109ffef10851d6"
+      "sha256": "b275d08e7ff80d0cd2e34fab2ee19c014e7f446152318f22a2f09dadae7592ad"
     },
     {
       "path": "elementwise-author-atol-1e-08.json",
@@ -124,8 +124,8 @@
     },
     {
       "path": "summary.json",
-      "bytes": 6557,
-      "sha256": "348d8192cbfc557bbf9f955e7acb7f95ed4ec2a5684ce3ec9e9b5cac26d81864"
+      "bytes": 6829,
+      "sha256": "1ae91fc533553415a1e491cb34843ba2b41bbb90b94412de81f73f665a5b5ec5"
     }
   ],
   "comparison_checks": [

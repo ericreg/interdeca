@@ -465,18 +465,22 @@ class GenerationTests(unittest.TestCase):
         with self.assertWarnsRegex(RuntimeWarning, "non-positive"):
             width = Generation.sample(250, 11725)[156].stripe_width
         self.assertEqual(width, -0.0008502049605016274)
-        first = Generation.sample(16, 49)
+        first = Generation.sample(250, 49)
         np.testing.assert_array_equal(np.random.random(5), expected)
-        self.assertEqual(first, Generation.sample(16, 49))
+        self.assertEqual(first, Generation.sample(250, 49))
         self.assertTrue(
             all(
                 type(row.stripe_count) is int and type(row.rosy_cheeks_present) is int
                 for row in first
             )
         )
-        self.assertTrue(
-            all(ParameterData.model_validate(row._asdict()) for row in first)
-        )
+        for row in first:
+            parameters = ParameterData.model_validate(row._asdict()).to_internal()
+            brushes = Generation.brushes(parameters)
+            self.assertEqual(
+                [brush.sigma for brush in brushes if brush.sigma == row.stripe_width],
+                [row.stripe_width] * (2 * row.stripe_count),
+            )
 
 
 class StageResumeTests(unittest.TestCase):

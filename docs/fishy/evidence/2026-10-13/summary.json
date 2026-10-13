@@ -59,7 +59,7 @@
   ],
   "revised_comparison": {
     "policy": "symmetric-elementwise-v2",
-    "comparator_sha256": "ec37f26b1fd2cf044607cc23480da1d59fd7cfd8c0017d94bb72f8cf9192122a",
+    "comparator_sha256": "69123a8d8a248398a5369a6f165a710bb581623019014679e36449b8fed7b442",
     "comparisons": [
       {
         "reference": "author",
@@ -76,7 +76,8 @@
         },
         "array_elements_outside_tolerance": 2369856,
         "numerical_parity": "DIFFERS",
-        "wall_seconds": 3.405
+        "wall_seconds": 3.154,
+        "publication": "local-only, unpublished"
       },
       {
         "reference": "author",
@@ -93,7 +94,8 @@
         },
         "array_elements_outside_tolerance": 2369771,
         "numerical_parity": "DIFFERS",
-        "wall_seconds": 2.977
+        "wall_seconds": 3.103,
+        "publication": "published"
       },
       {
         "reference": "author",
@@ -110,7 +112,8 @@
         },
         "array_elements_outside_tolerance": 2369738,
         "numerical_parity": "DIFFERS",
-        "wall_seconds": 3.087
+        "wall_seconds": 3.035,
+        "publication": "local-only, unpublished"
       },
       {
         "reference": "local",
@@ -127,7 +130,8 @@
         },
         "array_elements_outside_tolerance": 1012,
         "numerical_parity": "DIFFERS",
-        "wall_seconds": 3.083
+        "wall_seconds": 3.093,
+        "publication": "local-only, unpublished"
       },
       {
         "reference": "local",
@@ -144,7 +148,8 @@
         },
         "array_elements_outside_tolerance": 1012,
         "numerical_parity": "DIFFERS",
-        "wall_seconds": 2.907
+        "wall_seconds": 3.031,
+        "publication": "published"
       },
       {
         "reference": "local",
@@ -161,7 +166,8 @@
         },
         "array_elements_outside_tolerance": 1012,
         "numerical_parity": "DIFFERS",
-        "wall_seconds": 2.977
+        "wall_seconds": 2.996,
+        "publication": "local-only, unpublished"
       }
     ],
     "denominator_note": "8111 includes one empty container omitted by historical flattened 8110; undefined observations remain explicit.",
