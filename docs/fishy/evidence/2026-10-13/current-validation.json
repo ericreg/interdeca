@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "recorded_at_utc": "2026-10-13T23:28:58.715907+00:00",
-  "scope": "Fast CPU behavioral checks in a freshly created pinned environment; saved-result recomparison and bounded E2 supplement; no new full paper execution.",
+  "recorded_at_utc": "2026-10-13T23:38:09.628707+00:00",
+  "scope": "Fast CPU behavioral checks rerun after the Linux CI portability fix, in the isolated pinned environment created for this review; saved-result recomparison and bounded E2 supplement remain source-bound; no new full paper execution.",
   "baseline_head": "0d9fe7df1beaa67e82624a4268409fc4d4d33863",
   "test_command": "OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 python -m unittest discover -s tests/fishy -v",
   "tests": {
@@ -39,7 +39,7 @@
     "experiments/fishy/release.py": "335b2fc2097bb4d0d1fc588bc354c11660a51214d0cefda08ad29f2c72a7ca87",
     "experiments/fishy/serde.py": "f2c3ba772a55acb4fc20edb10511495de31a2c274cab11e7e002f9c7704fe828",
     "experiments/fishy/smoke.py": "807a3908978ade79c7067c2db6f1401b8202e113b592c72c83b36b5eb55c73b5",
-    "tests/fishy/test_boundaries.py": "f71054fe45a28d5db4d68fb0ad1f3886bae197c88c679d154cc6dd0d445ad9fb",
+    "tests/fishy/test_boundaries.py": "b59b93c588d07f4c21c6fd145f7a79d33b273f5d6553b14378385387e5a3e5fd",
     "tests/fishy/test_cli.py": "b952fba47ba915a33a6856761cc664ab0bf615ecd9c27c641b99bd774c4eca23",
     "tests/fishy/test_comparison.py": "6fa03d60e903a8f862def818f46c4500110399a6227246de3159e511b0142d06",
     "tests/fishy/test_evidence.py": "7b74298f766ec51f2d4d11813d9ec43a5227e5aeb78f5b10931d5706d9fffd9c",
@@ -47,7 +47,7 @@
     "tools/verify_research_evidence.py": "1ae3f6998618d972a9c632575063eec9dce05250a54b52ea56e87e00e18f5c47",
     ".github/workflows/research-checks.yml": "688a036aab74279ebdee80b80ad37d096b3169c3d05e9299ca82c5751c77684d"
   },
-  "source_content_digest": "863e2283e3f3c7e7d8e224a4506722441e663ce3dd88d9a1a5ec17584249bbe1",
+  "source_content_digest": "48796efd3a55ccf04ff8ef1f84e877816ab13814a77d26355a482c05dadf79d3",
   "upstream_source_integrity": {
     "files_checked": 71,
     "mismatches": []
@@ -55,7 +55,7 @@
   "environment": {
     "python": "3.12.8 (main, Jan 14 2025, 23:36:58) [Clang 19.1.6 ]",
     "platform": "macOS-26.5-arm64-arm-64bit",
-    "fresh_virtualenv": true,
+    "fresh_virtualenv": false,
     "fresh_os_image": false,
     "packages": {
       "annotated-types": "0.8.0",
@@ -92,6 +92,7 @@
       "typing-inspection": "0.4.4",
       "typing_extensions": "4.16.0",
       "umap-learn": "0.5.12"
-    }
+    },
+    "environment_created_for_review": true
   }
 }

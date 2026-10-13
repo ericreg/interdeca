@@ -20,12 +20,12 @@
     {
       "path": "current-tests.log",
       "bytes": 10263,
-      "sha256": "97d2b58184c3b5e1ebd8c0369d3c5767f9d0436601fa2e74ef58d7278b5e4f8c"
+      "sha256": "4664c0c35d1914a12ddad29359ef421829caa1dd18f612eb6dbae5257837fad5"
     },
     {
       "path": "current-validation.json",
-      "bytes": 5074,
-      "sha256": "2743764f5bda2dce46949b85a15f439d108783fbb32896fa8bce7b34ecb9cfd3"
+      "bytes": 5200,
+      "sha256": "1279faeace203d2274f2ce759145aecc66daff8a3d07d0da22f5a00cbf83893b"
     },
     {
       "path": "elementwise-author-atol-1e-08.json",
