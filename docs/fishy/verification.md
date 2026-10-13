@@ -7,8 +7,9 @@ execution, numerical comparisons and remaining limits. The earlier baseline
 findings below remain separate evidence.
 
 Checked on 2026-10-01 using the repository's locked Python 3.13.9 environment.
-Per AGENTS.md, no new automated test suite was added; these were focused,
-disposable numerical and integration smoke checks.
+At that time AGENTS.md deferred automated tests, so no test suite was added; these
+were focused, disposable numerical and integration smoke checks. Later committed
+tests are described in [the test README](../../tests/README.md).
 
 ## Passed
 
