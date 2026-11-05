@@ -7,15 +7,12 @@ from scipy.interpolate import RBFInterpolator
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import connected_components, dijkstra
 from scipy.spatial import Delaunay, cKDTree
-from vtkmodules.vtkCommonCore import reference
-from vtkmodules.vtkCommonDataModel import vtkStaticCellLocator
-
-from interdeca.io import MeshIO
 from interdeca.models import (
     AnalysisGeometry,
     Arrays,
     AtlasModel,
     ExtractedRegion,
+    FaceAdjacency,
     FloatArray,
     Landmarks,
     Mesh,
@@ -24,6 +21,7 @@ from interdeca.models import (
     SpatialTransform,
     Specimen,
 )
+from interdeca.spatial import Spatial
 
 
 class Geometry:
@@ -148,9 +146,12 @@ class Geometry:
         Farthest-point selection runs one graph shortest-path search per chosen
         face. It favors clarity and reproducibility over maximum speed.
         """
+        mesh = atlas if isinstance(atlas, Mesh) else atlas.mesh
+        # Correspondence outputs may retain collapsed faces, but the common
+        # analysis atlas must supply stable, positive surface-area weights.
+        mesh = mesh.validated()
         # Every specimen will sample this same image tile, so missing or tiled
         # atlas UVs would make later color comparisons ambiguous.
-        mesh = atlas if isinstance(atlas, Mesh) else atlas.mesh
         if mesh.uv is None or np.any((mesh.uv < 0) | (mesh.uv > 1)):
             raise ValueError(
                 "Analysis requires atlas UVs within one [0, 1] texture tile."
@@ -190,8 +191,18 @@ class Geometry:
             for first, second in combinations(attached, 2):
                 neighbors[first].add(second)
                 neighbors[second].add(first)
-        # Sorting makes neighbor order reproducible rather than dependent on set order.
-        adjacency = tuple(np.asarray(sorted(row), dtype=np.int64) for row in neighbors)
+        # Pack sorted rows once for every specimen's native smoothing pass.
+        # Sorting keeps accumulation order independent of Python set iteration.
+        offsets = np.empty(count + 1, dtype=np.int64)
+        offsets[0] = 0
+        np.cumsum(np.fromiter(map(len, neighbors), dtype=np.int64), out=offsets[1:])
+        adjacency = FaceAdjacency(
+            offsets,
+            np.fromiter(
+                (neighbor for row in neighbors for neighbor in sorted(row)),
+                dtype=np.int64, count=int(offsets[-1]),
+            ),
+        )
         if requested == count:
             # When every face is measured, no shortest-path searches are necessary.
             samples = np.arange(count, dtype=np.int64)
@@ -199,8 +210,8 @@ class Geometry:
         else:
             # Weight adjacent-face connections by physical separation so sample
             # spacing reflects geometry rather than only the number of triangles.
-            rows = np.repeat(np.arange(count), [len(row) for row in adjacency])
-            columns = np.concatenate(adjacency)
+            rows = np.repeat(np.arange(count), np.diff(adjacency.offsets))
+            columns = adjacency.indices
             distances = np.linalg.norm(centers[rows] - centers[columns], axis=1)
             # A positive floor keeps coincident centroids connected in the sparse graph.
             length_scale = max(
@@ -265,8 +276,11 @@ class Geometry:
         are applied to the *original* specimen triangle, giving a point exactly
         on its piecewise-linear surface without an approximate inverse warp.
 
-        The output retains atlas faces and UVs. Landmarks retain the specimen's
-        aligned positions. At least four noncoplanar landmarks are required.
+        The output retains atlas faces and UVs, including faces collapsed by
+        the many-to-one closest-point projection. They remain indexed for atlas
+        averaging and baking, not for area or barycentric calculations.
+        Landmarks retain the specimen's aligned positions. At least four
+        noncoplanar landmarks are required.
         Distances and the optional rejection threshold use the common warped
         coordinate system, in the caller's length units.
         """
@@ -295,36 +309,10 @@ class Geometry:
         warped_mesh = Mesh(warped_subject, specimen.mesh.faces).validated()
         # Reuse one spatial index for all queries instead of searching every
         # specimen triangle separately for every atlas vertex.
-        surface = MeshIO.to_polydata(warped_mesh)
-        locator = vtkStaticCellLocator()
-        locator.SetDataSet(surface)
-        locator.BuildLocator()
+        index = Spatial.index(warped_mesh)
         # Retain the closest triangle as well as its point: recovering coordinates
         # on the original specimen will need both.
-        closest = np.empty_like(warped_atlas)
-        cell_ids = np.empty(len(warped_atlas), dtype=np.int64)
-        squared_distances = np.empty(len(warped_atlas))
-        for index, point in enumerate(warped_atlas):
-            # VTK writes its answers into mutable arguments; each query gets its
-            # own containers so previous results cannot be overwritten.
-            destination = [0.0, 0.0, 0.0]
-            cell_id, sub_id, distance_squared = (
-                reference(0),
-                reference(0),
-                reference(0.0),
-            )
-            locator.FindClosestPoint(
-                point, destination, cell_id, sub_id, distance_squared
-            )
-            if int(cell_id) < 0:
-                raise ValueError(
-                    f"{specimen.specimen_id}: surface projection failed at vertex {index}."
-                )
-            closest[index], cell_ids[index], squared_distances[index] = (
-                destination,
-                int(cell_id),
-                float(distance_squared),
-            )
+        closest, cell_ids, squared_distances = Spatial.project(index, warped_atlas)
         # Report distances in ordinary length units and enforce the caller's
         # quality limit before accepting these correspondences.
         projection_distances = np.sqrt(np.maximum(squared_distances, 0))
@@ -373,7 +361,9 @@ class Geometry:
         vertices = np.einsum("ni,nij->nj", weights, native_triangles)
         # Retain atlas indexing and UVs so all baked textures describe the same
         # face locations, even though specimen vertex positions differ.
-        mesh = Mesh(vertices, atlas.mesh.faces, atlas.mesh.uv).validated()
+        mesh = Mesh(vertices, atlas.mesh.faces, atlas.mesh.uv).validated(
+            allow_degenerate=True
+        )
         return ResampledSpecimen(
             specimen.specimen_id, mesh, subject_landmarks, projection_distances
         ).validated()

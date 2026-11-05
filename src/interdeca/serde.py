@@ -7,6 +7,7 @@ buffers before a record reaches an algorithm. Pydantic stays out of the
 geometry/color computation code and out of Blender's Python installation.
 """
 
+import json
 from pathlib import Path
 from typing import Annotated, ClassVar, Generic, Literal, Self, TypeVar
 
@@ -21,10 +22,12 @@ from pydantic import (
     PrivateAttr,
     StrictInt,
     StringConstraints,
+    ValidationInfo,
     WithJsonSchema,
     model_validator,
 )
 
+from interdeca import _native
 from interdeca._blender_protocol import (
     BlenderBakeRequest,
     BlenderCleanupRequest,
@@ -37,11 +40,13 @@ from interdeca.models import (
     Arrays,
     AtlasModel,
     AtlasReference,
+    AtlasScaleConversion,
     BakedTexture,
     BlenderInstallation,
     ClusterAlignment,
     ColorMoments,
     ExtractedRegion,
+    FaceAdjacency,
     FaceColors,
     Landmarks,
     Mesh,
@@ -74,6 +79,28 @@ class ArraySerde:
                 "Expected a numeric array, not strings, booleans, or objects."
             )
         return Arrays.frozen(array)
+
+    @staticmethod
+    def floating_input(value: object) -> np.ndarray:
+        """Type-check a borrowed native input; Rust checks numerical invariants.
+
+        Aligned float64 arrays retain their strides and avoid a copy. The native
+        writer snapshots geometry; texture kernels hold the GIL during use.
+        """
+        array = np.asarray(value)
+        if array.dtype.kind not in "iuf":
+            raise ValueError("Expected a numeric array, not strings, booleans, or objects.")
+        # Packed structured fields and offset buffers can violate Rust's scalar
+        # alignment. Copy only those layouts before borrowing native references.
+        return np.require(array, dtype=np.float64, requirements=["A"])
+
+    @staticmethod
+    def integer_input(value: object) -> np.ndarray:
+        """Require actual integer indices before the native bounds checks."""
+        array = np.asarray(value)
+        if array.dtype.kind not in "iu":
+            raise ValueError("Index arrays require integers without rounding or coercion.")
+        return np.require(array, dtype=np.int64, requirements=["A"])
 
     @staticmethod
     def integer(value: object) -> np.ndarray:
@@ -208,19 +235,69 @@ class AtlasRequest(CoreData[AtlasOptions]):
     """Validate paths and settings before allocating an output run."""
 
     record_type = AtlasOptions
-    models: Path
-    landmarks: Path
-    output: Path
+    models: Path | None = None
+    landmarks: Path | None = None
+    output: Path | None = None
     textures: Path | None = None
     atlas_model: Path | None = None
     atlas_landmarks: Path | None = None
-    blender: str | None = None
+    blender: str | None = Field(
+        default=None,
+        description="Optional Blender executable for the Blender surface backend.",
+    )
     merge_distance: float = Field(default=0.0001, ge=0, allow_inf_nan=False)
     uv_angle: float = Field(default=66, gt=0, le=89, allow_inf_nan=False)
     island_margin: float = Field(default=0.002, ge=0, lt=1, allow_inf_nan=False)
     bake_size: int = Field(default=2048, ge=128, le=8192)
     extrusion: float = Field(default=0.001, ge=0, allow_inf_nan=False)
     bake_margin: int = Field(default=2, ge=0, le=64)
+    backend: Literal["native", "morphoweave"] = "native"
+    normalize_scale: bool = False
+    input_dir: Path | None = None
+    input_coordinates: Literal["LPS", "RAS"] | None = None
+    overwrite: bool = False
+    surface_backend: Literal["rust", "blender"] = "rust"
+
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_inputs(cls, value: object, info: ValidationInfo) -> object:
+        """Resolve one dataset root before constructing the immutable record."""
+        # Dictionaries are the JSON/constructor boundary; internal algorithms
+        # continue to consume NamedTuple records after this validation step.
+        if isinstance(value, AtlasOptions):
+            data = value._asdict()
+        elif isinstance(value, dict):
+            data = dict(value)
+        else:
+            return value
+        root = data.get("input_dir")
+        if root is not None:
+            try:
+                root = Path(root).expanduser().resolve()
+                for field in ("models", "landmarks", "textures"):
+                    expected = root / field
+                    supplied = data.get(field)
+                    if (
+                        supplied is not None
+                        and Path(supplied).expanduser().resolve() != expected
+                    ):
+                        raise ValueError(
+                            "--input-dir cannot be combined with different explicit input directories."
+                        )
+                    data[field] = str(expected) if info.mode == "json" else expected
+            except TypeError as error:
+                raise ValueError("Input directories must be filesystem paths.") from error
+            data["input_dir"] = str(root) if info.mode == "json" else root
+            if data.get("output") is None:
+                output = root / "_interdeca" / "runs"
+                data["output"] = str(output) if info.mode == "json" else output
+        # Legacy inputs already contain RAS meshes; raw mussel root inputs use LPS.
+        # Other root datasets can explicitly choose RAS instead of being flipped.
+        if data.get("input_coordinates") is None:
+            data["input_coordinates"] = "LPS" if root is not None else "RAS"
+        if any(data.get(field) is None for field in ("models", "landmarks", "output")):
+            raise ValueError("Supply --input-dir, or --models, --landmarks, and --output.")
+        return data
 
     @model_validator(mode="after")
     def paired_override(self) -> Self:
@@ -228,7 +305,80 @@ class AtlasRequest(CoreData[AtlasOptions]):
         # A mesh alone cannot define anatomical correspondence for an override.
         if (self.atlas_model is None) != (self.atlas_landmarks is None):
             raise ValueError("An atlas override requires both model and landmarks.")
+        # Cleanup belongs only to a dataset root. Never delete the source of an
+        # override or raw inputs reached through links into generated storage.
+        if self.overwrite:
+            if self.input_dir is None:
+                raise ValueError("--overwrite requires --input-dir.")
+            workspace = self.input_dir / "_interdeca"
+            if workspace.is_symlink():
+                raise ValueError("Cannot overwrite a symlinked _interdeca directory.")
+            for path in (
+                self.models, self.landmarks, self.textures,
+                self.atlas_model, self.atlas_landmarks,
+            ):
+                if path is not None and path.resolve().is_relative_to(workspace):
+                    raise ValueError("Overwrite inputs and atlas overrides must be outside _interdeca.")
         return self
+
+
+class InputPreparationData(BaseModel):
+    """Record raw-input normalization and the exact faces removed from its copy."""
+
+    specimen_id: str
+    source_mesh: Path
+    source_landmarks: Path
+    source_texture: Path
+    mesh_coordinates: Literal["LPS", "RAS"]
+    output_coordinates: Literal["RAS"] = "RAS"
+    removed_zero_area_faces: list[int]
+
+
+class AtlasScaleConversionData(CoreData[AtlasScaleConversion]):
+    """Validate the uniform transform restoring an atlas to representative input units."""
+
+    record_type = AtlasScaleConversion
+    method: Literal["mean_input_landmark_centroid_size"] = (
+        "mean_input_landmark_centroid_size"
+    )
+    source_centroid_size: FiniteFloat = Field(gt=0)
+    target_centroid_size: FiniteFloat = Field(gt=0)
+    factor: FiniteFloat = Field(gt=0)
+    center: tuple[FiniteFloat, FiniteFloat, FiniteFloat]
+
+    @model_validator(mode="after")
+    def consistent_factor(self) -> Self:
+        # A recorded scale must reconstruct the declared size change, rather than
+        # merely be a plausible positive number beside the geometry.
+        if not np.isclose(
+            self.factor,
+            self.target_centroid_size / self.source_centroid_size,
+            rtol=1e-12,
+            atol=0,
+        ):
+            raise ValueError("Scale factor must equal target/source centroid size.")
+        return self
+
+
+class AtlasRunData(BaseModel):
+    """Record backend identity and numerical conventions beside published outputs."""
+
+    model_config = ConfigDict(extra="forbid")
+    schema_version: Literal[2] = 2
+    options: AtlasRequest
+    prepared_input_directory: Path | None = None
+    blender_executable: Path | None = None
+    blender_version: tuple[int, int, int] | None = None
+    texture_average_method: Literal["encoded_rgb_mean"] | None = None
+    upstream_revision: str | None = None
+    upstream_source_sha256: str | None = None
+    reference_normalizes_scale: bool | None
+    # Null explicitly means no conversion: native construction or an atlas override.
+    atlas_scale_conversion: AtlasScaleConversionData | None
+    correspondence_method: Literal[
+        "barycentric_common_space", "morphoweave_tps_projection"
+    ]
+    projection_distance_space: Literal["common_warped", "aligned_specimen"]
 
 
 class ColorRequest(CoreData[ColorOptions]):
@@ -268,6 +418,84 @@ class MeshData(CoreData[Mesh]):
     vertices: FloatBuffer
     faces: IntBuffer
     uv: FloatBuffer | None = None
+    allow_degenerate: ClassVar[bool] = False
+
+    @model_validator(mode="after")
+    def validate_record(self) -> Self:
+        """Keep validation policy a schema choice, never an untrusted wire field."""
+        self._internal = Mesh(self.vertices, self.faces, self.uv).validated(
+            allow_degenerate=self.allow_degenerate
+        )
+        return self
+
+
+class NativeMeshInput(BoundaryData):
+    """Borrowed typed arrays passed only to Rust's validating OBJ writer.
+
+    These are not validated internal meshes. Rust snapshots the arrays, checks
+    all shapes, indices, finiteness, and triangle geometry before opening a file.
+    """
+
+    vertices: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+    faces: Annotated[np.ndarray, PlainValidator(ArraySerde.integer_input)]
+    uv: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)] | None = None
+
+
+class NativeTextureInput(BoundaryData):
+    """Borrowed float channels for fused native validation and quantization."""
+
+    rgb: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+    alpha: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+
+    @model_validator(mode="after")
+    def check_dimensions(self) -> Self:
+        # Map wrong-rank inputs to the public validation error before PyO3's
+        # typed NumPy extraction; Rust checks channel counts and matching sizes.
+        if self.rgb.ndim != 3 or self.alpha.ndim != 2:
+            raise ValueError("Textures need RGB (height, width, 3) and matching alpha.")
+        return self
+
+
+class SpatialMeshInput(BoundaryData):
+    """Typed, aligned, contiguous geometry for Rust's owned triangle index.
+
+    Rust checks shapes, finite coordinates, and index bounds before building.
+    UVs are irrelevant to distance queries and stay with the original mesh.
+    """
+
+    vertices: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+    faces: Annotated[np.ndarray, PlainValidator(ArraySerde.integer_input)]
+
+    @model_validator(mode="after")
+    def contiguous(self) -> Self:
+        if self.vertices.ndim != 2 or self.faces.ndim != 2:
+            raise ValueError("Spatial vertices and faces must be matrices.")
+        object.__setattr__(self, "vertices", np.ascontiguousarray(self.vertices))
+        object.__setattr__(self, "faces", np.ascontiguousarray(self.faces))
+        return self
+
+
+class SpatialQueryInput(BoundaryData):
+    """Normalize query layout without silently accepting text or boolean points."""
+
+    points: Annotated[np.ndarray, PlainValidator(ArraySerde.floating_input)]
+
+    @model_validator(mode="after")
+    def contiguous(self) -> Self:
+        if self.points.ndim != 2:
+            raise ValueError("Spatial query points must be a matrix.")
+        object.__setattr__(self, "points", np.ascontiguousarray(self.points))
+        return self
+
+
+class CorrespondenceMeshData(MeshData):
+    """Projected mesh retaining collapsed faces and every original index and UV.
+
+    Only resampled outputs use this schema. Native inputs and shared analysis
+    geometry continue to use MeshData, which rejects degenerate triangles.
+    """
+
+    allow_degenerate: ClassVar[bool] = True
 
 
 class RegionSelectionData(CoreData[RegionSelection]):
@@ -387,9 +615,17 @@ class ResampledSpecimenData(CoreData[ResampledSpecimen]):
     # away the evidence needed to assess correspondence before baking.
     record_type = ResampledSpecimen
     specimen_id: NonemptyString
-    mesh: MeshData
+    mesh: CorrespondenceMeshData
     landmarks: LandmarksData
     projection_distances: FloatBuffer
+
+
+class FaceAdjacencyData(CoreData[FaceAdjacency]):
+    """Packed face graph, preserving row boundaries and neighbor order."""
+
+    record_type = FaceAdjacency
+    offsets: IntBuffer
+    indices: IntBuffer
 
 
 class AnalysisGeometryData(CoreData[AnalysisGeometry]):
@@ -401,7 +637,7 @@ class AnalysisGeometryData(CoreData[AnalysisGeometry]):
     mesh: MeshData
     face_areas: FloatBuffer
     face_centers: FloatBuffer
-    adjacency: tuple[IntBuffer, ...]
+    adjacency: FaceAdjacencyData
     sample_faces: IntBuffer
     nearest_samples: IntBuffer
     sample_areas: FloatBuffer
@@ -436,6 +672,33 @@ class TexturePixelsData(CoreData[TexturePixels]):
     record_type = TexturePixels
     rgb: FloatBuffer
     alpha: FloatBuffer
+
+    @model_validator(mode="after")
+    def validate_record(self) -> Self:
+        """Share boundary-owned buffers with the internal checked image."""
+        # Field validators have already taken ownership and established finite
+        # float64 values. The record checks shape/range without a second copy.
+        self._internal = TexturePixels(self.rgb, self.alpha)._checked()
+        return self
+
+    @classmethod
+    def from_rgba8(cls, pixels: np.ndarray) -> Self:
+        """Convert an 8-bit RGBA image into owned unit-range sRGB and alpha.
+
+        Each output value is float64(byte) / 255. This preserves every input
+        pixel and alpha value without a temporary full float64 RGBA image.
+        """
+        if not isinstance(pixels, np.ndarray) or pixels.dtype != np.uint8:
+            raise ValueError("Encoded textures must be uint8 arrays.")
+        if pixels.ndim != 3 or pixels.shape[-1] != 4:
+            raise ValueError("Encoded textures need shape (height, width, 4).")
+        # Rust validates the image shape and creates private, finite unit-range
+        # buffers. Construct the boundary around those already checked outputs;
+        # ordinary field validation would allocate the same image a second time.
+        rgb, alpha = _native.texture_from_rgba8(pixels)
+        result = cls.model_construct(rgb=rgb, alpha=alpha)
+        result._internal = TexturePixels(rgb, alpha)
+        return result
 
 
 class SampledColorsData(CoreData[SampledColors]):
@@ -606,7 +869,9 @@ class MarkupControlPointData(BoundaryData):
     # Accept unrelated Slicer display metadata while preserving its external field
     # names, but require a defined position before a landmark can enter alignment.
     model_config = ConfigDict(extra="ignore", populate_by_name=True)
-    id: str = ""
+    # Existing Markups exports use both numeric and textual IDs. Anatomical
+    # correspondence uses labels, so preserve either ID form without coercing it.
+    id: str | StrictInt = ""
     label: NonemptyString
     position: tuple[FiniteFloat, FiniteFloat, FiniteFloat]
     position_status: Literal["defined"] = Field(
@@ -651,3 +916,309 @@ class LandmarkRowData(BoundaryData):
     x: FiniteFloat
     y: FiniteFloat
     z: FiniteFloat
+
+
+# Application messages contain explicit operations and artifact metadata. They
+# never serialize tasks, Python class names, or fitted estimator instances.
+class ArrayArtifact(BoundaryData):
+    """One completed numerical .npy file relative to the private session root."""
+
+    path: Annotated[
+        str, StringConstraints(pattern=r"^(inputs|outputs)/[a-f0-9]{32}\.npy$")
+    ]
+    dtype: NonemptyString
+    shape: tuple[Annotated[StrictInt, Field(ge=0)], ...] = Field(max_length=4)
+
+
+class MeshArtifacts(BoundaryData):
+    """Ordered geometry and per-corner UV buffers; decoding never reindexes them."""
+
+    vertices: ArrayArtifact
+    faces: ArrayArtifact
+    uv: ArrayArtifact | None = None
+
+
+class EmptyPayload(BoundaryData):
+    """An action with no additional inputs."""
+
+
+class ColorsPayload(BoundaryData):
+    mesh: MeshArtifacts
+    options: ColorRequest
+
+
+class FitPayload(BoundaryData):
+    dataset_id: NonemptyString
+    options: ModelRequest
+
+
+class DisplayPayload(BoundaryData):
+    dataset_id: NonemptyString
+    specimen_id: NonemptyString
+
+
+class SelectPayload(BoundaryData):
+    mesh: MeshArtifacts
+    points: ArrayArtifact
+    same_side_only: bool = True
+    vertex_colors: ArrayArtifact | None = None
+
+
+class ExportPayload(BoundaryData):
+    mesh: MeshArtifacts
+
+
+class InvalidatePayload(BoundaryData):
+    scope: Literal["colors", "population", "selection", "mesh", "curve", "all"]
+
+
+class AxesPayload(BoundaryData):
+    model_id: NonemptyString
+    x_axis: Annotated[StrictInt, Field(ge=0)]
+    y_axis: Annotated[StrictInt, Field(ge=0)]
+
+
+class ReconstructPayload(BoundaryData):
+    model_id: NonemptyString
+    specimen_id: NonemptyString
+    # None starts at the specimen; fractions move only the worker's selected axes.
+    positions: (
+        tuple[
+            Annotated[FiniteFloat, Field(ge=0, le=1)],
+            Annotated[FiniteFloat, Field(ge=0, le=1)],
+        ]
+        | None
+    )
+
+
+class CommandIdentityData(BoundaryData):
+    """Recover correlation fields even when the rest of a command is malformed."""
+
+    model_config = ConfigDict(extra="ignore")
+    request_id: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+    input_revision: Annotated[StrictInt, Field(ge=0)]
+
+
+class ApplicationCommand(BoundaryData):
+    """Versioned envelope; action selects a second, strict payload validation step."""
+
+    protocol_version: Literal[1]
+    type: Literal["command"]
+    request_id: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+    input_revision: Annotated[StrictInt, Field(ge=0)]
+    action: Literal[
+        "run_atlas",
+        "process_colors",
+        "fit_population",
+        "show_specimen",
+        "select_region",
+        "export_region",
+        "clear_selection",
+        "invalidate",
+        "set_axes",
+        "reconstruct",
+        "cancel",
+    ]
+    # A JSON lookup is appropriate here: its fixed-field schema depends on action.
+    payload: dict
+
+    def validated_payload(self) -> BoundaryData:
+        """Validate the operation's named fields without accepting arbitrary objects."""
+        schemas = {
+            "run_atlas": AtlasRequest,
+            "process_colors": ColorsPayload,
+            "fit_population": FitPayload,
+            "show_specimen": DisplayPayload,
+            "select_region": SelectPayload,
+            "export_region": ExportPayload,
+            "clear_selection": EmptyPayload,
+            "invalidate": InvalidatePayload,
+            "set_axes": AxesPayload,
+            "reconstruct": ReconstructPayload,
+            "cancel": EmptyPayload,
+        }
+        # JSON validation accepts path strings and JSON arrays under strict typing.
+        return schemas[self.action].model_validate_json(json.dumps(self.payload))
+
+
+class ControlStateData(BoundaryData):
+    """Small control snapshot; numerical session data remains in the worker."""
+
+    revision: int
+    run_id: str | None
+    action: str
+    status: str
+    completed: int
+    total: int
+    stage: int
+    stages: int
+    message: str
+    dataset_id: str | None
+    model_id: str | None
+    selection_vertices: int = 0
+    selection_faces: int = 0
+    morph_active: bool
+
+
+class MeshPresentation(BoundaryData):
+    mesh: MeshArtifacts
+    directory: str
+    has_textures: bool
+    average: str | None
+
+
+class ColorsPresentation(BoundaryData):
+    dataset_id: str
+
+
+class PopulationPresentationData(BoundaryData):
+    model_id: str
+    method: Literal["pca", "ica", "umap"]
+    specimen_ids: tuple[str, ...]
+    components: PositiveInteger
+    representation: Literal["colors", "cluster_areas"]
+    can_reconstruct: bool
+
+
+class PlotPresentation(BoundaryData):
+    specimen_ids: tuple[str, ...]
+    scores: ArrayArtifact
+    method: str
+    x_axis: int
+    y_axis: int
+
+
+class MorphControlsData(BoundaryData):
+    """Ready-to-display slider fractions and plot coordinates computed by the worker."""
+
+    positions: tuple[FiniteFloat, FiniteFloat]
+    coordinates: tuple[FiniteFloat, FiniteFloat]
+
+
+class FaceColorsPresentation(BoundaryData):
+    rgb: ArrayArtifact
+    valid: ArrayArtifact
+
+
+class SelectionPresentation(BoundaryData):
+    vertices: ArrayArtifact
+    faces: ArrayArtifact
+
+
+class ExportPresentation(BoundaryData):
+    mesh: MeshArtifacts
+    original_vertices: ArrayArtifact
+    original_faces: ArrayArtifact
+
+
+class EventIdentity(BoundaryData):
+    """Every run event retains its originating request and input revision."""
+
+    protocol_version: Literal[1] = 1
+    request_id: str | None = None
+    run_id: str | None = None
+    input_revision: int = 0
+
+
+class AcceptedEvent(EventIdentity):
+    type: Literal["accepted"] = "accepted"
+    action: str
+
+
+class ProgressEvent(EventIdentity):
+    type: Literal["progress"] = "progress"
+    operation: str
+    completed: int
+    total: int
+    stage: int
+    stages: int
+
+
+class StateEvent(EventIdentity):
+    type: Literal["presentation"] = "presentation"
+    action: Literal["state"] = "state"
+    payload: ControlStateData
+
+
+class ResultEvent(EventIdentity):
+    type: Literal["result"] = "result"
+    action: Literal[
+        "atlas",
+        "colors",
+        "population",
+        "plot",
+        "display",
+        "morphospace",
+        "morph_controls",
+        "selection",
+        "export",
+        "clear_selection",
+    ]
+    payload: (
+        MeshPresentation
+        | ColorsPresentation
+        | PopulationPresentationData
+        | PlotPresentation
+        | FaceColorsPresentation
+        | MorphControlsData
+        | SelectionPresentation
+        | ExportPresentation
+        | EmptyPayload
+    )
+
+
+class TerminalEvent(EventIdentity):
+    type: Literal["completed", "failed", "cancelled"]
+    message: str = ""
+    details: str = ""
+
+
+class LogEntryData(EventIdentity):
+    """Structured diagnostics are independent of task progress."""
+
+    severity: str
+    message: str
+
+
+class LogEvent(EventIdentity):
+    type: Literal["log"] = "log"
+    entries: tuple[LogEntryData, ...]
+    dropped: int = 0
+
+
+class CapabilitiesEvent(EventIdentity):
+    type: Literal["capabilities"] = "capabilities"
+    methods: tuple[str, ...]
+    log_path: str
+
+
+class RawTexturePresentation(BoundaryData):
+    """CLI equivalent of applying an existing image to a mesh in the Slicer view."""
+
+    type: Literal["raw_texture"] = "raw_texture"
+    mesh: MeshArtifacts
+    texture: Path
+
+
+class NativeCleanupOptions(BoundaryData):
+    """Settings for topology-changing preparation before correspondence exists."""
+
+    merge_distance: NonnegativeFloat = 0.0001
+
+
+class NativeUVOptions(BoundaryData):
+    """Smart UV settings; image dimensions do not change Blender's UV layout."""
+
+    angle_limit_degrees: Annotated[FiniteFloat, Field(gt=0, le=89)] = 66
+    island_margin: Annotated[FiniteFloat, Field(ge=0, lt=1)] = 0.002
+    resolution: tuple[Annotated[StrictInt, Field(ge=1, le=8192)], Annotated[StrictInt, Field(ge=1, le=8192)]] = (2048, 2048)
+    margin_pixels: Annotated[StrictInt, Field(ge=0, le=64)] = 2
+
+
+class NativeBakeOptions(BoundaryData):
+    """Finite ray distances and bounded image dimensions for the native baker."""
+
+    resolution: tuple[Annotated[StrictInt, Field(ge=1, le=8192)], Annotated[StrictInt, Field(ge=1, le=8192)]] = (2048, 2048)
+    cage_extrusion: NonnegativeFloat = 0.001
+    max_ray_distance: NonnegativeFloat = 0
+    margin_pixels: Annotated[StrictInt, Field(ge=0, le=64)] = 2

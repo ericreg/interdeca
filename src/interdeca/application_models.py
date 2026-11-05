@@ -1,4 +1,4 @@
-"""Session records and validated user requests shared by every presentation host."""
+"""Worker-owned session records and internal user requests."""
 
 from pathlib import Path
 from typing import Literal, NamedTuple
@@ -21,12 +21,13 @@ from interdeca.models import (
 class AtlasOptions(NamedTuple):
     """Legacy defaults in model units; cleanup precedes final correspondence."""
 
-    models: Path
-    landmarks: Path
-    output: Path
+    models: Path | None = None
+    landmarks: Path | None = None
+    output: Path | None = None
     textures: Path | None = None
     atlas_model: Path | None = None
     atlas_landmarks: Path | None = None
+    # An optional executable is used only with the Blender surface backend.
     blender: str | None = None
     merge_distance: float = 0.0001
     uv_angle: float = 66.0
@@ -34,6 +35,13 @@ class AtlasOptions(NamedTuple):
     bake_size: int = 2048
     extrusion: float = 0.001
     bake_margin: int = 2
+    backend: Literal["native", "morphoweave"] = "native"
+    normalize_scale: bool = False
+    # Root-directory requests prepare raw inputs inside their own private run.
+    input_dir: Path | None = None
+    input_coordinates: Literal["LPS", "RAS"] | None = None
+    overwrite: bool = False
+    surface_backend: Literal["rust", "blender"] = "rust"
 
 
 class ColorOptions(NamedTuple):
@@ -92,6 +100,20 @@ class ApplicationInputs(NamedTuple):
     same_side_only: bool = True
 
 
+class MorphState(NamedTuple):
+    """Worker-owned starting specimen and full fitted coordinate vector."""
+
+    specimen_id: str
+    coordinates: np.ndarray
+
+
+class MorphControls(NamedTuple):
+    """Slider positions in [0, 1] and selected model coordinates for display."""
+
+    positions: tuple[float, float]
+    coordinates: tuple[float, float]
+
+
 class ApplicationState(NamedTuple):
     """Immutable session snapshot; no Qt, MRML, or worker references are stored."""
 
@@ -109,6 +131,7 @@ class ApplicationState(NamedTuple):
     population: PopulationResult | None = None
     selection: RegionSelection | None = None
     inputs: ApplicationInputs = ApplicationInputs()
+    morph: MorphState | None = None
 
 
 class PlotData(NamedTuple):
@@ -119,4 +142,3 @@ class PlotData(NamedTuple):
     method: str
     x_axis: int
     y_axis: int
-    point: np.ndarray | None = None

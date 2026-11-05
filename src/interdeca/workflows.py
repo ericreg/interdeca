@@ -2,7 +2,6 @@
 
 from collections.abc import Callable
 from datetime import UTC, datetime
-from functools import partial
 from pathlib import Path
 from typing import Any, NamedTuple
 from uuid import uuid4
@@ -10,6 +9,7 @@ from uuid import uuid4
 import numpy as np
 from skimage.color import lab2rgb
 
+from interdeca._morphoweave_host import REVISION, SOURCE_SHA256
 from interdeca.application_models import (
     AtlasOptions,
     AtlasResult,
@@ -22,25 +22,22 @@ from interdeca.atlas import Atlas
 from interdeca.blender import Blender
 from interdeca.color_analysis import ColorAnalysis
 from interdeca.dataset import Dataset
-from interdeca.execution import Pipeline, ResultRef, Task
+from interdeca.execution import Option, Pipeline, ResultRef, Task, TaskCall
 from interdeca.geometry import Geometry
-from interdeca.io import LandmarkIO, MeshIO, TextureIO
-from interdeca.models import AtlasModel, BakedTexture, Mesh
+from interdeca.io import Files, LandmarkIO, MeshIO, TextureIO
+from interdeca.models import (
+    AtlasModel,
+    AtlasScaleConversion,
+    BakedTexture,
+    BlenderInstallation,
+    Mesh,
+    ResampledSpecimen,
+    Specimen,
+)
+from interdeca.morphoweave import MorphoWeave
 from interdeca.population import Population
-
-
-class Option(NamedTuple):
-    """A named operation argument; dictionaries remain only actual lookup tables."""
-
-    name: str
-    value: Any
-
-
-class TaskCall(NamedTuple):
-    """Explicit positional and named inputs, with ResultRef values where required."""
-
-    arguments: tuple = ()
-    options: tuple[Option, ...] = ()
+from interdeca.surface import MeshProcessing, TextureBaking
+from interdeca.serde import AtlasRequest, AtlasRunData, AtlasScaleConversionData
 
 
 class SpecimenFiles(NamedTuple):
@@ -56,55 +53,6 @@ class Operations:
     """Small task adapters for I/O and combinations that have no GUI dependency."""
 
     @staticmethod
-    def invoke(function: Callable, inputs: TaskCall) -> Any:
-        """Resolve the record into a Python call at the operation boundary."""
-        # Keyword dictionaries are the Python call boundary, not internal objects.
-        return function(
-            *inputs.arguments,
-            **{option.name: option.value for option in inputs.options},
-        )
-
-    @staticmethod
-    def registry() -> dict[str, Callable]:
-        """Resolve public operation names without serializing executable closures."""
-        functions = {
-            "inspect": Dataset.inspect_specimen,
-            "validate": Dataset.validate_specimens,
-            "blender": Blender.check_available,
-            "reference": Atlas.compute_reference,
-            "contribute": Atlas.prepare_contribution,
-            "mean": Atlas.assemble_mean,
-            "load_atlas": Operations.load_atlas,
-            "clean": Blender.clean_atlas,
-            "uv": Blender.prepare_atlas_uv,
-            "align": Atlas.align_specimen,
-            "resample": Geometry.resample_specimen,
-            "bake": Blender.bake_specimen_texture,
-            "save_atlas": Operations.save_atlas,
-            "save_specimen": Operations.save_specimen,
-            "average": Operations.average,
-            "atlas_result": Operations.atlas_result,
-            "analysis": Operations.prepare_analysis,
-            "texture": Operations.texture,
-            "sample": ColorAnalysis.sample_specimen_colors,
-            "normalization": ColorAnalysis.compute_normalization_stats,
-            "process": ColorAnalysis.process_specimen_colors,
-            "match": Population.align_clusters,
-            "color_result": Operations.color_result,
-            "features": Population.assemble_features,
-            "fit": Population.fit_model,
-            "population_result": PopulationResult,
-            "display": Operations.display,
-            "reconstruct": Operations.reconstruct,
-            "select": Geometry.select_region,
-            "extract": Geometry.extract_region,
-        }
-        return {
-            name: partial(Operations.invoke, function)
-            for name, function in functions.items()
-        }
-
-    @staticmethod
     def load_atlas(model: Path, landmarks: Path) -> AtlasModel:
         """Read an atlas and its anatomical landmarks in canonical coordinates."""
         return AtlasModel(MeshIO.read(model), LandmarkIO.read(landmarks))
@@ -118,9 +66,17 @@ class Operations:
         return atlas
 
     @staticmethod
-    def save_specimen(specimen: Any, directory: Path) -> Any:
+    def save_specimen(
+        specimen: Specimen | ResampledSpecimen, directory: Path
+    ) -> Specimen | ResampledSpecimen:
         """Publish aligned or resampled geometry and retain its numerical result."""
-        MeshIO.write_obj(specimen.mesh, directory / f"{specimen.specimen_id}.obj")
+        # Only projected outputs may retain collapsed faces; aligned native
+        # specimens still need valid source triangles for surface queries.
+        MeshIO.write_obj(
+            specimen.mesh,
+            directory / f"{specimen.specimen_id}.obj",
+            allow_degenerate=isinstance(specimen, ResampledSpecimen),
+        )
         LandmarkIO.write_json(
             specimen.landmarks, directory / f"{specimen.specimen_id}.mrk.json"
         )
@@ -136,9 +92,52 @@ class Operations:
 
     @staticmethod
     def atlas_result(
-        atlas: AtlasModel, directory: Path, textures: tuple, average: Path | None
+        atlas: AtlasModel,
+        directory: Path,
+        textures: tuple,
+        average: Path | None,
+        options: AtlasOptions,
+        scale_conversion: AtlasScaleConversion | None,
+        prepared_input_directory: Path | None = None,
+        surface_installation: BlenderInstallation | None = None,
     ) -> AtlasResult:
         """Collect the declared outputs of a successful atlas workflow."""
+        # Preserve backend identity and coordinate conventions for side-by-side
+        # analysis; matching hosts alone does not establish numerical equivalence.
+        upstream = options.backend == "morphoweave"
+        manifest = AtlasRunData(
+            options=AtlasRequest.from_internal(options),
+            prepared_input_directory=prepared_input_directory,
+            texture_average_method="encoded_rgb_mean" if textures else None,
+            blender_executable=(
+                None if surface_installation is None else surface_installation.executable
+            ),
+            blender_version=(
+                None if surface_installation is None else surface_installation.version
+            ),
+            upstream_revision=REVISION if upstream else None,
+            upstream_source_sha256=SOURCE_SHA256 if upstream else None,
+            atlas_scale_conversion=(
+                None
+                if scale_conversion is None
+                else AtlasScaleConversionData.from_internal(scale_conversion)
+            ),
+            reference_normalizes_scale=(
+                None
+                if options.atlas_model is not None
+                else upstream or options.normalize_scale
+            ),
+            correspondence_method="morphoweave_tps_projection"
+            if upstream
+            else "barycentric_common_space",
+            projection_distance_space="aligned_specimen"
+            if upstream
+            else "common_warped",
+        )
+        Files.write(
+            directory / "atlas_run.json",
+            (manifest.model_dump_json(indent=2) + "\n").encode(),
+        )
         return AtlasResult(atlas, directory, textures, average)
 
     @staticmethod
@@ -215,8 +214,10 @@ class Workflows:
     """Pure pipeline definitions plus deterministic file-manifest discovery."""
 
     @staticmethod
-    def task(task_id: str, operation: str, *arguments: Any, **options: Any) -> Task:
-        """Build an operation request without capturing application or scene state."""
+    def task(
+        task_id: str, operation: Callable[..., Any], *arguments: Any, **options: Any
+    ) -> Task:
+        """Keep the callable separate from inputs so queued values can be snapshotted."""
         return Task(
             task_id,
             operation,
@@ -250,6 +251,7 @@ class Workflows:
     @staticmethod
     def manifest(options: AtlasOptions) -> tuple[SpecimenFiles, ...]:
         """Pair models, landmarks, and optional textures by exact specimen ID."""
+        options = AtlasRequest.from_internal(options).to_internal()
         meshes = Workflows.files(options.models, (".obj", ".ply", ".stl", ".vtp"))
         landmarks = Workflows.files(
             options.landmarks, (".mrk.json", ".fcsv", ".json", ".csv")
@@ -265,6 +267,15 @@ class Workflows:
             raise ValueError(
                 "Models and landmarks must contain the same nonempty set of specimen IDs."
             )
+        # Root inputs require exact pairing: extra texture IDs are errors too.
+        # Legacy explicit texture directories may also contain average previews.
+        if options.input_dir is not None and meshes.keys() != textures.keys():
+            missing = sorted(meshes.keys() - textures.keys())
+            extra = sorted(textures.keys() - meshes.keys())
+            raise ValueError(
+                "Texture specimen IDs must exactly match models and landmarks; "
+                f"missing={missing}, extra={extra}."
+            )
         if options.textures is not None and not meshes.keys() <= textures.keys():
             raise ValueError("A matching texture is required for every specimen.")
         return tuple(
@@ -275,45 +286,118 @@ class Workflows:
     @staticmethod
     def atlas(options: AtlasOptions) -> Pipeline:
         """Define barriers from inspection through atlas construction and texture transfer."""
+        options = AtlasRequest.from_internal(options).to_internal()
         manifest = Workflows.manifest(options)
         # A fresh directory prevents accidental replacement of a previous run's artifacts.
         stamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-        output = options.output / f"interdeca_{stamp}_{uuid4().hex[:8]}"
+        run_name = f"interdeca_{stamp}_{uuid4().hex[:8]}"
+        output = options.output / run_name
+        # Each request snapshots freshly normalized inputs rather than reusing
+        # stale conversions after source edits or an interrupted preparation.
+        prepared = (
+            None
+            if options.input_dir is None
+            else options.input_dir / "_interdeca" / "prepared" / run_name
+        )
         task, ref = Workflows.task, ResultRef
+        # Atlas construction and surface processing are independent choices.
+        # Rust needs no installation; Blender is discovered once per workflow.
+        use_blender = options.surface_backend == "blender"
+        surface_arguments = (ref("blender_installation"),) if use_blender else ()
+        surface_options = {"workspace_parent": prepared} if use_blender else {}
         stages = [
-            [task("blender", "blender", options.blender)]
-            + [
-                task(f"inspect_{i}", "inspect", *item)
+            [
+                task(
+                    f"inspect_{i}", Dataset.prepare_specimen, *item, prepared,
+                    mesh_coordinate_system=options.input_coordinates,
+                )
+                if prepared is not None
+                else task(
+                    f"inspect_{i}", Dataset.inspect_specimen, *item,
+                    mesh_coordinate_system=options.input_coordinates,
+                )
                 for i, item in enumerate(manifest)
             ]
         ]
+        if options.overwrite:
+            # This stage is a barrier: no parallel preparation can start until
+            # the previous generated workspace has been removed in full.
+            protected = tuple(
+                path for item in manifest for path in item[1:] if path is not None
+            ) + tuple(
+                path for path in (options.atlas_model, options.atlas_landmarks)
+                if path is not None
+            )
+            stages.insert(0, [task(
+                "reset_workspace", Dataset.reset_workspace, options.input_dir, protected,
+            )])
+        if use_blender:
+            # Reject an unavailable Blender before an overwrite removes old runs.
+            stages.insert(0, [task(
+                "blender_installation", Blender.check_available, options.blender,
+            )])
         stages.append(
             [
                 task(
                     "specimens",
-                    "validate",
+                    Dataset.validate_specimens,
                     tuple(ref(f"inspect_{i}") for i in range(len(manifest))),
                 )
             ]
         )
+        if options.backend == "morphoweave":
+            # Final alignment returns owned arrays and external texture paths.
+            # Its staging files/cache have no consumers during later baking.
+            # Failures before that boundary still close the resource normally.
+            stages.append(
+                [
+                    task(
+                        "morphoweave_inputs", MorphoWeave.stage_inputs, ref("specimens"),
+                        workspace_parent=prepared,
+                    )._replace(
+                        manage_resource=True, release_after="morphoweave_aligned"
+                    )
+                ]
+            )
         if options.atlas_model is not None:
             stages.append(
                 [
                     task(
                         "atlas",
-                        "load_atlas",
+                        Operations.load_atlas,
                         options.atlas_model,
                         options.atlas_landmarks,
                     )
                 ]
             )
+        elif options.backend == "morphoweave":
+            stages.append(
+                [
+                    task(
+                        "atlas",
+                        MorphoWeave.build_atlas,
+                        ref("specimens"),
+                        normalize_scale=options.normalize_scale,
+                        workspace=ref("morphoweave_inputs"),
+                    )
+                ]
+            )
         else:
-            stages.append([task("reference", "reference", ref("specimens"))])
+            stages.append(
+                [
+                    task(
+                        "reference",
+                        Atlas.compute_reference,
+                        ref("specimens"),
+                        allow_scaling=options.normalize_scale,
+                    )
+                ]
+            )
             stages.append(
                 [
                     task(
                         f"contribute_{i}",
-                        "contribute",
+                        Atlas.prepare_contribution,
                         ref("specimens", (i,)),
                         ref("reference"),
                     )
@@ -324,19 +408,37 @@ class Workflows:
                 [
                     task(
                         "atlas",
-                        "mean",
+                        Atlas.assemble_mean,
                         tuple(ref(f"contribute_{i}") for i in range(len(manifest))),
                     )
                 ]
             )
+        # Convert generated MorphoWeave means before any distance-based cleanup.
+        # Supplied atlases already define their coordinate convention and size.
+        atlas_source = ref("atlas")
+        scale_conversion = None
+        if options.backend == "morphoweave" and options.atlas_model is None:
+            stages.append(
+                [
+                    task(
+                        "scaled_atlas",
+                        MorphoWeave.restore_input_scale,
+                        atlas_source,
+                        ref("specimens"),
+                    )
+                ]
+            )
+            atlas_source = ref("scaled_atlas", ("atlas",))
+            scale_conversion = ref("scaled_atlas", ("conversion",))
         stages.append(
             [
                 task(
                     "clean",
-                    "clean",
-                    ref("atlas"),
-                    ref("blender"),
+                    Blender.clean_atlas if use_blender else MeshProcessing.clean_atlas,
+                    atlas_source,
+                    *surface_arguments,
                     merge_distance=options.merge_distance,
+                    **surface_options,
                 )
             ]
         )
@@ -344,32 +446,58 @@ class Workflows:
             [
                 task(
                     "uv",
-                    "uv",
+                    Blender.prepare_atlas_uv
+                    if use_blender
+                    else MeshProcessing.prepare_atlas_uv,
                     ref("clean"),
-                    ref("blender"),
+                    *surface_arguments,
                     angle_limit_degrees=options.uv_angle,
                     island_margin=options.island_margin,
+                    **surface_options,
                 )
             ]
         )
-        stages.append(
-            [task("saved_atlas", "save_atlas", ref("uv"), output)]
-            + [
-                task(
-                    f"align_{i}",
-                    "align",
-                    ref("specimens", (i,)),
-                    ref("uv", ("landmarks",)),
-                )
-                for i in range(len(manifest))
-            ]
-        )
+        # MorphoWeave's high-level runAlign owns the whole alignment batch. The
+        # native backend keeps its original per-specimen implementation intact.
+        if options.backend == "morphoweave":
+            stages.append(
+                [
+                    task(
+                        "morphoweave_aligned",
+                        MorphoWeave.align_specimens,
+                        ref("specimens"),
+                        ref("uv"),
+                        normalize_scale=options.normalize_scale,
+                        workspace=ref("morphoweave_inputs"),
+                    )
+                ]
+            )
+            aligned = tuple(
+                ref("morphoweave_aligned", (i,)) for i in range(len(manifest))
+            )
+        else:
+            stages.append(
+                [
+                    task(
+                        f"align_{i}",
+                        Atlas.align_specimen,
+                        ref("specimens", (i,)),
+                        ref("uv", ("landmarks",)),
+                        allow_scaling=options.normalize_scale,
+                    )
+                    for i in range(len(manifest))
+                ]
+            )
+            aligned = tuple(
+                ref(f"align_{i}", ("specimen",)) for i in range(len(manifest))
+            )
+        stages.append([task("saved_atlas", Operations.save_atlas, ref("uv"), output)])
         stages.append(
             [
                 task(
                     f"aligned_{i}",
-                    "save_specimen",
-                    ref(f"align_{i}", ("specimen",)),
+                    Operations.save_specimen,
+                    aligned[i],
                     output / "aligned",
                 )
                 for i in range(len(manifest))
@@ -379,10 +507,16 @@ class Workflows:
             [
                 task(
                     f"resample_{i}",
-                    "resample",
+                    MorphoWeave.resample_specimen
+                    if options.backend == "morphoweave"
+                    else Geometry.resample_specimen,
                     ref(f"aligned_{i}"),
                     ref("uv"),
-                    mean_landmarks=ref("uv", ("landmarks",)),
+                    **(
+                        {}
+                        if options.backend == "morphoweave"
+                        else {"mean_landmarks": ref("uv", ("landmarks",))}
+                    ),
                 )
                 for i in range(len(manifest))
             ]
@@ -391,7 +525,7 @@ class Workflows:
             [
                 task(
                     f"resampled_{i}",
-                    "save_specimen",
+                    Operations.save_specimen,
                     ref(f"resample_{i}"),
                     output / "resampled",
                 )
@@ -404,14 +538,17 @@ class Workflows:
                 [
                     task(
                         f"bake_{i}",
-                        "bake",
+                        Blender.bake_specimen_texture
+                        if use_blender
+                        else TextureBaking.bake_specimen_texture,
                         ref(f"aligned_{i}"),
                         ref(f"resampled_{i}"),
-                        ref("blender"),
+                        *surface_arguments,
                         output / "textures" / f"{item.specimen_id}.png",
                         resolution=(options.bake_size, options.bake_size),
                         cage_extrusion=options.extrusion,
                         margin_pixels=options.bake_margin,
+                        **surface_options,
                     )
                     for i, item in enumerate(manifest)
                 ]
@@ -421,7 +558,7 @@ class Workflows:
             [
                 task(
                     "average",
-                    "average",
+                    Operations.average,
                     baked,
                     output / "textures" / "average_texture.png",
                 )
@@ -431,11 +568,15 @@ class Workflows:
             [
                 task(
                     "result",
-                    "atlas_result",
+                    Operations.atlas_result,
                     ref("saved_atlas"),
                     output,
                     baked,
                     ref("average"),
+                    options,
+                    scale_conversion,
+                    prepared_input_directory=prepared,
+                    surface_installation=ref("blender_installation") if use_blender else None,
                 )
             ]
         )
@@ -456,9 +597,9 @@ class Workflows:
             raise ValueError("No specimen textures found.")
         task, ref = Workflows.task, ResultRef
         stages = [
-            [task("analysis", "analysis", mesh, options.sample_count)]
+            [task("analysis", Operations.prepare_analysis, mesh, options.sample_count)]
             + [
-                task(f"texture_{i}", "texture", path, mesh.topology_key)
+                task(f"texture_{i}", Operations.texture, path, mesh.topology_key)
                 for i, path in enumerate(paths.values())
             ]
         ]
@@ -466,7 +607,7 @@ class Workflows:
             [
                 task(
                     f"sample_{i}",
-                    "sample",
+                    ColorAnalysis.sample_specimen_colors,
                     ref(f"texture_{i}"),
                     ref("analysis"),
                     smoothing_steps=int(options.neighbor_average),
@@ -480,7 +621,7 @@ class Workflows:
                 [
                     task(
                         "normalization",
-                        "normalization",
+                        ColorAnalysis.compute_normalization_stats,
                         tuple(ref(f"sample_{i}") for i in range(len(paths))),
                     )
                 ]
@@ -490,7 +631,7 @@ class Workflows:
             [
                 task(
                     f"process_{i}",
-                    "process",
+                    ColorAnalysis.process_specimen_colors,
                     ref(f"sample_{i}"),
                     normalization=normalization,
                     n_clusters=options.clusters if options.clustering else None,
@@ -504,13 +645,13 @@ class Workflows:
         specimens = tuple(ref(f"process_{i}") for i in range(len(paths)))
         alignment = None
         if options.clustering:
-            stages.append([task("match", "match", specimens)])
+            stages.append([task("match", Population.align_clusters, specimens)])
             alignment = ref("match")
         stages.append(
             [
                 task(
                     "result",
-                    "color_result",
+                    Operations.color_result,
                     ref("analysis"),
                     specimens,
                     alignment,
@@ -535,7 +676,7 @@ class Workflows:
                 [
                     task(
                         "features",
-                        "features",
+                        Population.assemble_features,
                         colors.alignment or colors.specimens,
                         colors.analysis,
                         representation=representation,
@@ -546,23 +687,22 @@ class Workflows:
                 [
                     task(
                         "fit",
-                        "fit",
+                        Population.fit_model,
                         ref("features"),
                         method=options.method,
                         n_components=options.components,
                     )
                 ],
-                [task("result", "population_result", ref("features"), ref("fit"))],
+                [task("result", PopulationResult, ref("features"), ref("fit"))],
             ],
             (ref("result"),),
             "Population analysis",
         )
 
     @staticmethod
-    def single(operation: str, *arguments: Any, **options: Any) -> Pipeline:
+    def single(
+        operation: Callable[..., Any], *arguments: Any, **options: Any
+    ) -> Pipeline:
         """Wrap a small independent operation in the same execution contract."""
-        return Pipeline(
-            [[Workflows.task("result", operation, *arguments, **options)]],
-            (ResultRef("result"),),
-            operation,
-        )
+        task = Workflows.task("result", operation, *arguments, **options)
+        return Pipeline([[task]], (ResultRef("result"),), task.operation_name)

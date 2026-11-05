@@ -1,7 +1,7 @@
 """Blender subprocess boundary for atlas UV generation and texture transfer.
 
 Every invocation owns its temporary directory and Blender process. Scheduling,
-process pools, retries, and UI progress belong to future execution managers.
+cancellation between operations, and UI progress belong to execution managers.
 """
 
 import os
@@ -31,6 +31,7 @@ from interdeca.serde import (
     BlenderBakeRequestData,
     BlenderCleanupRequestData,
     BlenderUVRequestData,
+    CorrespondenceMeshData,
     MeshData,
 )
 
@@ -50,6 +51,7 @@ class Blender:
         merge_distance: float = 0.0001,
         timeout: float = 600,
         threads: int = 1,
+        workspace_parent: Path | None = None,
     ) -> AtlasModel:
         """Establish cleaned atlas topology before UV mapping and final resampling.
 
@@ -61,7 +63,7 @@ class Blender:
         if merge_distance == 0:
             return atlas
         # Private files isolate this topology-changing step from every existing atlas.
-        with tempfile.TemporaryDirectory(prefix="interdeca-clean-") as directory:
+        with Blender._workspace("interdeca-clean-", workspace_parent) as directory:
             root = Path(directory)
             Blender._save_mesh(atlas.mesh, root / "input.npz")
             config = BlenderCleanupRequest(
@@ -161,6 +163,7 @@ class Blender:
         island_margin: float = 0.02,
         timeout: float = 600,
         threads: int = 1,
+        workspace_parent: Path | None = None,
     ) -> AtlasModel:
         """Create a shared Smart UV map while preserving all vertices and faces.
 
@@ -178,7 +181,7 @@ class Blender:
             raise ValueError("island_margin must lie in [0, 1).")
         # Each invocation needs its own files so concurrent atlas preparations
         # cannot overwrite one another's mesh, request, or UV output.
-        with tempfile.TemporaryDirectory(prefix="interdeca-uv-") as directory:
+        with Blender._workspace("interdeca-uv-", workspace_parent) as directory:
             root = Path(directory)
             Blender._save_mesh(atlas.mesh, root / "atlas.npz")
             config = BlenderUVRequest(
@@ -216,6 +219,7 @@ class Blender:
         margin_pixels: int = 8,
         timeout: float = 1800,
         threads: int = 1,
+        workspace_parent: Path | None = None,
         overwrite: bool = False,
     ) -> BakedTexture:
         """Bake native sRGB texture colors onto the specimen's shared atlas UVs.
@@ -278,13 +282,15 @@ class Blender:
             raise FileExistsError(destination)
         # Decode the source once here so corrupt input is reported at the file
         # boundary instead of appearing as an opaque Blender subprocess failure.
-        TextureIO.read(specimen.texture_path)
+        TextureIO.validate_file(specimen.texture_path)
         # Keep intermediate files private until the worker has completed and its
         # output dimensions have been checked against the requested resolution.
-        with tempfile.TemporaryDirectory(prefix="interdeca-bake-") as directory:
+        with Blender._workspace("interdeca-bake-", workspace_parent) as directory:
             root = Path(directory)
             Blender._save_mesh(specimen.mesh, root / "source.npz")
-            Blender._save_mesh(target.mesh, root / "target.npz")
+            # Projected targets can contain collapsed faces; retaining their UV
+            # corners preserves correspondence without altering the native source.
+            Blender._save_mesh(target.mesh, root / "target.npz", allow_degenerate=True)
             config = BlenderBakeRequest(
                 source=str(root / "source.npz"),
                 target=str(root / "target.npz"),
@@ -316,11 +322,21 @@ class Blender:
         )
 
     @staticmethod
-    def _save_mesh(mesh: Mesh, path: Path) -> None:
+    def _workspace(prefix: str, parent: Path | None) -> tempfile.TemporaryDirectory:
+        """Keep temporary Blender files beside a dataset's prepared intermediates."""
+        # Legacy explicit-directory calls retain ordinary temporary storage;
+        # dataset-root workflows keep every prepared workspace under _interdeca.
+        if parent is not None:
+            parent.mkdir(parents=True, exist_ok=True)
+        return tempfile.TemporaryDirectory(prefix=prefix, dir=parent)
+
+    @staticmethod
+    def _save_mesh(mesh: Mesh, path: Path, *, allow_degenerate: bool = False) -> None:
         """Pass plain numeric arrays to Blender without Python object pickling."""
         # Validate before crossing processes, and omit absent UVs entirely so the
         # archive contains only numeric arrays rather than a pickled None object.
-        mesh = MeshData.from_internal(mesh).to_internal()
+        schema = CorrespondenceMeshData if allow_degenerate else MeshData
+        mesh = schema.from_internal(mesh).to_internal()
         if mesh.uv is None:
             np.savez(path, vertices=mesh.vertices, faces=mesh.faces)
         else:

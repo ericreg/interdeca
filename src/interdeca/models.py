@@ -79,8 +79,15 @@ class Mesh(NamedTuple):
     faces: IntArray
     uv: FloatArray | None = None
 
-    def validated(self) -> Self:
-        """Reject invalid connectivity and geometrically degenerate triangles."""
+    def validated(self, *, allow_degenerate: bool = False) -> Self:
+        """Validate indexing and UVs; require positive-area triangles by default.
+
+        Nearest-surface correspondence can project distinct vertices onto the
+        same point or edge. Such a result may retain collapsed faces for atlas
+        averaging and texture transfer, using allow_degenerate=True. Removing
+        those faces would destroy correspondence. Native surfaces and analysis
+        atlases still use the strict default before area or barycentric work.
+        """
         # Check connectivity before indexing vertices so bad face references
         # produce a clear validation error rather than an unrelated NumPy failure.
         vertices = Arrays.matrix(self.vertices, 3, "vertices")
@@ -89,19 +96,26 @@ class Mesh(NamedTuple):
             raise ValueError("faces must have shape (M, 3), with M > 0.")
         if faces.min() < 0 or faces.max() >= len(vertices):
             raise ValueError("A face references a nonexistent vertex.")
-        # Degenerate triangles cannot support stable area or barycentric
-        # calculations, even when their vertex indices are otherwise valid.
-        triangles = vertices[faces]
-        edges = triangles[:, 1:] - triangles[:, :1]
-        areas_twice = np.linalg.norm(np.cross(edges[:, 0], edges[:, 1]), axis=1)
-        # A relative threshold behaves consistently under changes of length unit.
-        edge_products = np.linalg.norm(edges[:, 0], axis=1) * np.linalg.norm(
-            edges[:, 1], axis=1
-        )
-        if np.any(areas_twice <= np.finfo(float).eps * 32 * edge_products):
-            raise ValueError(
-                "Mesh contains zero-area or numerically degenerate triangles."
+        # Projection can collapse positions, but it must never collapse index identities.
+        if np.any(
+            (faces[:, 0] == faces[:, 1])
+            | (faces[:, 1] == faces[:, 2])
+            | (faces[:, 2] == faces[:, 0])
+        ):
+            raise ValueError("A face must reference three distinct vertex indices.")
+        if not allow_degenerate:
+            # Area and barycentric calculations need nondegenerate input triangles.
+            # A relative threshold is unchanged when length units change.
+            triangles = vertices[faces]
+            edges = triangles[:, 1:] - triangles[:, :1]
+            areas_twice = np.linalg.norm(np.cross(edges[:, 0], edges[:, 1]), axis=1)
+            edge_products = np.linalg.norm(edges[:, 0], axis=1) * np.linalg.norm(
+                edges[:, 1], axis=1
             )
+            if np.any(areas_twice <= np.finfo(float).eps * 32 * edge_products):
+                raise ValueError(
+                    "Mesh contains zero-area or numerically degenerate triangles."
+                )
         # A UV value belongs to each face corner, which allows seams without
         # duplicating geometric vertices and changing correspondence.
         uv = None if self.uv is None else Arrays.frozen(self.uv)
@@ -311,6 +325,27 @@ class AtlasModel(NamedTuple):
     landmarks: Landmarks
 
 
+class AtlasScaleConversion(NamedTuple):
+    """Uniform atlas scale change about a fixed landmark centroid.
+
+    Centroid size is sqrt(sum of squared landmark distances from their centroid).
+    A point p becomes center + factor * (p - center), with factor equal to the
+    target/source centroid-size ratio. Target size uses the input coordinate units.
+    """
+
+    source_centroid_size: float
+    target_centroid_size: float
+    factor: float
+    center: tuple[float, float, float]
+
+
+class AtlasScaleResult(NamedTuple):
+    """An atlas in representative input units and the conversion applied to it."""
+
+    atlas: AtlasModel
+    conversion: AtlasScaleConversion
+
+
 class AtlasReference(NamedTuple):
     """Generalized Procrustes result used to create independent contributions."""
 
@@ -331,8 +366,10 @@ class AtlasReference(NamedTuple):
 class ResampledSpecimen(NamedTuple):
     """A specimen on atlas connectivity, retaining its anatomical shape.
 
-    Projection distances are measured in the common warped landmark space;
-    they diagnose correspondence quality, not the final surface error.
+    Projection distances describe the backend's query-to-surface displacement:
+    common warped space for native correspondence, aligned specimen space for
+    MorphoWeave. The run manifest records this convention. They are not the
+    final resampled vertex-to-native-surface error.
     """
 
     # Keep correspondence diagnostics with the resampled surface so quality can
@@ -354,6 +391,31 @@ class ResampledSpecimen(NamedTuple):
         return ResampledSpecimen(self.specimen_id, self.mesh, self.landmarks, distances)
 
 
+class FaceAdjacency(NamedTuple):
+    """Packed neighbor rows: face f uses indices[offsets[f]:offsets[f + 1]].
+
+    Rows preserve neighbor order and exclude no branches at nonmanifold edges.
+    Keeping two arrays avoids a Python object for every face during smoothing.
+    """
+
+    offsets: IntArray
+    indices: IntArray
+
+    def validated(self) -> Self:
+        """Own the graph buffers and check every row boundary and face index."""
+        offsets = Arrays.frozen(self.offsets, np.int64)
+        indices = Arrays.frozen(self.indices, np.int64)
+        # Endpoints and monotonicity ensure all slices stay in the flat buffer.
+        if (
+            offsets.ndim != 1 or len(offsets) < 2 or indices.ndim != 1
+            or offsets[0] != 0 or offsets[-1] != len(indices)
+            or np.any(offsets[1:] < offsets[:-1])
+            or np.any((indices < 0) | (indices >= len(offsets) - 1))
+        ):
+            raise ValueError("Adjacency requires monotone offsets and valid face indices.")
+        return FaceAdjacency(offsets, indices)
+
+
 class AnalysisGeometry(NamedTuple):
     """Shared face measurements, adjacency, and deterministic sample coverage.
 
@@ -365,7 +427,7 @@ class AnalysisGeometry(NamedTuple):
     mesh: Mesh
     face_areas: FloatArray
     face_centers: FloatArray
-    adjacency: tuple[IntArray, ...]
+    adjacency: FaceAdjacency
     # Store sample identities and their represented regions together so area
     # features can account for faces that were not sampled directly.
     sample_faces: IntArray
@@ -380,7 +442,7 @@ class AnalysisGeometry(NamedTuple):
             Arrays.frozen(self.face_areas),
             Arrays.frozen(self.face_centers),
         )
-        adjacency = tuple(Arrays.frozen(row, np.int64) for row in self.adjacency)
+        adjacency = self.adjacency.validated()
         samples = Arrays.frozen(self.sample_faces, np.int64)
         nearest = Arrays.frozen(self.nearest_samples, np.int64)
         represented = Arrays.frozen(self.sample_areas)
@@ -390,20 +452,13 @@ class AnalysisGeometry(NamedTuple):
         if (
             areas.shape != (count,)
             or centers.shape != (count, 3)
-            or len(adjacency) != count
+            or len(adjacency.offsets) != count + 1
         ):
             raise ValueError(
                 "Analysis measurements and adjacency must match the atlas face count."
             )
         if np.any(areas <= 0):
             raise ValueError("Analysis face areas must be positive.")
-        # Reject graph edges pointing outside the atlas before shortest-path or
-        # smoothing operations try to use them as array indices.
-        for row in adjacency:
-            if row.ndim != 1 or np.any((row < 0) | (row >= count)):
-                raise ValueError(
-                    "Adjacency must contain one-dimensional arrays of valid face indices."
-                )
         # Samples must identify distinct faces, and every atlas face must be
         # assigned to one of those samples for its area to be represented.
         if (
@@ -677,9 +732,21 @@ class TexturePixels(NamedTuple):
 
     def validated(self) -> Self:
         """Require bounded RGB/alpha with matching, nonempty image dimensions."""
+        # External arrays may have writable aliases. Own them before checking
+        # the image; trusted boundaries can reuse buffers they already own.
+        return TexturePixels(
+            Arrays.frozen(self.rgb), Arrays.frozen(self.alpha)
+        )._checked()
+
+    def _checked(self) -> Self:
+        """Check image invariants on already owned, finite float64 buffers.
+
+        Only validated() and the texture boundary call this helper. It does not
+        infer ownership from read-only flags and does not accept external arrays.
+        """
         # Require one alpha value for each RGB pixel before image interpolation
         # can safely combine color and coverage weights.
-        rgb, alpha = Arrays.frozen(self.rgb), Arrays.frozen(self.alpha)
+        rgb, alpha = self
         if (
             rgb.ndim != 3
             or rgb.shape[-1] != 3
@@ -691,7 +758,7 @@ class TexturePixels(NamedTuple):
         # before the data is used for averaging or saved as an image.
         if np.any((rgb < 0) | (rgb > 1)) or np.any((alpha < 0) | (alpha > 1)):
             raise ValueError("Texture RGB and alpha must lie in [0, 1].")
-        return TexturePixels(rgb, alpha)
+        return self
 
 
 class PopulationModelSnapshot(NamedTuple):

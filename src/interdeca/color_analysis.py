@@ -7,6 +7,7 @@ import numpy as np
 from skimage.color import lab2rgb, rgb2lab
 from sklearn.cluster import AgglomerativeClustering, KMeans
 
+from interdeca import _native
 from interdeca.io import TextureIO
 from interdeca.models import (
     AnalysisGeometry,
@@ -92,30 +93,17 @@ class ColorAnalysis:
         # missing data; testing for black would discard real black surface colors.
         face_rgb, face_alpha = ColorAnalysis._sample_image(rgb, alpha, uv.mean(axis=1))
         valid = face_alpha >= minimum_alpha
-        face_rgb[~valid] = 0
-        # Read from the previous pass and write to a fresh array so smoothing is
-        # independent of face traversal order.
-        for _step in range(smoothing_steps):
-            smoothed = np.zeros_like(face_rgb)
-            for face_index, neighbors in enumerate(analysis.adjacency):
-                if not valid[face_index]:
-                    continue
-                # Keep the face itself in the average and exclude missing neighbors
-                # so absent texture coverage cannot pull colors toward black.
-                neighborhood = np.concatenate(([face_index], neighbors))
-                neighborhood = neighborhood[valid[neighborhood]]
-                # Weight by surface area so many tiny triangles do not outweigh
-                # a larger neighboring region merely because there are more of them.
-                weights = analysis.face_areas[neighborhood]
-                smoothed[face_index] = np.average(
-                    face_rgb[neighborhood], axis=0, weights=weights
-                )
-            face_rgb = smoothed
-        # Subsample after smoothing so even unselected neighboring faces can
-        # contribute to a selected face's local color estimate.
+        # Native smoothing keeps invalid faces excluded and reads a separate
+        # previous-pass buffer. Only the final pass can omit unselected outputs;
+        # their raw/intermediate colors still contribute to selected neighbors.
+        sampled_rgb = _native.smooth_face_colors(
+            face_rgb, valid, analysis.face_areas,
+            analysis.adjacency.offsets, analysis.adjacency.indices,
+            analysis.sample_faces, smoothing_steps,
+        )
         return SampledColors(
             texture.specimen_id,
-            face_rgb[analysis.sample_faces],
+            sampled_rgb,
             valid[analysis.sample_faces],
             analysis.sampling_key,
         ).validated()
@@ -311,11 +299,12 @@ class ColorAnalysis:
         *,
         overwrite: bool = False,
     ) -> Path:
-        """Average matching atlas textures in linear light, ignoring transparent pixels.
+        """Average encoded RGB byte values equally, matching the original module.
 
-        Images must share UV topology and resolution. Input alpha acts as a
-        fractional contribution weight; output alpha is the maximum input alpha,
-        preserving coverage wherever any specimen supplies valid image data.
+        Images must share UV topology and resolution. Each input contributes
+        once at every pixel, without linear-light conversion or alpha weighting.
+        Fractional mean byte values are truncated as in the original NumPy mean
+        followed by uint8 conversion. Output alpha retains maximum input coverage.
         """
         # Each specimen should contribute once, and output must not overwrite
         # an input that another task may still be using.
@@ -333,9 +322,8 @@ class ColorAnalysis:
         # Accumulate one image at a time so the whole population need not be
         # resident in memory while forming the average.
         height, width = first.resolution[1], first.resolution[0]
-        color_sum, weight_sum, coverage = (
-            np.zeros((height, width, 3)),
-            np.zeros((height, width)),
+        color_sum, coverage = (
+            np.zeros((height, width, 3), dtype=np.uint64),
             np.zeros((height, width)),
         )
         # The same pixel must represent the same atlas location in every image;
@@ -349,21 +337,15 @@ class ColorAnalysis:
             rgb, alpha = TextureIO.read(texture.path)
             if rgb.shape != color_sum.shape:
                 raise ValueError("Texture dimensions disagree with metadata.")
-            # Average light values rather than encoded sRGB numbers, weighting
-            # coverage so transparent padding cannot darken the mean.
-            color_sum += TextureIO.to_linear(rgb) * alpha[..., None]
-            weight_sum += alpha
+            # Recover exact input bytes before summing. Integer division matches
+            # the legacy mean-to-uint8 truncation without floating-point drift.
+            color_sum += np.rint(rgb * 255).astype(np.uint64)
             coverage = np.maximum(coverage, alpha)
-        # Leave uncovered pixels at zero without dividing by zero; coverage stays
-        # separate so these pixels remain distinguishable from measured black.
-        mean = np.divide(
-            color_sum,
-            weight_sum[..., None],
-            out=np.zeros_like(color_sum),
-            where=weight_sum[..., None] > 0,
-        )
+        # Alpha remains separate coverage metadata and does not change the RGB
+        # mean. The writer receives already-truncated byte values in unit range.
+        mean = (color_sum // len(textures)) / 255
         return TextureIO.write_png(
-            TextureIO.from_linear(mean), coverage, destination, overwrite=overwrite
+            mean, coverage, destination, overwrite=overwrite
         )
 
     @staticmethod

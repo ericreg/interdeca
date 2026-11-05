@@ -1,19 +1,11 @@
-"""Small Slicer entry point; application logic and rendering live in packages."""
+"""Slicer client entry point; the external worker owns application logic."""
 
-from interdeca_slicer.bootstrap import PackagePanel
+from interdeca_slicer.application import SlicerApplication
+from interdeca_slicer.bootstrap import WorkerPanel
 from slicer.ScriptedLoadableModule import (
     ScriptedLoadableModule,
     ScriptedLoadableModuleWidget,
 )
-
-# Missing computational dependencies must not hide the installation controls.
-try:
-    from interdeca_slicer.application import SlicerApplication
-
-    IMPORT_ERROR = ""
-except ImportError as error:
-    SlicerApplication = None
-    IMPORT_ERROR = str(error)
 
 
 class InterDeCANext(ScriptedLoadableModule):
@@ -32,18 +24,14 @@ class InterDeCANextWidget(ScriptedLoadableModuleWidget):
     """Own the host lifetime; no numerical work is performed by this entry point."""
 
     def setup(self):
-        """Create the application when available and always expose dependency management."""
+        """Create passive panels and the independent worker launcher."""
         super().setup()
-        self.application = None
-        if SlicerApplication is not None:
-            self.application = SlicerApplication()
-            self.layout.addWidget(self.application.widget)
-        self.packages = PackagePanel(IMPORT_ERROR)
-        self.layout.addWidget(self.packages.widget)
+        self.application = SlicerApplication()
+        self.worker = WorkerPanel(self.application)
+        self.layout.addWidget(self.worker.widget)
+        self.layout.addWidget(self.application.widget)
 
     def cleanup(self):
         """Detach application callbacks before Slicer destroys the module widgets."""
         # Detach scene observers and queued callbacks before Slicer destroys widgets.
-        if self.application is not None:
-            self.application.close()
-        self.packages.close()
+        self.application.close()

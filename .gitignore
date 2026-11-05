@@ -9,3 +9,9 @@ wheels/
 # Virtual environments
 .venv
 .ruff_cache
+
+# Keep compiled runtime artifacts out of source control.
+rust/target/
+src/interdeca/*.so
+src/interdeca/*.pyd
+src/interdeca/*.dylib

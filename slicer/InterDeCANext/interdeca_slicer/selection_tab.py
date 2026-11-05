@@ -8,7 +8,7 @@ from interdeca_slicer.widgets import Widgets
 
 
 class SelectionTab:
-    """Present the active legacy region-selection workflow."""
+    """Capture scene inputs and render worker-produced selection overlays."""
 
     def __init__(self, app):
         self.app = app
@@ -24,7 +24,7 @@ class SelectionTab:
         self.clear = Widgets.button(
             section,
             "Clear Selection",
-            lambda: app.guard(app.controller.clear_selection),
+            lambda: app.guard(app.client.clear_selection),
         )
         self.apply = Widgets.button(
             section, "Apply Selection", lambda: app.guard(self.select)
@@ -53,7 +53,7 @@ class SelectionTab:
         """Release the previous overlay before switching the selection target."""
         self.restore_appearance()
         if not self.app._presenting:
-            self.app.controller.invalidate("selection")
+            self.app.client.invalidate("selection")
         self.app.watch_sources()
 
     def restore_appearance(self):
@@ -85,12 +85,9 @@ class SelectionTab:
 
     def curve_edited(self, *args):
         """Discard in-flight selection work while keeping previously applied regions."""
-        if (
-            self.app.controller.state.action == "selection"
-            and self.app.controller.state.run_id
-        ):
-            self.app.controller.invalidate("curve")
-        self.app.render(self.app.controller.state)
+        if self.app.client.state.action == "selection" and self.app.client.state.run_id:
+            self.app.client.invalidate("curve")
+        self.app.render(self.app.client.state)
 
     def place(self):
         """Enter Slicer curve-placement mode, creating a curve when necessary."""
@@ -115,7 +112,7 @@ class SelectionTab:
         """Snapshot the curve and surface before submitting region selection."""
         snapshot = SceneBridge.snapshot(self.model.currentNode())
         self.app.remember_source(snapshot)
-        self.app.controller.select_region(
+        self.app.client.select_region(
             snapshot.mesh,
             SceneBridge.curve_points(self.curve.currentNode()),
             bool(self.side.checked),
@@ -126,11 +123,11 @@ class SelectionTab:
         """Export the applied selection using the current canonical source geometry."""
         self.export_snapshot = SceneBridge.snapshot(self.model.currentNode())
         self.app.remember_source(self.export_snapshot)
-        self.app.controller.export_region(self.export_snapshot.mesh)
+        self.app.client.export_region(self.export_snapshot.mesh)
 
     def render(self, state):
         """Enable selection actions according to available inputs and execution state."""
-        busy = state.run_id is not None
+        busy = self.app.client.busy
         self.widget.enabled = not busy
         self.apply.enabled = (
             not busy
@@ -144,7 +141,7 @@ class SelectionTab:
         self.info.text = (
             "No region selected"
             if state.selection is None
-            else f"Selected: {len(state.selection.vertices)} vertices, {len(state.selection.faces)} faces"
+            else f"Selected: {state.selection.vertices} vertices, {state.selection.faces} faces"
         )
 
     def close(self):

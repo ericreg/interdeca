@@ -17,13 +17,59 @@ class ResultRef(NamedTuple):
     path: tuple[str | int, ...] = ()
 
 
+class Option(NamedTuple):
+    """A named operation argument; dictionaries remain only actual lookup tables."""
+
+    name: str
+    value: Any
+
+
+class TaskCall(NamedTuple):
+    """Positional and named inputs, with ResultRef values for earlier results."""
+
+    arguments: tuple = ()
+    options: tuple[Option, ...] = ()
+
+
 class Task(NamedTuple):
-    """One registered operation with a fixed-field input record."""
+    """One callable operation with explicit positional and named inputs.
+
+    Operations are code references, normally domain static methods. Pipelines
+    stay inside the application process; executable references are not accepted
+    through serialized user requests. Arguments remain separate so submission
+    can snapshot arrays and validate dependencies before executing any work.
+
+    A managed result is a context manager. Its entered value is available to
+    downstream tasks; cleanup finishes before the run's terminal notification.
+    Resources cannot suppress task failures, and final outputs must not require
+    a still-open resource after the run ends.
+
+    release_after optionally names the final task that needs this resource open.
+    This is a workflow assertion: every later result must own its data, rather
+    than forwarding a resource or a path into it. Without that assertion, a
+    resource remains open for the whole run, including indirect consumers.
+    """
 
     task_id: str
-    operation: str
-    inputs: tuple
+    operation: Callable[..., Any]
+    inputs: TaskCall
     label: str = ""
+    manage_resource: bool = False
+    release_after: str | None = None
+
+    @property
+    def operation_name(self) -> str:
+        """Describe the callable for diagnostics without using its name for dispatch."""
+        return getattr(self.operation, "__qualname__", type(self.operation).__qualname__)
+
+    def invoke(self, inputs: TaskCall) -> Any:
+        """Call the operation after the executor resolves its input references."""
+        # Keyword dictionaries exist only at the Python call boundary. The stored
+        # inputs remain records that dependency validation can inspect and copy.
+        return self.operation(
+            *inputs.arguments,
+            **{option.name: option.value for option in inputs.options},
+        )
 
 
 class Pipeline(NamedTuple):
@@ -72,7 +118,9 @@ class EventDispatcher(Protocol):
 class ExecutionManager(Protocol):
     """The complete controller dependency, independent of scheduling mechanics."""
 
-    def submit(self, pipeline: Pipeline, observer: Observer) -> RunId: ...
+    def submit(
+        self, pipeline: Pipeline, observer: Observer, *, run_id: RunId
+    ) -> RunId: ...
     def cancel(self, run_id: RunId) -> None: ...
     def close(self) -> None: ...
 
@@ -119,7 +167,20 @@ class TaskValues:
         return value
 
     @staticmethod
-    def snapshot(pipeline: Pipeline, operations: Mapping[str, Callable]) -> Pipeline:
+    def references(value: Any) -> tuple[ResultRef, ...]:
+        """List every dependency occurrence, including repeated and nested inputs."""
+        references = []
+
+        def collect(reference: ResultRef) -> ResultRef:
+            references.append(reference)
+            return reference
+
+        # Reuse the input traversal rules without copying numerical buffers.
+        TaskValues.map(value, collect)
+        return tuple(references)
+
+    @staticmethod
+    def snapshot(pipeline: Pipeline) -> Pipeline:
         """Reject ambiguous graphs before any operation can produce side effects."""
         seen: set[str] = set()
         stages = []
@@ -137,12 +198,17 @@ class TaskValues:
             for task in stage:
                 if not task.task_id or task.task_id in seen | current:
                     raise ValueError(f"Duplicate or empty task ID: {task.task_id!r}")
-                if task.operation not in operations:
-                    raise ValueError(f"Unknown operation: {task.operation}")
-                if not isinstance(task.inputs, tuple) or not hasattr(
-                    task.inputs, "_fields"
+                # Queued work retains the callable itself; a name cannot select code.
+                if not callable(task.operation):
+                    raise TypeError("Task operation must be a callable reference.")
+                if not isinstance(task.manage_resource, bool):
+                    raise TypeError("manage_resource must be a boolean.")
+                if task.release_after is not None and (
+                    not isinstance(task.release_after, str) or not task.release_after
                 ):
-                    raise TypeError("Task inputs must be a NamedTuple record.")
+                    raise TypeError("release_after must be a nonempty task ID or None.")
+                if not isinstance(task.inputs, TaskCall):
+                    raise TypeError("Task inputs must be a TaskCall record.")
                 copied.append(
                     task._replace(inputs=TaskValues.map(task.inputs, check, True))
                 )
@@ -155,4 +221,23 @@ class TaskValues:
         for output in pipeline.outputs:
             if output.task_id not in seen:
                 raise ValueError(f"Unknown pipeline output: {output.task_id}")
+        # An explicit early boundary cannot precede acquisition or a later
+        # direct use. Indirect lifetime remains the workflow author's contract.
+        tasks = tuple(task for stage in stages for task in stage)
+        positions = {task.task_id: index for index, task in enumerate(tasks)}
+        for task in tasks:
+            if task.release_after is None:
+                continue
+            if not task.manage_resource:
+                raise ValueError("release_after requires a managed resource.")
+            until = positions.get(task.release_after, -1)
+            if until < positions[task.task_id]:
+                raise ValueError("Resource release boundary must name this or a later task.")
+            later = tuple(
+                reference
+                for consumer in tasks[until + 1:]
+                for reference in TaskValues.references(consumer.inputs)
+            ) + tuple(pipeline.outputs)
+            if any(reference.task_id == task.task_id for reference in later):
+                raise ValueError("A resource is referenced after its release boundary.")
         return Pipeline(tuple(stages), tuple(pipeline.outputs), pipeline.label)

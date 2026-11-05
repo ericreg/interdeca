@@ -40,6 +40,8 @@ from interdeca.models import (
     TexturePixels,
 )
 from interdeca.population import Population
+from interdeca.spatial import Spatial, SurfaceProjection
+from interdeca.surface import CleanupResult, MeshProcessing, TextureBaking, UVLayout
 
 # Keep the public surface explicit so internal helpers and serialization details
 # do not become accidental API commitments through wildcard imports.
@@ -65,6 +67,10 @@ __all__ = [
     "Landmarks",
     "Mesh",
     "MeshIO",
+    "MeshProcessing",
+    "CleanupResult",
+    "TextureBaking",
+    "UVLayout",
     "NormalizationStats",
     "Pipeline",
     "Population",
@@ -77,6 +83,8 @@ __all__ = [
     "ResultRef",
     "SampledColors",
     "SpatialTransform",
+    "Spatial",
+    "SurfaceProjection",
     "Specimen",
     "SpecimenColorMoments",
     "Task",

@@ -1,0 +1,3 @@
+[submodule "src/interdeca/_vendor/morphoweave"]
+	path = src/interdeca/_vendor/morphoweave
+	url = https://github.com/agporto/SlicerMorphoWeave.git

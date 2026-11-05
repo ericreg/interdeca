@@ -5,11 +5,10 @@ from typing import NamedTuple
 
 import numpy as np
 import vtk
+from interdeca_client.records import FaceColors, Mesh
 from vtk.util.numpy_support import numpy_to_vtk, numpy_to_vtkIdTypeArray, vtk_to_numpy
 
 import slicer
-from interdeca.models import FaceColors, Mesh
-from interdeca.serde import MeshData
 
 
 class SceneMesh(NamedTuple):
@@ -30,6 +29,7 @@ class DisplayState(NamedTuple):
     visible: bool
     color_node: str | None
     scalar_range: tuple[float, float]
+    scalar_range_flag: int
 
 
 class SceneBridge:
@@ -48,6 +48,7 @@ class SceneBridge:
             bool(display.GetScalarVisibility()),
             display.GetColorNodeID(),
             tuple(display.GetScalarRange()),
+            display.GetScalarRangeFlag(),
         )
 
     @staticmethod
@@ -60,6 +61,7 @@ class SceneBridge:
         # PythonQt expects a string even when the original model had no color map.
         display.SetAndObserveColorNodeID(state.color_node or "")
         display.SetScalarRange(*state.scalar_range)
+        display.SetScalarRangeFlag(state.scalar_range_flag)
         display.SetScalarVisibility(state.visible)
 
     @staticmethod
@@ -106,10 +108,14 @@ class SceneBridge:
             vertices = np.asarray(
                 [transform.TransformPoint(point) for point in vertices]
             )
-        mesh = MeshData(vertices=vertices, faces=faces, uv=uv).to_internal()
-        signature = sha256(
-            mesh.vertices.tobytes() + mesh.topology_key.encode()
-        ).hexdigest()
+        # Snapshots preserve source order; full numerical validation belongs to the worker.
+        mesh = Mesh(vertices, faces, uv)
+        digest = sha256(mesh.vertices.astype("<f8", copy=False).tobytes())
+        digest.update(mesh.faces.astype("<i8", copy=False).tobytes())
+        digest.update(
+            b"no-uv" if mesh.uv is None else mesh.uv.astype("<f8", copy=False).tobytes()
+        )
+        signature = digest.hexdigest()
         return SceneMesh(mesh, node.GetID(), point_ids, signature)
 
     @staticmethod
@@ -211,6 +217,9 @@ class SceneBridge:
         display = node.GetDisplayNode()
         display.SetTextureImageDataConnection(None)
         display.SetActiveScalar("InterDeCA_Colors", vtk.vtkAssignAttribute.CELL_DATA)
+        # Three byte components are actual RGB, not measurements for a color
+        # lookup table. Explicit mapping also overrides a prior selection overlay.
+        display.SetScalarRangeFlag(slicer.vtkMRMLDisplayNode.UseDirectMapping)
         display.SetScalarVisibility(True)
         display.SetVisibility(True)
         poly.Modified()
@@ -235,6 +244,9 @@ class SceneBridge:
             "InterDeCA_Selection", vtk.vtkAssignAttribute.POINT_DATA
         )
         display.SetScalarRange(0, 1)
+        # Selection is a binary measurement and needs its lookup table rather
+        # than the direct RGB mapping used by sampled and reconstructed colors.
+        display.SetScalarRangeFlag(slicer.vtkMRMLDisplayNode.UseManualScalarRange)
         display.SetAndObserveColorNodeID(
             "vtkMRMLColorTableNodeFileColdToHotRainbow.txt"
         )
@@ -325,6 +337,7 @@ class PopulationPlot:
         self.nodes = []
         self.table = None
         self.chart = None
+        self.marker = None
 
     def show(self, data):
         """Display stored population scores and prepare a separate moving-point series."""
@@ -379,9 +392,12 @@ class PopulationPlot:
         marker.SetYColumnName("Y")
         marker.SetPlotType(marker.PlotTypeScatter)
         marker.SetLineStyle(marker.LineStyleNone)
+        marker.SetMarkerStyle(marker.MarkerStyleCircle)
         marker.SetMarkerSize(12)
         marker.SetColor(1, 0, 0)
-        self.chart.AddAndObservePlotSeriesNodeID(marker.GetID())
+        # An empty series triggers VTK's line painter even with lines disabled.
+        # Attach this series only after the first complete position is available.
+        self.marker = marker
         self.nodes.extend((self.point_table, marker))
         manager = slicer.app.layoutManager()
         if manager is not None:
@@ -397,15 +413,28 @@ class PopulationPlot:
     def point(self, x, y):
         """Update the morphospace marker without rebuilding the population plot."""
         if self.table is not None:
-            self.point_table.GetTable().SetNumberOfRows(1)
-            self.point_table.SetCellText(0, 0, str(x))
-            self.point_table.SetCellText(0, 1, str(y))
-            self.point_table.Modified()
+            # Slicer's scatter series still passes through vtkPlotLine, which
+            # needs two points. Coincident rows draw one visible position marker
+            # without inventing another coordinate or changing population data.
+            modifying = self.point_table.StartModify()
+            self.point_table.GetTable().SetNumberOfRows(2)
+            for row in range(2):
+                self.point_table.SetCellText(row, 0, str(x))
+                self.point_table.SetCellText(row, 1, str(y))
+            self.point_table.EndModify(modifying)
+            if not self.chart.HasPlotSeriesNodeID(self.marker.GetID()):
+                self.chart.AddAndObservePlotSeriesNodeID(self.marker.GetID())
 
     def clear(self):
         """Remove only the chart nodes owned by this application session."""
+        # Detach series before their tables disappear, avoiding transient empty
+        # plots during chart replacement or session shutdown.
+        if self.chart is not None:
+            self.chart.RemoveAllPlotSeriesNodeIDs()
         for node in self.nodes:
             if node.GetScene() is not None:
                 slicer.mrmlScene.RemoveNode(node)
         self.nodes = []
         self.table = None
+        self.chart = None
+        self.marker = None
